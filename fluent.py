@@ -3,6 +3,8 @@
 
 """
 Usage:
+	
+	foo
 
 >>> from fluent_interface import *
 >>> import sys
