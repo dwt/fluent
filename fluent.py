@@ -4,7 +4,7 @@
 """
 Usage:
 
->>> from fluent_interface import *
+>>> from fluent import *
 >>> import sys
 >>> str(sys.stdin).split().map().join()(print)
 
@@ -22,8 +22,6 @@ should also have
     _.wrapper for the generic wrapping logic
 
 This library tries to do a little of what underscore does for javascript. Just provide the missing glue to make the standard library nicer to use.
-
-Consider what to do for __ functions as they cannot easily be wrapped. Implement them all on the wraper?
 """
 
 from __future__ import print_function
@@ -34,14 +32,21 @@ import types
 import functools
 import itertools
 import operator
+import collections.abc
 
 __all__ = [
     'wrap',
     'lib', # wrapper for python stdlib, access every stdlib package directly on this without need to import it
 ]
 
+CollectionType = collections.abc.Container
+if hasattr(typing, 'Collection'): # strangely not available on ipad
+    CollectionType = typing.Collection
 
-__list, __str = (list, str)
+TextType = str
+if hasattr(typing, 'Text'): # strangely not available on ipad
+    TextType = typing.Text
+
 
 def wrap(wrapped, *, previous=None):
     """Factory method, wraps anything and returns the appropriate Wrapper subclass.
@@ -50,10 +55,9 @@ def wrap(wrapped, *, previous=None):
     everything you call off of that will stay wrapped in the apropriate wrappers.
     """
     if wrapped is None: wrapped = previous
-        
-    # ordered in python3
+    
     by_type = (
-        (typing.Text, Text),
+        (TextType, Text),
         (typing.Mapping, Mapping),
         (typing.AbstractSet, Set),
         (typing.Iterable, Iterable),
@@ -68,6 +72,8 @@ def wrap(wrapped, *, previous=None):
 def apply(function, *args, **kwargs):
     return function(*args, **kwargs)
 
+# using these decorators will take care of unwrapping and rewrapping the target object.
+# thus all following code is written as if the methods live on the wrapped object
 def wrapping(wrapped_function):
     @functools.wraps(wrapped_function)
     def wrapper(self, *args, **kwargs):
@@ -150,7 +156,7 @@ class Wrapper(object):
     
     @wrapping_forward
     def tee(self, function):
-        function(wrap(self))
+        function(wrap(self)) # REFACT consider to hand in unwrapped object here to make it easier to work with stdlib methods here, might be unneccessary if wrapper is complete
         return self
     
     # isinstance, issubclass?
@@ -232,15 +238,15 @@ class Iterable(Wrapper):
     
     @wrapping_forward
     def tee(self, function):
-        if not isinstance(self, typing.Collection): # probably a consuming iterator
+        if not isinstance(self, CollectionType): # probably a consuming iterator
             first, second = itertools.tee(self, 2)
-            function(wrap(first))
+            function(wrap(first)) # REFACT here too, do I want to hand out unwrapped objects for better interoperability?
             return second
         else: # can't call super from here, as self is not the real self
             function(wrap(self))
             return self
     
-    # any, all, enumerate, len, max, min, reverse, setattr?, sum,, vars, dir
+    # any, all, enumerate, len, max, min, reverse, setattr?, sum,, vars, dir, starmap
     # grouped, flatten
 
 class Mapping(Iterable):
@@ -248,25 +254,23 @@ class Mapping(Iterable):
     # REFACT rename: kwargs_call?
     @wrapping
     def splat_call(self, function, *args, **kwargs):
-        "Calls function(*self), but allows to override kwargs"
+        "Calls function(**self), but allows to override kwargs"
+        # REFACT curry sets defaults - maybe I want this here too for consistency?
         return function(*args, **dict(self, **kwargs))
     
-    # consider key_map, value_map, item_map?
-# Do I want something more abstract that also encompasses frozenset?
+
 class Set(Iterable): pass
 
 class Text(Wrapper): pass
 
 # Roundable (for all numeric needs?)
-    # round
+    # round, times, repeat, if, else
 """comment
+not sure this is very usefull, can just .call('foo'.format) stuff
 # list.format = lambda self, format_string: str(format_string.format(*self))
 #
 #
 # str.findall = lambda self, pattern: list(re.findall(pattern, self))
-#  # REFACT can this be generalized to a mixin?
-# # str.apply = lambda self, function: function(*self)
-# # str.map = lambda self, iterator: list(map(iterator, self))
 # # str.split = lambda self, *args, **kwargs: list(__str.split(self, *args, **kwargs))
 # # str.split = list.cast(__str.split)
 # # str.split = str.split.cast(list)
@@ -279,16 +283,13 @@ class Text(Wrapper): pass
 
 # REFACT accept regex as first argument and route to re.split then instead
 
-# REFACT add auto-enhancer object (proxy that auto wraps method / function returns in a suitable subclass)
 # REFACT add imp auto importer, that pre-wraps everything he imports. End effect should be that python is seamlessly usable like this.
 # REFACT add python -m fluent 'code…' support which auto injects module importer and 
-# TODO stuff to implement: zip, len, a way to get at the underlaying value
 # TODO add flatten to listlikes
 # TODO add sort, groupby, grouped
 # TODO add convenience keyword arguments to map etc.
 # map(attr='attrname') as shortcut for map(attrgetter('attrname'))
 # map(item='itemname') as shortcut for map(itemgetter('itemname'))
-# TODO consider starcall for Iterable and Mapping
 # TODO consider numeric type to do stuff like wrap(3).times(...)
     or wrap([1,2,3]).call(len).times(yank_me)
 """
