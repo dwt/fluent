@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 # encoding: utf8
 
+# This library is principally created for python 3. However python 2 support may be doable and is welcomed.
+
 """
 Usage:
 
 >>> from fluent import *
 >>> import sys
->>> str(sys.stdin).split().map().join()(print)
+>>> wrap(sys.stdin).split().map(str.upper).map(print)
 
->>> from fluent import _ # as something if it colides
+>>> from fluent import _ # alias for wrap
+>>> import sys
+>>> _(sys.stdin).split().map(str.upper).map(print)
 
 then start everything with:
 
@@ -16,10 +20,12 @@ then start everything with:
 
 to get the right wrapper.
 
-should also have 
-    _.lib.$something that could be imported
-    _.list, -.str, _.tuple, _.dict, … all the wrappers
-    _.wrapper for the generic wrapping logic
+Chain off of `lib` or `_.lib` to get at symbols that can be imported.
+This is meant as shortcut to use importable symbols without having to spend another line.
+
+>>> _(_.lib.sys.stdin.read()).map(_.lib.os.path.join)(print)
+
+ that could be imported
 
 This library tries to do a little of what underscore does for javascript. Just provide the missing glue to make the standard library nicer to use.
 """
@@ -35,7 +41,7 @@ import operator
 import collections.abc
 
 __all__ = [
-    'wrap',
+    'wrap', '_', # alias for wrap
     'lib', # wrapper for python stdlib, access every stdlib package directly on this without need to import it
 ]
 
@@ -57,6 +63,7 @@ def wrap(wrapped, *, previous=None):
     if wrapped is None: wrapped = previous
     
     by_type = (
+        (types.ModuleType, Module),
         (TextType, Text),
         (typing.Mapping, Mapping),
         (typing.AbstractSet, Set),
@@ -69,30 +76,39 @@ def wrap(wrapped, *, previous=None):
     
     return Wrapper(wrapped, previous=previous)
 
+_ = wrap
+
 def apply(function, *args, **kwargs):
     return function(*args, **kwargs)
 
 # using these decorators will take care of unwrapping and rewrapping the target object.
 # thus all following code is written as if the methods live on the wrapped object
-def wrapping(wrapped_function):
+def wrapped(wrapped_function):
     @functools.wraps(wrapped_function)
     def wrapper(self, *args, **kwargs):
         return wrap(wrapped_function(self.unwrap, *args, **kwargs), previous=self)
     return wrapper
 
-def forward(operation):
+def unwrapped(operation):
     @functools.wraps(operation)
     def forwarder(self, *args, **kwargs):
         return operation(self.unwrap, *args, **kwargs)
     return forwarder
 
-def wrapping_forward(operation):
-    @functools.wraps(operation)
-    @wrapping
-    def forwarder(self, *args, **kwargs):
-        return operation(self, *args, **kwargs)
-    return forwarder
-
+def wrapped_forward(wrapped_function):
+    """Forwards a call to a different object
+    
+    This makes its method available on the wrapper.
+    This specifically models the case where the method forwarded to, 
+    takes the current object as its first argument.
+    
+    This also deals nicely with the fact that the method is just on the wrong object.
+    """
+    @functools.wraps(wrapped_function)
+    def wrapper(self, *args, **kwargs):
+        return wrap(wrapped_function(args[0], self.unwrap, *args[1:], **kwargs), previous=self)
+    return wrapper
+    
 class Wrapper(object):
     """Universal wrapper.
     
@@ -125,13 +141,13 @@ class Wrapper(object):
     
     # Proxied methods
     
-    __call__ = wrapping_forward(apply)
-    __getattr__ = wrapping_forward(getattr)
+    __call__ = wrapped(apply)
+    __getattr__ = wrapped(getattr)
     
-    __str__ = forward(str)
-    __repr__ = forward(repr)
+    __str__ = unwrapped(str)
+    __repr__ = unwrapped(repr)
     
-    __eq__ = forward(operator.eq)
+    __eq__ = unwrapped(operator.eq)
     
     # Breakouts
     
@@ -145,26 +161,70 @@ class Wrapper(object):
     
     # Chainable versions of operators
     
-    @wrapping
+    @wrapped
     def call(self, function, *args, **kwargs):
         "Call function with self as first argument"
         # Different from __call__! Calls function(self, …) instead of self(…)
         return function(self, *args, **kwargs)
     
     # REFACT eq - keep or toss?
-    eq = wrapping_forward(operator.eq)
+    eq = wrapped(operator.eq)
     
-    @wrapping_forward
+    setattr = wrapped(setattr)
+    getattr = wrapped(getattr)
+    hasattr = wrapped(hasattr)
+    
+    isinstance = wrapped(isinstance)
+    issubclass = wrapped(issubclass)
+    
+    @wrapped
     def tee(self, function):
         function(wrap(self)) # REFACT consider to hand in unwrapped object here to make it easier to work with stdlib methods here, might be unneccessary if wrapper is complete
         return self
     
-    # isinstance, issubclass?
+    # vars, dir
+
+marker = object()
+class Module(Wrapper):
+    """Importer shortcut.
+    
+    All attribute accesses to instances of this class are converted to
+    an import statement, but as an expression that returns the wrapped imported object.
+    
+    Example:
+    
+    >>> lib.sys.stdin.read().map(print)
+    
+    Is equivalent to
+    
+    >>> import importlib
+    >>> wrap(importlib.import_module('sys').stdin).read().map(print)
+    
+    But of course without creating the intermediate symbol 'stdin' in the current namespace.
+    # TODO replace example with call to importlib implementation
+    
+    All objects returned from lib are pre-wrapped, so you can chain off of them immediately.
+    """
+    
+    def __getattr__(self, name):
+        if hasattr(self.unwrap, name):
+            return wrap(getattr(self.unwrap, name))
+        
+        import importlib
+        module = None
+        if self.unwrap is marker:
+            module = importlib.import_module(name)
+        else:
+            module = importlib.import_module('.'.join((self.unwrap.__name__, name)))
+        
+        return wrap(module)
+
+lib = Module(marker, previous=None)
 
 class Callable(Wrapper):
     
     # REFACT rename to partial for consistency with stdlib?
-    @wrapping
+    @wrapped
     def curry(self, *args, **kwargs):
         """"Like functools.partial, but with a twist.
         
@@ -200,44 +260,58 @@ class Callable(Wrapper):
             return self(*new_args, **new_kwargs)
         return wrapper
     
-    @wrapping
+    @wrapped
     def compose(self, outer):
         return lambda *args, **kwargs: outer(self(*args, **kwargs))
     # REFACT consider aliasses wrap = chain = cast = compose
-    
-    
+
 class Iterable(Wrapper):
     
-    __iter__ = forward(iter)
+    __iter__ = unwrapped(iter)
     
-    @wrapping
+    @wrapped
     def star_call(self, function, *args, **kwargs):
         "Call function with *self as first argument"
         return function(*args, *self, **kwargs)
     
     # This looks like it should be the same as 
-    # starcall = wrapping_forward(lambda function, wrapped, *args, **kwargs: function(*wrapped, *args, **kwargs))
+    # starcall = wrapped(lambda function, wrapped, *args, **kwargs: function(*wrapped, *args, **kwargs))
     # but it's not. Why?
     
-    @wrapping_forward
-    def join(wrapped, with_what):
+    @wrapped
+    def join(self, with_what):
         "Like str.join, but the other way around. Bohoo!"
-        return with_what.join(map(str, wrapped))
+        return with_what.join(map(str, self))
     
-    @wrapping_forward
-    def map(self, iterator):
-        return map(iterator, self)
+    ## Collection Functions .........................................
     
-    @wrapping_forward
-    def filter(self, iterator):
-        return filter(iterator, self)
+    any = wrapped(any)
+    all = wrapped(all)
+    map = wrapped_forward(map)
+    starmap = wrapped_forward(itertools.starmap)
+    filter = wrapped_forward(filter)
+    reduce = wrapped_forward(functools.reduce)
+    enumerate = wrapped(enumerate)
+    reversed = wrapped(reversed)
+    sorted = wrapped(sorted)
     
-    @wrapping_forward
+    len = wrapped(len)
+    max = wrapped(max)
+    min = wrapped(min)
+    sum = wrapped(sum)
+    
+    @wrapped
+    def grouped(self, group_length):
+        "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
+        return zip(*[iter(self)]*group_length)
+    
+    @wrapped
     def zip(self, *args):
         return zip(self, *args)
     
-    @wrapping_forward
+    @wrapped
     def tee(self, function):
+        "This override tries to retain iterators, as a speedup"
         if not isinstance(self, CollectionType): # probably a consuming iterator
             first, second = itertools.tee(self, 2)
             function(wrap(first)) # REFACT here too, do I want to hand out unwrapped objects for better interoperability?
@@ -246,26 +320,42 @@ class Iterable(Wrapper):
             function(wrap(self))
             return self
     
-    # any, all, enumerate, len, max, min, reverse, setattr?, sum,, vars, dir, starmap
-    # grouped, flatten
+    # flatten # model this after ruby array.flatten with level argument that defines how deep to flatten
 
 class Mapping(Iterable):
     
     # REFACT rename: kwargs_call?
-    @wrapping
+    @wrapped
     def splat_call(self, function, *args, **kwargs):
         "Calls function(**self), but allows to override kwargs"
         # REFACT curry sets defaults - maybe I want this here too for consistency?
         return function(*args, **dict(self, **kwargs))
-    
 
 class Set(Iterable): pass
 
-class Text(Wrapper): pass
+class Text(Wrapper):
+    
+    # Regex Methods ......................................
+    
+    
+    findall = wrapped_forward(re.findall)
+    
+    # finditer
+    # fullmatch
+    # match
+    # search
+    
+    split = wrapped_forward(re.split)
+    
+    # sub, subn
+    
+    # Reformulated String methods .......................
+    
+    format = wrapped_forward(str.format)
 
 # Roundable (for all numeric needs?)
     # round, times, repeat, if, else
-"""comment
+"""commented
 not sure this is very usefull, can just .call('foo'.format) stuff
 # list.format = lambda self, format_string: str(format_string.format(*self))
 #
@@ -346,6 +436,20 @@ class WrapperTest(FluentTest):
         expect(wrap('42')) == '42'
         callme = lambda: None
         expect(wrap(callme)) == callme
+    
+    def test_hasattr_getattr_setattr(self):
+        expect(wrap((1,2)).hasattr('len'))
+        expect(wrap('foo').getattr('__len__')()) == 3
+        class Attr(object):
+            foo = 'bar'
+        expect(wrap(Attr()).setattr('foo', 'baz').foo) == 'baz'
+    
+    def test_isinstance_issubclass(self):
+        expect(wrap('foo').isinstance(str)) == True
+        expect(wrap('foo').isinstance(int)) == False
+        expect(wrap(str).issubclass(object)) == True
+        expect(wrap(str).issubclass(str)) == True
+        expect(wrap(str).issubclass(int)) == False
 
 class CallableTest(FluentTest):
     
@@ -363,6 +467,9 @@ class CallableTest(FluentTest):
         
         def fnording(ignored): return 'fnord'
         expect(wrap([1,2,3]).tee(fnording)) == [1,2,3]
+    
+    def _test_tee_should_work_fine_with_functions_not_expecting_a_wrapper(self):
+        pass
     
     def test_curry(self):
         expect(wrap(lambda x, y: x*y).curry(2, 3)()) == 6
@@ -385,8 +492,19 @@ class IterableTest(FluentTest):
         expect(wrap(['1','2','3']).join(' ')) == '1 2 3'
         expect(wrap([1,2,3]).join(' ')) == '1 2 3'
     
+    def test_any(self):
+        expect(wrap((True, False)).any()) == True
+        expect(wrap((False, False)).any()) == False
+    
+    def test_all(self):
+        expect(wrap((True, False)).all()) == False
+        expect(wrap((True, True)).all()) == True
+    
     def test_map(self):
         expect(wrap([1,2,3]).map(lambda x: x * x).call(list)) == [1, 4, 9]
+    
+    def test_starmap(self):
+        expect(wrap([(1,2), (3,4)]).starmap(lambda x, y: x+y).call(list)) == [3, 7]
     
     def test_filter(self):
         expect(wrap([1,2,3]).filter(lambda x: x > 1).call(list)) == [2,3]
@@ -395,11 +513,36 @@ class IterableTest(FluentTest):
         expect(wrap((1,2)).zip((3,4)).call(tuple)) == ((1, 3), (2, 4))
         expect(wrap((1,2)).zip((3,4), (5,6)).call(tuple)) == ((1, 3, 5), (2, 4, 6))
     
+    def test_reduce(self):
+        expect(wrap((1,2)).reduce(operator.add)) == 3
+    
+    def grouped(self):
+        expect(wrap((1,2,3,4,5,6)).grouped(2).call(list)) == [(1,2), (3,4), (5,6)]
+    
     def test_tee_should_not_break_iterators(self):
         recorder = []
         def record(generator): recorder.extend(generator)
         expect(wrap([1,2,3]).map(lambda x: x*x).tee(record).call(list)) == [1,4,9]
         expect(recorder) == [1,4,9]
+    
+    def test_enumerate(self):
+        expect(wrap(('foo', 'bar')).enumerate().call(list)) == [(0, 'foo'), (1, 'bar')]
+    
+    def test_len(self):
+        expect(wrap((1,2,3)).len()) == 3
+    
+    def test_min_max_sum(self):
+        expect(wrap([1,2]).min()) == 1
+        expect(wrap([1,2]).max()) == 2
+        expect(wrap((1,2,3)).sum()) == 6
+    
+    def test_reversed_sorted(self):
+        expect(wrap([2,1,3]).reversed().call(list)) == [3,1,2]
+        expect(wrap([2,1,3]).sorted().call(list)) == [1,2,3]
+        expect(wrap([2,1,3]).sorted(reverse=True).call(list)) == [3,2,1]
+    
+    def _tee_should_work_fine_with_functions_that_dont_expect_wrappers(self):
+        pass
     
 class MappingTest(FluentTest):
     
@@ -410,19 +553,42 @@ class MappingTest(FluentTest):
     
 class StrTest(FluentTest):
     
-    def _test_findall(self):
-        expect(str("bazfoobar").findall('ba[rz]')) == ['baz', 'bar']
+    def test_findall(self):
+        expect(wrap("bazfoobar").findall('ba[rz]')) == ['baz', 'bar']
     
-    def _test_split(self):
-        expect(str('foo\nbar\nbaz').split('\n')) == ['foo', 'bar', 'baz']
-        # supports chaining
-        expect(str('foo\nbar\nbaz').split('\n').map(str.upper)) == ['FOO', 'BAR', 'BAZ']
+    def test_split(self):
+        expect(wrap('foo\nbar\nbaz').split(r'\n')) == ['foo', 'bar', 'baz']
+        expect(wrap('foo\nbar/baz').split(r'[\n/]')) == ['foo', 'bar', 'baz']
         
-    def _test_prepend(self):
-        expect(str('foo').prepend('Fnord: ')) == 'Fnord: foo'
+    def test_format(self):
+        expect(wrap('foo').format('bar {} baz')) == 'bar foo baz'
+
+class ImporterTest(FluentTest):
     
-    def _test_format(self):
-        expect(str('foo').format('bar {} baz')) == 'bar foo baz'
+    def test_import_top_level_module(self):
+        import sys
+        expect(lib.sys) == sys
+    
+    def test_import_symbol_from_top_level_module(self):
+        import sys
+        expect(lib.sys.stdin) == sys.stdin
+    
+    def test_import_submodule_that_is_also_a_symbol_in_the_parent_module(self):
+        import os
+        expect(lib.os.name) == os.name
+        expect(lib.os.path.join) == os.path.join
+    
+    def test_import_submodule_that_is_not_a_symbol_in_the_parent_module(self):
+        import dbm
+        expect(lambda: dbm.dumb).to_raise(AttributeError)
+        
+        def delayed_import():
+            import dbm.dumb
+            return dbm.dumb
+        expect(lib.dbm.dumb) == delayed_import()
+    
+    def test_imported_objects_are_pre_wrapped(self):
+        lib.os.path.join('/foo', 'bar', 'baz').findall(r'/(\w*)') == ['foo', 'bar', 'baz']
 
 class IntegrationTest(FluentTest):
     
