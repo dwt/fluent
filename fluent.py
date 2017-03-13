@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # encoding: utf8
+# license: ISC (MIT/BSD compatible) https://choosealicense.com/licenses/isc/
 
 # This library is principally created for python 3. However python 2 support may be doable and is welcomed.
 
