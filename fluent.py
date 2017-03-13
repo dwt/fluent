@@ -4,8 +4,7 @@
 
 # This library is principally created for python 3. However python 2 support may be doable and is welcomed.
 
-"""
-This library is heavily inspired by jQuery and underscore / lodash in the javascript world. Or you 
+"""This library is heavily inspired by jQuery and underscore / lodash in the javascript world. Or you 
 could say that it is inspired by SmallTalk and in extension Ruby and how they deal with collections 
 and how to work with them.
 
@@ -95,6 +94,7 @@ from __future__ import print_function
 
 import typing
 import re
+import math
 import types
 import functools
 import itertools
@@ -418,8 +418,16 @@ class Iterable(Wrapper):
     zip = tupleize(izip)
     
     @wrapped
-    def iflatten(self, level=None):
-        pass
+    def iflatten(self, level=math.inf):
+        "Modeled after rubys array.flatten @see http://ruby-doc.org/core-1.9.3/Array.html#method-i-flatten"
+        for element in self:
+            if level > 0 and isinstance(element, typing.Iterable):
+                for subelement in _(element).iflatten(level=level-1):
+                    yield subelement
+            else:
+                yield element
+        return
+    flatten = tupleize(iflatten)
     
     @wrapped
     def tee(self, function):
@@ -666,8 +674,14 @@ class IterableTest(FluentTest):
         expect(wrap([2,1,3]).sorted(reverse=True)) == (3,2,1)
     
     def test_flatten(self):
-        pass
+        expect(wrap([(1,2),[3,4],(5, [6,7])]).iflatten().call(list)) == \
+            [1,2,3,4,5,6,7]
+        expect(wrap([(1,2),[3,4],(5, [6,7])]).flatten()) == \
+            (1,2,3,4,5,6,7)
         
+        expect(wrap([(1,2),[3,4],(5, [6,7])]).flatten(level=1)) == \
+            (1,2,3,4,5,[6,7])
+    
     def _tee_should_work_fine_with_functions_that_dont_expect_wrappers(self):
         pass
     
@@ -677,7 +691,7 @@ class MappingTest(FluentTest):
         def foo(*, foo): return foo
         expect(wrap(dict(foo='bar')).splat_call(foo)) == 'bar'
         expect(wrap(dict(foo='baz')).splat_call(foo, foo='bar')) == 'bar'
-    
+
 class StrTest(FluentTest):
     
     def test_findall(self):
@@ -686,7 +700,7 @@ class StrTest(FluentTest):
     def test_split(self):
         expect(wrap('foo\nbar\nbaz').split(r'\n')) == ['foo', 'bar', 'baz']
         expect(wrap('foo\nbar/baz').split(r'[\n/]')) == ['foo', 'bar', 'baz']
-        
+
 class ImporterTest(FluentTest):
     
     def test_import_top_level_module(self):
@@ -731,18 +745,7 @@ class IntegrationTest(FluentTest):
             ['python', '-m', 'fluent', "_.lib.sys.stdin.read().split('\\n').imap(str.upper).imap(print).call(list)"],
             input=b'foo\nbar\nbaz')
         expect(output) == b'FOO\nBAR\nBAZ\n'
-    
 
-"""
-Wie möchte ich denn das es sich bedient? Wie Smalltalk dass alles per default 'self' zurück gibt?
-Alles generator basiert? Nur wenn man das nicht explizit auspacken muss für ausgabe. 
-Evtl. trigger der ganzen chain mittels .unwrap?
-
-What I really want, is a way to not have to .call(list) after every call to map and consorts 
-to actually trigger them.
-
-Especially in shell scripts
-"""
 
 # REFACT remove or make an integration test
 def _test():
