@@ -4,30 +4,84 @@
 # This library is principally created for python 3. However python 2 support may be doable and is welcomed.
 
 """
-Usage:
+This library is heavily inspired by jQuery and underscore / lodash in the javascript world.
+In JS the problem is that the standard library sucks very badly and is missing many of the 
+most important convenience methods.
+
+Python is better in this regard, in that it has (almost) all those methods available somewhere.
+
+BUT: quite a lot of them are available on the wrong object or are free methods where they really 
+should be method objects. This makes it really hard to work with python in an object oriented way 
+and almost completely prevents those beautiful fluent call chains that ruby is so well known for.
+
+To give you an example of what I mean, compare these ways of writing down the same computation in python
 
 >>> from fluent import *
 >>> import sys
->>> wrap(sys.stdin).split().map(str.upper).map(print)
+>>> map(print, map(str.upper, sys.stdin.read().split('\n')))
+>>> [print(line.upper()) for line in sys.stdin.read().split('\n')]
+>>> lib.sys.stdin.read().split('\n').map(str.upper).map(print)
+
+My main concern here, is that the python code, as written traditionally, does not read in 
+the order in which it executes. The last line does - which is why this library exists. It 
+aims to make the code read exactly as it is executed.
+
+Another example:
+
+>>> cross_product_of_dependencies_keys = \
+>>>     set(map(frozenset, itertools.product(*map(attrgetter('_labels'), dependencies))))
+>>> cross_product_of_dependencies_keys = \
+>>>     _(dependencies).map(attrgetter('_labels')).star_call(itertools.product).map(frozenset).call(set)
+
+Notice how on the first line you have to constantly jump back between the front and end of the line 
+to parse what is happening. Now compare that second line. No jumping at all. Just a clean read from 
+the beginning to the end and you know exactly what it does.
+
+Reducing this sort of mental overhead is what this library aims at.
+
+I envision this to be mostly used in quick python scripts, because it quite deeply changes the way 
+python works, so it is probably not something you want to use in a big project. But especially for 
+quick filters in python on the shell, this is just perfect.
+
+Try this example for a change:
+
+$ curl -sL 'https://www.iblocklist.com/lists.php' | egrep -A1 'star_[345]' | python -c "from __future__ import print_function; import sys, re; from xml.sax.saxutils import unescape; print('\n'.join(map(unescape, re.findall(r'value=\'(.*)\'', sys.stdin.read()))))"
+
+And compare it to this:
+
+$ curl -sL 'https://www.iblocklist.com/lists.php' | egrep -A1 'star_[345]' | python3 -m fluent "lib.sys.stdin.read().findall(r'value=\'(.*)\'').map(lib.xml.sax.saxutils.unescape).map(print)"
+
+Which do you think is easier to read or write?
+
+This library also contains some convenience objects (some already used above)
+
+Foremost is `lib` which is a wrapper around the python import machinery and allows to import 
+anything that is accessible by import to be imported as an expression for inline use.
+
+So instead of
+
+>>> import sys
+>>> input = sys.stdin.read()
+
+You can do
+
+>>> input = lib.sys.stdin.read()
+
+As a bonus, everything imported via lib is already pre-wrapped, so you can chain off of it immediately.
+
+`lib` is also available on `_` which is itself just an alias for `wrap`. This is usefull if you want 
+to import fewer symbols from fluent or want to import the library undera custom name
 
 >>> from fluent import _ # alias for wrap
->>> import sys
->>> _(sys.stdin).split().map(str.upper).map(print)
+>>> _.lib.sys.stdin.split('\n').map(str.upper).map(print)
 
-then start everything with:
+>>> from fluent import _ as fluent # alias for wrap
+>>> fluent.lib.sys.stdin.split('\n').map(str.upper).map(print)
 
->>> _(something)…
+>>> import fluent
+>>> fluent.lib.sys.stdin.split('\n').map(str.upper).map(print)
 
-to get the right wrapper.
-
-Chain off of `lib` or `_.lib` to get at symbols that can be imported.
-This is meant as shortcut to use importable symbols without having to spend another line.
-
->>> _(_.lib.sys.stdin.read()).map(_.lib.os.path.join)(print)
-
- that could be imported
-
-This library tries to do a little of what underscore does for javascript. Just provide the missing glue to make the standard library nicer to use.
+This library tries to do a little of what underscore does for javascript. Just provide the missing glue to make the standard library nicer to use. Have fun!
 """
 
 from __future__ import print_function
@@ -40,6 +94,7 @@ import itertools
 import operator
 import collections.abc
 
+# REFACT rename wrap -> fluent? perhaps as an alias?
 __all__ = [
     'wrap', '_', # alias for wrap
     'lib', # wrapper for python stdlib, access every stdlib package directly on this without need to import it
@@ -83,19 +138,22 @@ def apply(function, *args, **kwargs):
 
 # using these decorators will take care of unwrapping and rewrapping the target object.
 # thus all following code is written as if the methods live on the wrapped object
-def wrapped(wrapped_function):
+def wrapped(wrapped_function, wrap_result=None):
     @functools.wraps(wrapped_function)
     def wrapper(self, *args, **kwargs):
-        return wrap(wrapped_function(self.unwrap, *args, **kwargs), previous=self)
+        result = wrapped_function(self.unwrap, *args, **kwargs)
+        if callable(wrap_result):
+            result = wrap_result(result)
+        return wrap(result, previous=self)
     return wrapper
 
-def unwrapped(operation):
-    @functools.wraps(operation)
+def unwrapped(wrapped_function):
+    @functools.wraps(wrapped_function)
     def forwarder(self, *args, **kwargs):
-        return operation(self.unwrap, *args, **kwargs)
+        return wrapped_function(self.unwrap, *args, **kwargs)
     return forwarder
 
-def wrapped_forward(wrapped_function):
+def wrapped_forward(wrapped_function, wrap_result=None):
     """Forwards a call to a different object
     
     This makes its method available on the wrapper.
@@ -106,7 +164,10 @@ def wrapped_forward(wrapped_function):
     """
     @functools.wraps(wrapped_function)
     def wrapper(self, *args, **kwargs):
-        return wrap(wrapped_function(args[0], self.unwrap, *args[1:], **kwargs), previous=self)
+        result = wrapped_function(args[0], self.unwrap, *args[1:], **kwargs)
+        if callable(wrap_result):
+            result = wrap_result(result)
+        return wrap(result, previous=self)
     return wrapper
     
 class Wrapper(object):
@@ -219,7 +280,7 @@ class Module(Wrapper):
         
         return wrap(module)
 
-lib = Module(marker, previous=None)
+_.lib = lib = Module(marker, previous=None)
 
 class Callable(Wrapper):
     
@@ -266,6 +327,18 @@ class Callable(Wrapper):
     # REFACT consider aliasses wrap = chain = cast = compose
 
 class Iterable(Wrapper):
+    """Add iterator methods to any iterable.
+    
+    Most iterators in python3 return an iterator by default, which is very interesting 
+    if you want to build efficient processing pipelines, but not so hot for quick and 
+    dirty scripts where you have to wrap the result in a list() or tuple() all the time 
+    to actually get at the results (e.g. to print them) or to actually trigger the 
+    computation pipeline.
+    
+    Thus all iterators on this class are by default immediate, i.e. they don't return the 
+    iterator but instead consume it immediately and return a tuple. Of course if needed, 
+    there is also an i{map,zip,enumerate,...} version for your enjoyment.
+    """
     
     __iter__ = unwrapped(iter)
     
@@ -283,31 +356,51 @@ class Iterable(Wrapper):
         "Like str.join, but the other way around. Bohoo!"
         return with_what.join(map(str, self))
     
-    ## Collection Functions .........................................
-    
-    any = wrapped(any)
-    all = wrapped(all)
-    map = wrapped_forward(map)
-    starmap = wrapped_forward(itertools.starmap)
-    filter = wrapped_forward(filter)
-    reduce = wrapped_forward(functools.reduce)
-    enumerate = wrapped(enumerate)
-    reversed = wrapped(reversed)
-    sorted = wrapped(sorted)
+    ## Reductors .........................................
     
     len = wrapped(len)
     max = wrapped(max)
     min = wrapped(min)
     sum = wrapped(sum)
+    any = wrapped(any)
+    all = wrapped(all)
+    
+    ## Iterators .........................................
+    
+    imap = wrapped_forward(map)
+    map = wrapped_forward(map, wrap_result=tuple)
+    
+    istarmap = wrapped_forward(itertools.starmap)
+    starmap = wrapped_forward(itertools.starmap, wrap_result=tuple)
+    
+    ifilter = wrapped_forward(filter)
+    filter = wrapped_forward(filter, wrap_result=tuple)
+    
+    reduce = wrapped_forward(functools.reduce)
+    
+    ienumerate = wrapped(enumerate)
+    enumerate = wrapped(enumerate, wrap_result=tuple)
+    
+    ireversed = wrapped(reversed)
+    reversed = wrapped(reversed, wrap_result=tuple)
+    
+    isorted = wrapped(sorted)
+    sorted = wrapped(sorted, wrap_result=tuple)
     
     @wrapped
-    def grouped(self, group_length):
+    def igrouped(self, group_length):
         "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
         return zip(*[iter(self)]*group_length)
+    grouped = lambda self, *args, **kwargs: wrap(tuple(self.igrouped(*args, **kwargs)))
     
     @wrapped
-    def zip(self, *args):
+    def izip(self, *args):
         return zip(self, *args)
+    zip = lambda self, *args, **kwargs: wrap(tuple(self.izip(*args, **kwargs)))
+    
+    @wrapped
+    def iflatten(self, level=None):
+        pass
     
     @wrapped
     def tee(self, function):
@@ -337,7 +430,6 @@ class Text(Wrapper):
     
     # Regex Methods ......................................
     
-    
     findall = wrapped_forward(re.findall)
     
     # finditer
@@ -349,9 +441,6 @@ class Text(Wrapper):
     
     # sub, subn
     
-    # Reformulated String methods .......................
-    
-    format = wrapped_forward(str.format)
 
 # Roundable (for all numeric needs?)
     # round, times, repeat, if, else
@@ -453,6 +542,9 @@ class WrapperTest(FluentTest):
 
 class CallableTest(FluentTest):
     
+    def test_star_call(self):
+        expect(wrap([1,2,3]).star_call(str.format, '{} - {} : {}')) == '1 - 2 : 3'
+    
     def test_should_call_callable_with_wrapped_as_first_argument(self):
         expect(wrap([1,2,3]).call(min)) == 1
         expect(wrap([1,2,3]).call(min)) == 1
@@ -500,34 +592,6 @@ class IterableTest(FluentTest):
         expect(wrap((True, False)).all()) == False
         expect(wrap((True, True)).all()) == True
     
-    def test_map(self):
-        expect(wrap([1,2,3]).map(lambda x: x * x).call(list)) == [1, 4, 9]
-    
-    def test_starmap(self):
-        expect(wrap([(1,2), (3,4)]).starmap(lambda x, y: x+y).call(list)) == [3, 7]
-    
-    def test_filter(self):
-        expect(wrap([1,2,3]).filter(lambda x: x > 1).call(list)) == [2,3]
-    
-    def test_zip(self):
-        expect(wrap((1,2)).zip((3,4)).call(tuple)) == ((1, 3), (2, 4))
-        expect(wrap((1,2)).zip((3,4), (5,6)).call(tuple)) == ((1, 3, 5), (2, 4, 6))
-    
-    def test_reduce(self):
-        expect(wrap((1,2)).reduce(operator.add)) == 3
-    
-    def grouped(self):
-        expect(wrap((1,2,3,4,5,6)).grouped(2).call(list)) == [(1,2), (3,4), (5,6)]
-    
-    def test_tee_should_not_break_iterators(self):
-        recorder = []
-        def record(generator): recorder.extend(generator)
-        expect(wrap([1,2,3]).map(lambda x: x*x).tee(record).call(list)) == [1,4,9]
-        expect(recorder) == [1,4,9]
-    
-    def test_enumerate(self):
-        expect(wrap(('foo', 'bar')).enumerate().call(list)) == [(0, 'foo'), (1, 'bar')]
-    
     def test_len(self):
         expect(wrap((1,2,3)).len()) == 3
     
@@ -536,11 +600,55 @@ class IterableTest(FluentTest):
         expect(wrap([1,2]).max()) == 2
         expect(wrap((1,2,3)).sum()) == 6
     
-    def test_reversed_sorted(self):
-        expect(wrap([2,1,3]).reversed().call(list)) == [3,1,2]
-        expect(wrap([2,1,3]).sorted().call(list)) == [1,2,3]
-        expect(wrap([2,1,3]).sorted(reverse=True).call(list)) == [3,2,1]
+    def test_map(self):
+        expect(wrap([1,2,3]).imap(lambda x: x * x).call(list)) == [1, 4, 9]
+        expect(wrap([1,2,3]).map(lambda x: x * x)) == (1, 4, 9)
     
+    def test_starmap(self):
+        expect(wrap([(1,2), (3,4)]).istarmap(lambda x, y: x+y).call(list)) == [3, 7]
+        expect(wrap([(1,2), (3,4)]).starmap(lambda x, y: x+y)) == (3, 7)
+    
+    def test_filter(self):
+        expect(wrap([1,2,3]).ifilter(lambda x: x > 1).call(list)) == [2,3]
+        expect(wrap([1,2,3]).filter(lambda x: x > 1)) == (2,3)
+    
+    def test_zip(self):
+        expect(wrap((1,2)).izip((3,4)).call(tuple)) == ((1, 3), (2, 4))
+        expect(wrap((1,2)).izip((3,4), (5,6)).call(tuple)) == ((1, 3, 5), (2, 4, 6))
+        
+        expect(wrap((1,2)).zip((3,4))) == ((1, 3), (2, 4))
+        expect(wrap((1,2)).zip((3,4), (5,6))) == ((1, 3, 5), (2, 4, 6))
+    
+    def test_reduce(self):
+        # no iterator version of reduce as it's not a mapping
+        expect(wrap((1,2)).reduce(operator.add)) == 3
+    
+    def test_grouped(self):
+        expect(wrap((1,2,3,4,5,6)).igrouped(2).call(list)) == [(1,2), (3,4), (5,6)]
+        expect(wrap((1,2,3,4,5,6)).grouped(2)) == ((1,2), (3,4), (5,6))
+        expect(wrap((1,2,3,4,5)).grouped(2)) == ((1,2), (3,4))
+    
+    def test_tee_should_not_break_iterators(self):
+        recorder = []
+        def record(generator): recorder.extend(generator)
+        expect(wrap([1,2,3]).imap(lambda x: x*x).tee(record).call(list)) == [1,4,9]
+        expect(recorder) == [1,4,9]
+    
+    def test_enumerate(self):
+        expect(wrap(('foo', 'bar')).ienumerate().call(list)) == [(0, 'foo'), (1, 'bar')]
+        expect(wrap(('foo', 'bar')).enumerate()) == ((0, 'foo'), (1, 'bar'))
+    
+    def test_reversed_sorted(self):
+        expect(wrap([2,1,3]).ireversed().call(list)) == [3,1,2]
+        expect(wrap([2,1,3]).reversed()) == (3,1,2)
+        expect(wrap([2,1,3]).isorted().call(list)) == [1,2,3]
+        expect(wrap([2,1,3]).sorted()) == (1,2,3)
+        expect(wrap([2,1,3]).isorted(reverse=True).call(list)) == [3,2,1]
+        expect(wrap([2,1,3]).sorted(reverse=True)) == (3,2,1)
+    
+    def test_flatten(self):
+        pass
+        
     def _tee_should_work_fine_with_functions_that_dont_expect_wrappers(self):
         pass
     
@@ -560,9 +668,6 @@ class StrTest(FluentTest):
         expect(wrap('foo\nbar\nbaz').split(r'\n')) == ['foo', 'bar', 'baz']
         expect(wrap('foo\nbar/baz').split(r'[\n/]')) == ['foo', 'bar', 'baz']
         
-    def test_format(self):
-        expect(wrap('foo').format('bar {} baz')) == 'bar foo baz'
-
 class ImporterTest(FluentTest):
     
     def test_import_top_level_module(self):
@@ -592,24 +697,38 @@ class ImporterTest(FluentTest):
 
 class IntegrationTest(FluentTest):
     
-    def test_format(self):
-        expect(wrap([1,2,3]).star_call(str.format, '{} - {} : {}')) == '1 - 2 : 3'
     
-    def _test_extrac_and_decode_URIs(self):
+    def test_extrac_and_decode_URIs(self):
         from xml.sax.saxutils import unescape
         line = '''<td><img src='/sitefiles/star_5.png' height='15' width='75' alt=''></td>
             <td><input style='width:200px; outline:none; border-style:solid; border-width:1px; border-color:#ccc;' type='text' id='ydxerpxkpcfqjaybcssw' readonly='readonly' onClick="select_text('ydxerpxkpcfqjaybcssw');" value='http://list.iblocklist.com/?list=ydxerpxkpcfqjaybcssw&amp;fileformat=p2p&amp;archiveformat=gz'></td>'''
 
-        actual = str(line).findall(r'value=\'(.*)\'').map(unescape)
+        actual = wrap(line).findall(r'value=\'(.*)\'').imap(unescape).call(list)
         expect(actual) == ['http://list.iblocklist.com/?list=ydxerpxkpcfqjaybcssw&fileformat=p2p&archiveformat=gz']
+    
+    def test_call_module_from_shell(self):
+        from subprocess import check_output
+        output = check_output(
+            ['python', '-m', 'fluent', "_.lib.sys.stdin.read().split('\\n').imap(str.upper).imap(print).call(list)"],
+            input=b'foo\nbar\nbaz')
+        expect(output) == b'FOO\nBAR\nBAZ\n'
+    
+    def test_calling_from_shell_still_has_access_to_builtins(self):
+        pass
 
         
 """
 Wie möchte ich denn das es sich bedient? Wie Smalltalk dass alles per default 'self' zurück gibt?
 Alles generator basiert? Nur wenn man das nicht explizit auspacken muss für ausgabe. 
 Evtl. trigger der ganzen chain mittels .unwrap?
+
+What I really want, is a way to not have to .call(list) after every call to map and consorts 
+to actually trigger them.
+
+Especially in shell scripts
 """
-    
+
+# REFACT remove or make an integration test
 def _test():
     from xml.sax.saxutils import unescape
     
@@ -708,5 +827,8 @@ def _test():
     blocklists = [u'http://list.iblocklist.com/?list=ydxerpxkpcfqjaybcssw&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=gyisgnzbhppbvsphucsw&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=uwnukjqktoggdknzrhgh&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=imlmncgrkbnacgcwfjvh&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=plkehquoahljmyxjixpu&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=gihxqmhyunbxhbmgqrla&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=dgxtneitpuvgqqcpfulq&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=llvtlsjyoyiczbkjsxpf&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=xoebmbyexwuiogmbyprb&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=cwworuawihqvocglcoss&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=xshktygkujudfnjfioro&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=mcvxsnihddgutbjfbghy&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=usrcshglbiilevmyfhse&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=xpbqleszmajjesnzddhv&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=ficutxiwawokxlcyoeye&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=ghlzqtqxnzctvvajwwag&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=bcoepfyewziejvcqyhqo&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=cslpybexmxyuacbyuvib&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=pwqnlynprfgtjbgqoizj&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=jhaoawihmfxgnvmaqffp&amp;fileformat=p2p&amp;archiveformat=gz', u'http://list.iblocklist.com/?list=zbdlwrqkabxbcppvrnos&amp;fileformat=p2p&amp;archiveformat=gz']
 
 if __name__ == '__main__':
-    unittest.main()
-    # test()
+    import sys
+    assert len(sys.argv) == 2, \
+        "Usage: python -m fluent 'some code that can access fluent functions without having to import them'"
+    
+    exec(sys.argv[1], dict(wrap=wrap, _=_, lib=lib))
