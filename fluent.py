@@ -97,8 +97,9 @@ import collections.abc
 
 # REFACT rename wrap -> fluent? perhaps as an alias?
 __all__ = [
-    'wrap', '_', # alias for wrap
-    'lib', # wrapper for python stdlib, access every stdlib package directly on this without need to import it
+    'wrap', # generic wrapper factory that returns the appropriate subclass in this package according to what is wrapped
+    '_', # _ is an alias for wrap
+    'lib', # wrapper for python import machinery, access every importable package / function directly on this via attribute access
 ]
 
 CollectionType = collections.abc.Container
@@ -170,7 +171,14 @@ def wrapped_forward(wrapped_function, wrap_result=None):
             result = wrap_result(result)
         return wrap(result, previous=self)
     return wrapper
-    
+
+def tupleize(wrapped_function):
+    "Wrap the returned obect in a tuple to force execution of iterators"
+    @functools.wraps(wrapped_function)
+    def wrapper(self, *args, **kwargs):
+        return wrap(tuple(wrapped_function(self, *args, **kwargs)), previous=self)
+    return wrapper
+
 class Wrapper(object):
     """Universal wrapper.
     
@@ -211,6 +219,9 @@ class Wrapper(object):
     
     __eq__ = unwrapped(operator.eq)
     
+    # TODO add all remaining __$__ methods - consider if this can be done generically?
+    # Problem is that python doesn't access __ attributes via __getattr__. :-/
+    
     # Breakouts
     
     @property
@@ -244,7 +255,7 @@ class Wrapper(object):
         function(wrap(self)) # REFACT consider to hand in unwrapped object here to make it easier to work with stdlib methods here, might be unneccessary if wrapper is complete
         return self
     
-    # vars, dir
+    # TODO vars, dir
 
 marker = object()
 class Module(Wrapper):
@@ -326,6 +337,8 @@ class Callable(Wrapper):
     def compose(self, outer):
         return lambda *args, **kwargs: outer(self(*args, **kwargs))
     # REFACT consider aliasses wrap = chain = cast = compose
+    # Also not so sure if this is really so helpfull as the i* versions of the iterators 
+    # basically allow the same thing
 
 class Iterable(Wrapper):
     """Add iterator methods to any iterable.
@@ -365,39 +378,38 @@ class Iterable(Wrapper):
     sum = wrapped(sum)
     any = wrapped(any)
     all = wrapped(all)
+    reduce = wrapped_forward(functools.reduce)
     
     ## Iterators .........................................
     
     imap = wrapped_forward(map)
-    map = wrapped_forward(map, wrap_result=tuple)
+    map = tupleize(imap)
     
     istarmap = wrapped_forward(itertools.starmap)
-    starmap = wrapped_forward(itertools.starmap, wrap_result=tuple)
+    starmap = tupleize(istarmap)
     
     ifilter = wrapped_forward(filter)
-    filter = wrapped_forward(filter, wrap_result=tuple)
-    
-    reduce = wrapped_forward(functools.reduce)
+    filter = tupleize(ifilter)
     
     ienumerate = wrapped(enumerate)
-    enumerate = wrapped(enumerate, wrap_result=tuple)
+    enumerate = tupleize(ienumerate)
     
     ireversed = wrapped(reversed)
-    reversed = wrapped(reversed, wrap_result=tuple)
+    reversed = tupleize(ireversed)
     
     isorted = wrapped(sorted)
-    sorted = wrapped(sorted, wrap_result=tuple)
+    sorted = tupleize(isorted)
     
     @wrapped
     def igrouped(self, group_length):
         "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
         return zip(*[iter(self)]*group_length)
-    grouped = lambda self, *args, **kwargs: wrap(tuple(self.igrouped(*args, **kwargs)))
+    grouped = tupleize(igrouped)
     
     @wrapped
     def izip(self, *args):
         return zip(self, *args)
-    zip = lambda self, *args, **kwargs: wrap(tuple(self.izip(*args, **kwargs)))
+    zip = tupleize(izip)
     
     @wrapped
     def iflatten(self, level=None):
