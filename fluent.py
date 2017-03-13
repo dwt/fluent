@@ -4,7 +4,9 @@
 
 # This library is principally created for python 3. However python 2 support may be doable and is welcomed.
 
-"""This library is heavily inspired by jQuery and underscore / lodash in the javascript world. Or you 
+"""Use python in a more object oriented, saner and shorter way.
+
+This library is heavily inspired by jQuery and underscore / lodash in the javascript world. Or you 
 could say that it is inspired by SmallTalk and in extension Ruby and how they deal with collections 
 and how to work with them.
 
