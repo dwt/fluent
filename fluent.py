@@ -5,15 +5,16 @@
 # This library is principally created for python 3. However python 2 support may be doable and is welcomed.
 
 """
-This library is heavily inspired by jQuery and underscore / lodash in the javascript world.
+This library is heavily inspired by jQuery and underscore / lodash in the javascript world. Or you 
+could say that it is inspired by SmallTalk and in extension Ruby and how they deal with collections 
+and how to work with them.
+
 In JS the problem is that the standard library sucks very badly and is missing many of the 
-most important convenience methods.
-
-Python is better in this regard, in that it has (almost) all those methods available somewhere.
-
-BUT: quite a lot of them are available on the wrong object or are free methods where they really 
-should be method objects. This makes it really hard to work with python in an object oriented way 
-and almost completely prevents those beautiful fluent call chains that ruby is so well known for.
+most important convenience methods. Python is better in this regard, in that it has (almost) all 
+those methods available somewhere. BUT: quite a lot of them are available on the wrong object or 
+are free methods where they really should be method objects. This makes it really hard to work 
+with python in an object oriented way and almost completely prevents those beautiful fluent call 
+chains that ruby is so well known for.
 
 To give you an example of what I mean, compare these ways of writing down the same computation in python
 
@@ -54,9 +55,14 @@ $ curl -sL 'https://www.iblocklist.com/lists.php' | egrep -A1 'star_[345]' | pyt
 
 Which do you think is easier to read or write?
 
-This library also contains some convenience objects (some already used above)
+Another annoyance of python is that many methods, especially ones that change the object they operate 
+on do not return anything. Of course this breaks chaining - which is why `wrap` changes this behavior 
+to the way SmallTalk works, i.e. whenever a method does not return anything (or returns None) the wrapper 
+acts as if 'self' was returned to allow continued chaining.
 
-Foremost is `lib` which is a wrapper around the python import machinery and allows to import 
+To enable this style of coding having to import every symbol used is quite counter productive as this 
+always requires a separate statement in python. To shorten this, this library also contains the `lib` 
+object, which is a wrapper around the python import machinery and allows to import 
 anything that is accessible by import to be imported as an expression for inline use.
 
 So instead of
