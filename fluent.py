@@ -732,10 +732,7 @@ class IntegrationTest(FluentTest):
             input=b'foo\nbar\nbaz')
         expect(output) == b'FOO\nBAR\nBAZ\n'
     
-    def test_calling_from_shell_still_has_access_to_builtins(self):
-        pass
 
-        
 """
 Wie möchte ich denn das es sich bedient? Wie Smalltalk dass alles per default 'self' zurück gibt?
 Alles generator basiert? Nur wenn man das nicht explizit auspacken muss für ausgabe. 
