@@ -431,6 +431,14 @@ class Iterable(Wrapper):
         return
     flatten = tupleize(iflatten)
     
+    igroupby = wrapped(itertools.groupby)
+    def groupby(self, *args, **kwargs):
+        # Need an extra wrapping function to consume the deep iterators in time
+        result = []
+        for key, values in self.igroupby(*args, **kwargs):
+            result.append((key, tuple(values)))
+        return wrap(tuple(result))
+    
     @wrapped
     def tee(self, function):
         "This override tries to retain iterators, as a speedup"
@@ -656,6 +664,27 @@ class IterableTest(FluentTest):
         expect(wrap((1,2,3,4,5,6)).igrouped(2).call(list)) == [(1,2), (3,4), (5,6)]
         expect(wrap((1,2,3,4,5,6)).grouped(2)) == ((1,2), (3,4), (5,6))
         expect(wrap((1,2,3,4,5)).grouped(2)) == ((1,2), (3,4))
+    
+    def test_group_by(self):
+        actual = {}
+        for key, values in _((1,1,2,2,3,3)).igroupby():
+            actual[key] = tuple(values)
+        
+        expect(actual) == {
+            1: (1,1),
+            2: (2,2),
+            3: (3,3)
+        }
+        
+        actual = {}
+        for key, values in _((1,1,2,2,3,3)).groupby():
+            actual[key] = tuple(values)
+        
+        expect(actual) == {
+            1: (1,1),
+            2: (2,2),
+            3: (3,3)
+        }
     
     def test_tee_should_not_break_iterators(self):
         recorder = []
