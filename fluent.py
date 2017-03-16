@@ -245,8 +245,6 @@ def wrap(wrapped, *, previous=None):
     This is the main entry point into the fluent wonderland. Wrap something and 
     everything you call off of that will stay wrapped in the apropriate wrappers.
     """
-    if wrapped is None: wrapped = previous
-    
     by_type = (
         (types.ModuleType, Module),
         (TextType, Text),
@@ -271,7 +269,7 @@ def apply(function, *args, **kwargs):
 def wrapped(wrapped_function, wrap_result=None):
     @functools.wraps(wrapped_function)
     def wrapper(self, *args, **kwargs):
-        result = wrapped_function(self.unwrap, *args, **kwargs)
+        result = wrapped_function(self.chain, *args, **kwargs)
         if callable(wrap_result):
             result = wrap_result(result)
         return wrap(result, previous=self)
@@ -280,7 +278,7 @@ def wrapped(wrapped_function, wrap_result=None):
 def unwrapped(wrapped_function):
     @functools.wraps(wrapped_function)
     def forwarder(self, *args, **kwargs):
-        return wrapped_function(self.unwrap, *args, **kwargs)
+        return wrapped_function(self.chain, *args, **kwargs)
     return forwarder
 
 def wrapped_forward(wrapped_function, wrap_result=None):
@@ -294,7 +292,7 @@ def wrapped_forward(wrapped_function, wrap_result=None):
     """
     @functools.wraps(wrapped_function)
     def wrapper(self, *args, **kwargs):
-        result = wrapped_function(args[0], self.unwrap, *args[1:], **kwargs)
+        result = wrapped_function(args[0], self.chain, *args[1:], **kwargs)
         if callable(wrap_result):
             result = wrap_result(result)
         return wrap(result, previous=self)
@@ -333,13 +331,12 @@ class Wrapper(object):
     """
     
     def __init__(self, wrapped, previous):
-        assert wrapped is not None, 'Cannot chain off of None'
+        assert wrapped is not None or previous is not None, 'Cannot chain off of None'
         self.__wrapped = wrapped
         self.__previous = previous
     
     # Proxied methods
     
-    __call__ = wrapped(apply)
     __getattr__ = wrapped(getattr)
     
     __str__ = unwrapped(str)
@@ -359,6 +356,12 @@ class Wrapper(object):
     @property
     def previous(self):
         return self.__previous
+    
+    @property
+    def chain(self):
+        if self.unwrap is None:
+            return self.previous.unwrap
+        return self.unwrap
     
     # Chainable versions of operators
     
@@ -408,21 +411,25 @@ class Module(Wrapper):
     """
     
     def __getattr__(self, name):
-        if hasattr(self.unwrap, name):
-            return wrap(getattr(self.unwrap, name))
+        if hasattr(self.chain, name):
+            return wrap(getattr(self.chain, name))
         
         import importlib
         module = None
-        if self.unwrap is marker:
+        if self.chain is virtual_root_module:
             module = importlib.import_module(name)
         else:
-            module = importlib.import_module('.'.join((self.unwrap.__name__, name)))
+            module = importlib.import_module('.'.join((self.chain.__name__, name)))
         
         return wrap(module)
 
 _.lib = lib = Module(marker, previous=None)
 
 class Callable(Wrapper):
+    
+    @wrapped
+    def __call__(self, *args, **kwargs):
+        return self(*args, **kwargs)
     
     # REFACT rename to partial for consistency with stdlib?
     @wrapped
