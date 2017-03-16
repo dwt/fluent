@@ -168,6 +168,51 @@ to import fewer symbols from fluent or want to import the library undera custom 
 This library tries to do a little of what underscore does for javascript. Just provide the missing glue to make the standard library nicer to use. Have fun!
 """
 
+"""Future Ideas:
+
+    _.attrgetter = _.lib.operator.attrgetter seems like a nice shortcut and would be pre-wrapped
+just using lib.operator.attrgetter is also not so bad and requires nothing special
+    _([1,2,3]).map(lambda x: (x['foo'], x['bar']))
+    _([1,2,3]).map(_.attrgetter('foo', 'bar')) # this seems to be a nice shortcut
+    _([1,2,3]).map(lib.operator.attrgetter('foo', 'bar'))
+    _([1,2,3]).map(_.each.foo)
+    _([1,2,3]).map(_.itemgetter('foo', 'bar')) # this seems to be a nice shortcut
+    _([1,2,3]).map(lib.operator.itemgetter('foo', 'bar')) # return tuples of items
+    _([1,2,3]).map(_.each['foo', 'bar'])
+    _([1,2,3]).map(lambda x: x.method_name(arg1, kwarg='value')) # just do a lambda...
+    _([1,2,3]).map(_.methodcaller('method_name', arg1, kwarg='value')) # this seems to be a nice shortcut
+    _([1,2,3]).map(lib.operator.methodcaller('method_name', arg1, kwarg='value'))
+    _([1,2,3]).map(_.each.method_name(arg1, kwarg='value'))
+
+
+    _([1,2,3]).map(_.each + 3)
+
+I cold also put all the operator methods on `wrap` to make them easily accessible?
+would make them easily available to curry too
+Could provide some auto_curry feature where
+    `_ % 3` creates a function that modulos it's argument, quite a nice shortcut...
+    `3 % _` is this also possible?
+    _(3).call(3 % _)
+    _(3).call(_.mod(3, _))
+    _(_, 'foo', bar='baz') could become a callable that accepts one argument?
+    _(a_function)(_, 'foo', bar='baz') could become a callable that accepts one argument?
+    _(_, 'foo', _, _, bar='baz') could become a callable that accepts three arguments? (plus any kwargs of course)
+Consider if auto-currying for all methods here would be a cool idea?
+one or multiple placeholders?
+
+    _.something('foo') 
+becomes an auto curried method that has a placeholder as the first argument (usually self)
+That would mean an easy version to write most lambdas. Also _ could be used as a placeholder at a specific position.
+Maybe have this on it's own sub-symbol?
+    _.curry.something('foo', _, 'bar')
+    _.each.something('foo', _, 'bar') == lambda x: x.something('foo', _, 'bar')
+    lib.sys.stdin.read().split('\n').filter(_.startswith('fnord')).map(print)
+    lib.sys.stdin.read().split('\n').filter(_.curry.startswith('fnord')).map(print)
+    lib.sys.stdin.read().split('\n').filter(_.each.startswith('fnord')).map(print)
+    lib.sys.stdin.read().split('\n').filter(_.methodcaller('startswith', 'fnord')).map(print)
+
+Support SmallTalk style return value handling. I.e. if a method returns None, wrapper could act as if it had returned 'self' to allow further chaining.
+"""
 
 # REFACT rename wrap -> fluent? perhaps as an alias?
 __all__ = [
