@@ -6,6 +6,13 @@
 
 """Use python in a more object oriented, saner and shorter way.
 
+First: A word of warning. This library is an experiment. It is based on a wrapper that aggressively 
+wraps anything it comes in contact with and tries to stay invisible from then on (apart from adding methods).
+However this means that this library is probably quite unsuitable for use in bigger projects. Why? 
+Because the wrapper will spread in your runtime image like a virus, 'infecting' more and more objects 
+causing strange side effects. That being said, this library is perfect for short scripts and especially 
+'one of' shell commands. Use it's power wisely!
+
 This library is heavily inspired by jQuery and underscore / lodash in the javascript world. Or you 
 could say that it is inspired by SmallTalk and in extension Ruby and how they deal with collections 
 and how to work with them.
@@ -13,53 +20,122 @@ and how to work with them.
 In JS the problem is that the standard library sucks very badly and is missing many of the 
 most important convenience methods. Python is better in this regard, in that it has (almost) all 
 those methods available somewhere. BUT: quite a lot of them are available on the wrong object or 
-are free methods where they really should be method objects. This makes it really hard to work 
-with python in an object oriented way and almost completely prevents those beautiful fluent call 
-chains that ruby is so well known for.
+are free methods where they really should be methods. Examples: `str.join` really should be on iterable.
+`map`, `zip`, `filter` should really be on iterable. Part of this problem comes from the design 
+choice of the python language to provide a strange kind of minimal duck typing interface with the __*__ 
+methods that the free methods like `map`, `zip`, `filter` then use. This however has the unfortunate
+side effect in that writing python code using these methods often requires the reader to mentally skip 
+back and forth in a line to parse what it does. While this is not too bad for simple usage of these 
+functions, it becomes a nightmare if longer statements are built up from them.
 
-To give you an example of what I mean, compare these ways of writing down the same computation in python
+Don't believe me? Try to parse this simple example as fast as you can:
 
->>> from fluent import *
->>> import sys
 >>> map(print, map(str.upper, sys.stdin.read().split('\n')))
+
+How many backtrackings did you have to do? To me this code means, finding out that it starts in the 
+middle at `sys.stdin.read().split('\n')`, then I have to backtrack to `map(str.upper, …)`, then to 
+`map(print, …)`. Then while writing, I have to make sure that the number of parens at the end are 
+correct, which is something I usually have to use editor support for as it's quite hard to accurately 
+identify where the matching paren is.
+
+The problem with this? This is hard! Hard to write, as it doesn't follow the way I think about this 
+statement. Literally, this means I usually write these statements from the inside out and wrap them
+using my editor as I write them. As demonstrated above, it's also hard to read - requireing quite a 
+bit of backtracking.
+
+So, what's the problem you say? Just don't do it, it's not pythonic you say! Well, Python has two 
+main workarounds available for this mess. One is to use list comprehension / generator 
+statements like this:
+
 >>> [print(line.upper()) for line in sys.stdin.read().split('\n')]
->>> lib.sys.stdin.read().split('\n').map(str.upper).map(print)
 
-My main concern here, is that the python code, as written traditionally, does not read in 
-the order in which it executes. The last line does - which is why this library exists. It 
-aims to make the code read exactly as it is executed.
+This is clearly better. Now you only have to skip back and forth once instead of twice Yay! Win! 
+To me that is not a good workaround. Sure it's nice to easily be able to create generators this 
+way, but it still requires of me to find where the statement starts and to backtrack to the beginning 
+to see what is happening. Oh, but they support filtering too!
 
-Another example:
+>>> [print(line.upper()) for line in sys.stdin.read().split('\n') if line.upper().startswith('FNORD')]
 
->>> cross_product_of_dependencies_keys = \
+Well, this is little better. For one thing, this doesn't solve the backtracking problem, but more 
+importantly, if the filtering has to be done on the processed version (here artificially on 
+`line.upper().startswith()`) then the operation has to be applied twice - which sucks because you have to write it twice, but also because it is computed twice.
+
+The solution? Nest them!
+
+[print(line) for line in (line.upper() for line in sys.stdin.read().split('\n')) if line.startswith('FNORD')]
+
+Do you start seing the problem?
+
+Compare it to this:
+
+>>> for line in sys.stdin.read().split('\n'):
+>>>     uppercased = line.upper()
+>>>     if uppercased.startswith('FNORD'):
+>>>         print(uppercased)
+
+Almost all my complaints are gone. It reads and writes almost completely in order it is computed.
+Easy to read, easy to write - but one drawback. It's not an expression - it's a statement.
+Which means that it's not easily combinable and abstractable with higher order methods. Also 
+(to complain on a high level), you had to invent two variable names `line` and `uppercased`. 
+While that is not bad - it's also not really helping _and_ (drummroll) it requires some 
+backtracking to read. Oh well.
+
+Wouldn't it be cool if you could write this instead:
+
+>>> sys.stdin.read().split('\n').map(str.upper).filter(_.each.startswith('FNORD')).map(print)
+
+All my complaints are gone. It's an expression (yay!). It reads and writes exactly in the order 
+stuff is computed, so it matches exactly the way I think. It doesn't require additional variables 
+for stuff that is not essential.
+
+There is one other way to solve this problem in python and that is using intermediate variables.
+
+Consider this code:
+
+>>> cross_product_of_dependency_labels = \
 >>>     set(map(frozenset, itertools.product(*map(attrgetter('_labels'), dependencies))))
->>> cross_product_of_dependencies_keys = \
->>>     _(dependencies).map(attrgetter('_labels')).star_call(itertools.product).map(frozenset).call(set)
 
-Notice how on the first line you have to constantly jump back between the front and end of the line 
-to parse what is happening. Now compare that second line. No jumping at all. Just a clean read from 
-the beginning to the end and you know exactly what it does.
+That certainly is hard to read (and write). Pulling out explaining variables, makes it better. Like so:
 
-Reducing this sort of mental overhead is what this library aims at.
+>>> labels = map(attrgetter('_labels'), dependencies)
+>>> cross_product_of_dependency_labels = set(map(frozenset, itertools.product(*labels)))
 
-I envision this to be mostly used in quick python scripts, because it quite deeply changes the way 
-python works, so it is probably not something you want to use in a big project. But especially for 
-quick filters in python on the shell, this is just perfect.
+Better, but still hard to read. Sure, those explaining variables are nice and sometimes 
+essential to understand the code. - but it does take up space in lines, and space in my head 
+while parsing this code. The question would be - is this really easier to read than something 
+like this?
 
-Try this example for a change:
+>>> cross_product_of_dependency_labels = _(dependencies) \
+>>>     .map(attrgetter('_labels')) \
+>>>     .star_call(itertools.product) \
+>>>     .map(frozenset) \
+>>>     .call(set)
 
-$ curl -sL 'https://www.iblocklist.com/lists.php' | egrep -A1 'star_[345]' | python -c "from __future__ import print_function; import sys, re; from xml.sax.saxutils import unescape; print('\n'.join(map(unescape, re.findall(r'value=\'(.*)\'', sys.stdin.read()))))"
+Sure you are not used to this at first, but consider the advantages. The intermediate variable 
+names are abstracted away - the data flows through the methods completely naturally. No jumping 
+back and forth to parse this at all. It just reads and writes exactly in the order it is computed.
+
+So what is the essence of all of this?
+
+Python is an object oriented language - but it doesn't really use what object orientation has tought 
+us about how we can work with collections and higher order methods in the languages that came before it
+(especially SmallTalk, but more recently Ruby). Why can't I make those beautiful fluent call chains 
+in Python?
+
+Well, now you can.
+
+While I know that this is not something you want to use in big projects (see warning at the beginning) 
+I envision this to be very usefull in quick python scripts and shell one liner filters.
+
+Some examples:
+
+$ curl -sL 'https://www.iblocklist.com/lists.php' | egrep -A1 'star_[345]' | python3 -c "import sys, re; from xml.sax.saxutils import unescape; print('\n'.join(map(unescape, re.findall(r'value=\'(.*)\'', sys.stdin.read()))))"
 
 And compare it to this:
 
 $ curl -sL 'https://www.iblocklist.com/lists.php' | egrep -A1 'star_[345]' | python3 -m fluent "lib.sys.stdin.read().findall(r'value=\'(.*)\'').map(lib.xml.sax.saxutils.unescape).map(print)"
 
 Which do you think is easier to read or write?
-
-Another annoyance of python is that many methods, especially ones that change the object they operate 
-on do not return anything. Of course this breaks chaining - which is why `wrap` changes this behavior 
-to the way SmallTalk works, i.e. whenever a method does not return anything (or returns None) the wrapper 
-acts as if 'self' was returned to allow continued chaining.
 
 To enable this style of coding having to import every symbol used is quite counter productive as this 
 always requires a separate statement in python. To shorten this, this library also contains the `lib` 
