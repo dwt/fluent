@@ -245,6 +245,9 @@ def wrap(wrapped, *, previous=None):
     This is the main entry point into the fluent wonderland. Wrap something and 
     everything you call off of that will stay wrapped in the apropriate wrappers.
     """
+    if isinstance(wrapped, Wrapper):
+        return wrapped
+    
     by_type = (
         (types.ModuleType, Module),
         (TextType, Text),
@@ -647,6 +650,10 @@ import pytest
 class FluentTest(unittest.TestCase): pass
 
 class WrapperTest(FluentTest):
+    
+    def test_should_not_wrap_a_wrapper_again(self):
+        wrapped = _(4)
+        expect(type(_(wrapped).unwrap)) == int
     
     def test_should_wrap_callables(self):
         counter = [0]
