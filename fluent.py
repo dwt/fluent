@@ -259,10 +259,8 @@ def wrap(wrapped, *, previous=None):
     
     return Wrapper(wrapped, previous=previous)
 
+# sadly _ is pretty much the only valid python identifier that is sombolic and easy to type. Unicode would also be a candidate, but hard to type $, § like in js cannot be used
 _ = wrap
-
-def apply(function, *args, **kwargs):
-    return function(*args, **kwargs)
 
 # using these decorators will take care of unwrapping and rewrapping the target object.
 # thus all following code is written as if the methods live on the wrapped object
@@ -352,6 +350,7 @@ class Wrapper(object):
     @property
     def unwrap(self):
         return self.__wrapped
+    _ = unwrap # alias
     
     @property
     def previous(self):
@@ -388,7 +387,8 @@ class Wrapper(object):
     
     # TODO vars, dir
 
-marker = object()
+# REFACT consider to use wrap as the placeholder to have less symbols? Probably not worth it...
+virtual_root_module = object()
 class Module(Wrapper):
     """Importer shortcut.
     
@@ -423,7 +423,7 @@ class Module(Wrapper):
         
         return wrap(module)
 
-_.lib = lib = Module(marker, previous=None)
+wrap.lib = lib = Module(virtual_root_module, previous=None)
 
 class Callable(Wrapper):
     
@@ -432,6 +432,10 @@ class Callable(Wrapper):
         return self(*args, **kwargs)
     
     # REFACT rename to partial for consistency with stdlib?
+    # REFACT consider if there could be more utility in supporting placeholders for more usecases.
+    # examples:
+    #   Switching argument order?
+    #   multiple placeholders?
     @wrapped
     def curry(self, *args, **kwargs):
         """"Like functools.partial, but with a twist.
@@ -576,8 +580,6 @@ class Iterable(Wrapper):
         else: # can't call super from here, as self is not the real self
             function(wrap(self))
             return self
-    
-    # flatten # model this after ruby array.flatten with level argument that defines how deep to flatten
 
 class Mapping(Iterable):
     
@@ -590,6 +592,7 @@ class Mapping(Iterable):
 
 class Set(Iterable): pass
 
+# REFACT consider to inherit from Iterable?
 class Text(Wrapper):
     
     # Regex Methods ......................................
@@ -641,16 +644,15 @@ import unittest
 from pyexpect import expect
 import pytest
 
-class FluentTest(unittest.TestCase):
-    pass
+class FluentTest(unittest.TestCase): pass
 
 class WrapperTest(FluentTest):
     
     def test_should_wrap_callables(self):
         counter = [0]
-        def foo():
-            counter[0] += 1
-        expect(wrap(foo)()).is_instance(Wrapper)
+        def foo(): counter[0] += 1
+        expect(_(foo)).is_instance(Wrapper)
+        _(foo)()
         expect(counter[0]) == 1
     
     def test_should_wrap_attribute_accesses(self):
@@ -684,7 +686,6 @@ class WrapperTest(FluentTest):
         expect(wrap(foo)().previous.unwrap) == foo
     
     def test_should_delegate_equality_test_to_wrapped_instance(self):
-        # import sys; sys.stdout = sys.__stdout__; from pdb import set_trace; set_trace()
         expect(wrap(1)) == 1
         expect(wrap('42')) == '42'
         callme = lambda: None
@@ -732,12 +733,13 @@ class CallableTest(FluentTest):
         expect(wrap(lambda x=1, y=2: x*y).curry(x=3)()) == 6
     
     def test_curry_should_support_placeholders_to_curry_later_positional_arguments(self):
-        _ = wrap
-        expect(wrap(operator.add).curry(_, 'foo')('bar')) == 'barfoo'
+        expect(_(operator.add).curry(_, 'foo')('bar')) == 'barfoo'
+        expect(_(lambda x, y, z: x + y + z).curry(_, 'baz', _)('foo', 'bar')) == 'foobazbar'
+        # expect(_(operator.add).curry(_2, _1)('foo', 'bar')) == 'barfoo'
     
     def test_compose_cast_wraps_chain(self):
-        expect(wrap(lambda x: x*2).compose(lambda x: x+3)(5)) == 13
-        expect(wrap(str.strip).compose(str.capitalize)('  fnord  ')) == 'Fnord'
+        expect(_(lambda x: x*2).compose(lambda x: x+3)(5)) == 13
+        expect(_(str.strip).compose(str.capitalize)('  fnord  ')) == 'Fnord'
 
 class IterableTest(FluentTest):
     
@@ -842,7 +844,7 @@ class IterableTest(FluentTest):
     
     def _tee_should_work_fine_with_functions_that_dont_expect_wrappers(self):
         pass
-    
+
 class MappingTest(FluentTest):
     
     def test_should_call_callable_with_double_star_splat_as_keyword_arguments(self):
