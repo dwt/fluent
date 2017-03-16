@@ -168,7 +168,6 @@ to import fewer symbols from fluent or want to import the library undera custom 
 This library tries to do a little of what underscore does for javascript. Just provide the missing glue to make the standard library nicer to use. Have fun!
 """
 
-from __future__ import print_function
 
 # REFACT rename wrap -> fluent? perhaps as an alias?
 __all__ = [
