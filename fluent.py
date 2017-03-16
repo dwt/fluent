@@ -170,6 +170,13 @@ This library tries to do a little of what underscore does for javascript. Just p
 
 from __future__ import print_function
 
+# REFACT rename wrap -> fluent? perhaps as an alias?
+__all__ = [
+    'wrap', # generic wrapper factory that returns the appropriate subclass in this package according to what is wrapped
+    '_', # _ is an alias for wrap
+    'lib', # wrapper for python import machinery, access every importable package / function directly on this via attribute access
+]
+
 import typing
 import re
 import math
@@ -178,13 +185,6 @@ import functools
 import itertools
 import operator
 import collections.abc
-
-# REFACT rename wrap -> fluent? perhaps as an alias?
-__all__ = [
-    'wrap', # generic wrapper factory that returns the appropriate subclass in this package according to what is wrapped
-    '_', # _ is an alias for wrap
-    'lib', # wrapper for python import machinery, access every importable package / function directly on this via attribute access
-]
 
 CollectionType = collections.abc.Container
 if hasattr(typing, 'Collection'): # strangely not available on ipad
