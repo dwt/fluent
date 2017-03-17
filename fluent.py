@@ -165,7 +165,19 @@ to import fewer symbols from fluent or want to import the library undera custom 
 >>> import fluent
 >>> fluent.lib.sys.stdin.split('\n').map(str.upper).map(print)
 
-This library tries to do a little of what underscore does for javascript. Just provide the missing glue to make the standard library nicer to use. Have fun!
+There is also the _.each object that you can use as a shorthand to create lambdas for iterating 
+over collections. What it does is that everything you do to it, it will do to every object in 
+the collection. Some examples to clarify this:
+
+>>> _([1,2,3]).map(_.each + 3) == [4,5,6]
+>>> _([1,2,3]).filter(_.each < 3) == [1,2]
+>>> _([1,2,3]).map(- _.each) == [-1,-2,-3]
+>>> _([dict(fnord='foo'), dict(fnord='bar')]).map(_.each['fnord']) == ['foo', 'bar]
+>>> class Foo(object):
+>>>     def __init__(self): self.attr = 'attrvalue'
+>>> _([Foo(), Foo()]).map(_.each.attr) == ['attrvalue', 'attrvalue']
+
+This library tries to do a little of what underscore does for javascript. Just provide the missing glue to make the standard library nicer and easier to use - especially for short oneliners or short script. Have fun!
 """
 
 """Future Ideas:
