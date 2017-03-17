@@ -418,7 +418,13 @@ class Callable(Wrapper):
     
     @wrapped
     def __call__(self, *args, **kwargs):
-        # REFACT consider auto currying for __call__?
+        """"Call through with a twist.
+        
+        If one of the args is wrap / _, then this acts as a shortcut to curry instead"""
+        # REFACT consider to drop the auto curry - doesn't look like it is so super usefull
+        if wrap in args:
+            return wrap(self).curry(*args, **kwargs)
+        
         # REFACT consider to return the previous wrapper if this one returnes nill to be more like SmallTalk
         return self(*args, **kwargs)
     
@@ -702,6 +708,13 @@ class WrapperTest(FluentTest):
     
 class CallableTest(FluentTest):
     
+    def test_call(self):
+        expect(_(lambda: 3)()) == 3
+        expect(_(lambda *x: x)(1,2,3)) == (1,2,3)
+        expect(_(lambda x=3: x)()) == 3
+        expect(_(lambda x=3: x)(x=4)) == 4
+        expect(_(lambda x=3: x)(4)) == 4
+    
     def test_star_call(self):
         expect(wrap([1,2,3]).star_call(str.format, '{} - {} : {}')) == '1 - 2 : 3'
     
@@ -727,6 +740,11 @@ class CallableTest(FluentTest):
         expect(wrap(lambda x, y: x*y).curry(2, 3)()) == 6
         expect(wrap(lambda x=1, y=2: x*y).curry(x=3)()) == 6
     
+    def test_auto_currying(self):
+        expect(_(lambda x: x + 3)(_)(3)) == 6
+        expect(_(lambda x, y: x + y)(_, 'foo')('bar')) == 'barfoo'
+        expect(_(lambda x, y: x + y)('foo', _)('bar')) == 'foobar'
+        
     def test_curry_should_support_placeholders_to_curry_later_positional_arguments(self):
         expect(_(operator.add).curry(_, 'foo')('bar')) == 'barfoo'
         expect(_(lambda x, y, z: x + y + z).curry(_, 'baz', _)('foo', 'bar')) == 'foobazbar'
