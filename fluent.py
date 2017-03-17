@@ -620,11 +620,30 @@ class Each(Wrapper):
             return wrapper
         locals()[name] = make_operator(name)
     
+    @wrapped
     def __getattr__(self, name):
-        return wrap(operator.attrgetter(name))
+        return operator.attrgetter(name)
     
+    @wrapped
     def __getitem__(self, index):
-        return wrap(operator.itemgetter(index))
+        return operator.itemgetter(index)
+    
+    @property
+    def call(self):
+        class MethodCallerConstructor(object):
+            
+            _method_name = None
+            
+            def __getattr__(self, method_name):
+                self._method_name = method_name
+                return self
+            
+            def __call__(self, *args, **kwargs):
+                assert self._method_name is not None, \
+                    'Need to access the method to call first! E.g. _.each.call.method_name(arg1, kwarg="arg2")'
+                return wrap(operator.methodcaller(self._method_name, *args, **kwargs))
+        
+        return MethodCallerConstructor()
     
 each_marker = object()
 wrap.each = Each(each_marker, previous=None)
@@ -922,11 +941,11 @@ class EachTest(FluentTest):
         expect(_([3, 5]).map(- _.each)) == (-3, -5)
         expect(_([3, 5]).map(~ _.each)) == (-4, -6)
     
-    def _test_should_produce_curried_method_when_called_on_each(self):
-        class Foo(object):
-            def bar(self, text):
-                return 'bar: ' + text
-        expect(_([Foo(), Foo()]).map(_.each.bar('baz'))) == ('bar: baz', 'bar: baz')
+    def test_should_produce_methodcaller_on_call_attribute(self):
+        class Tested(object):
+            def method(self, arg): return 'method+'+arg
+        expect(_(Tested()).call(_.each.call.method('argument'))) == 'method+argument'
+        expect(lambda: _.each.call('argument')).to_raise(AssertionError, '_.each.call.method_name')
 
 class IntegrationTest(FluentTest):
     
