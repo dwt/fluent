@@ -200,6 +200,14 @@ Could provide some auto_curry feature where
 Consider if auto-currying for all methods here would be a cool idea?
 one or multiple placeholders?
 
+    # easy
+    _.each['foo']
+    _.each % 3
+    _.each.foo
+    # almost impossible if _.each.foo is supported too
+    _.each.foo('bar')
+
+
     _.something('foo') 
 becomes an auto curried method that has a placeholder as the first argument (usually self)
 That would mean an easy version to write most lambdas. Also _ could be used as a placeholder at a specific position.
@@ -212,6 +220,34 @@ Maybe have this on it's own sub-symbol?
     lib.sys.stdin.read().split('\n').filter(_.methodcaller('startswith', 'fnord')).map(print)
 
 Support SmallTalk style return value handling. I.e. if a method returns None, wrapper could act as if it had returned 'self' to allow further chaining.
+
+
+not sure this is very usefull, can just .call('foo'.format) stuff
+# list.format = lambda self, format_string: str(format_string.format(*self))
+#
+#
+# str.findall = lambda self, pattern: list(re.findall(pattern, self))
+# # str.split = lambda self, *args, **kwargs: list(__str.split(self, *args, **kwargs))
+# # str.split = list.cast(__str.split)
+# # str.split = str.split.cast(list)
+# # str.split = str.split.chain(list)
+# # str.split = func.compose(str.split, list)
+# str.split = func.wrap(str.split, list)
+# str.upper = lambda self: str(__str.upper(self))
+# str.prepend = lambda self, other: str(other + self)
+# str.format = lambda self, format_string: str(format_string.format(self))
+
+# REFACT accept regex as first argument and route to re.split then instead
+
+# REFACT add imp auto importer, that pre-wraps everything he imports. End effect should be that python is seamlessly usable like this.
+# REFACT add python -m fluent 'code…' support which auto injects module importer and 
+# TODO add flatten to listlikes
+# TODO add sort, groupby, grouped
+# TODO add convenience keyword arguments to map etc.
+# map(attr='attrname') as shortcut for map(attrgetter('attrname'))
+# map(item='itemname') as shortcut for map(itemgetter('itemname'))
+# TODO consider numeric type to do stuff like wrap(3).times(...)
+    or wrap([1,2,3]).call(len).times(yank_me)
 """
 
 # REFACT rename wrap -> fluent? perhaps as an alias?
@@ -388,7 +424,8 @@ class Wrapper(object):
         function(wrap(self)) # REFACT consider to hand in unwrapped object here to make it easier to work with stdlib methods here, might be unneccessary if wrapper is complete
         return self
     
-    # TODO vars, dir
+    dir = wrapped(dir)
+    vars = wrapped(vars)
 
 # REFACT consider to use wrap as the placeholder to have less symbols? Probably not worth it...
 virtual_root_module = object()
@@ -432,6 +469,8 @@ class Callable(Wrapper):
     
     @wrapped
     def __call__(self, *args, **kwargs):
+        # REFACT consider auto currying for __call__?
+        # REFACT consider to return the previous wrapper if this one returnes nill to be more like SmallTalk
         return self(*args, **kwargs)
     
     # REFACT rename to partial for consistency with stdlib?
@@ -595,7 +634,7 @@ class Mapping(Iterable):
 
 class Set(Iterable): pass
 
-# REFACT consider to inherit from Iterable?
+# REFACT consider to inherit from Iterable? It's how Python works...
 class Text(Wrapper):
     
     # Regex Methods ......................................
@@ -610,38 +649,32 @@ class Text(Wrapper):
     split = wrapped_forward(re.split)
     
     # sub, subn
+
+class Each(Wrapper):
     
+    for name in dir(operator):
+        if not name.startswith('__'):
+            continue
+        
+        def make_operator(name):
+            __op__ = getattr(operator, name)
+            functools.wraps(__op__)
+            def wrapper(self, *others):
+                return wrap(__op__).curry(wrap, *others)
+            return wrapper
+        locals()[name] = make_operator(name)
+    
+    def __getattr__(self, name):
+        return wrap(operator.attrgetter(name))
+    
+    def __getitem__(self, index):
+        return wrap(operator.itemgetter(index))
+    
+each_marker = object()
+wrap.each = Each(each_marker, previous=None)
 
 # Roundable (for all numeric needs?)
     # round, times, repeat, if, else
-"""commented
-not sure this is very usefull, can just .call('foo'.format) stuff
-# list.format = lambda self, format_string: str(format_string.format(*self))
-#
-#
-# str.findall = lambda self, pattern: list(re.findall(pattern, self))
-# # str.split = lambda self, *args, **kwargs: list(__str.split(self, *args, **kwargs))
-# # str.split = list.cast(__str.split)
-# # str.split = str.split.cast(list)
-# # str.split = str.split.chain(list)
-# # str.split = func.compose(str.split, list)
-# str.split = func.wrap(str.split, list)
-# str.upper = lambda self: str(__str.upper(self))
-# str.prepend = lambda self, other: str(other + self)
-# str.format = lambda self, format_string: str(format_string.format(self))
-
-# REFACT accept regex as first argument and route to re.split then instead
-
-# REFACT add imp auto importer, that pre-wraps everything he imports. End effect should be that python is seamlessly usable like this.
-# REFACT add python -m fluent 'code…' support which auto injects module importer and 
-# TODO add flatten to listlikes
-# TODO add sort, groupby, grouped
-# TODO add convenience keyword arguments to map etc.
-# map(attr='attrname') as shortcut for map(attrgetter('attrname'))
-# map(item='itemname') as shortcut for map(itemgetter('itemname'))
-# TODO consider numeric type to do stuff like wrap(3).times(...)
-    or wrap([1,2,3]).call(len).times(yank_me)
-"""
 
 import unittest
 from pyexpect import expect
@@ -711,7 +744,14 @@ class WrapperTest(FluentTest):
         expect(wrap(str).issubclass(object)) == True
         expect(wrap(str).issubclass(str)) == True
         expect(wrap(str).issubclass(int)) == False
-
+    
+    def test_dir_vars(self):
+        expect(_(object()).dir()).contains('__class__', '__init__', '__eq__')
+        class Foo(object): pass
+        foo = Foo()
+        foo.bar = 'baz'
+        expect(_(foo).vars()) == {'bar': 'baz'}
+    
 class CallableTest(FluentTest):
     
     def test_star_call(self):
@@ -894,6 +934,31 @@ class ImporterTest(FluentTest):
     
     def test_imported_objects_are_pre_wrapped(self):
         lib.os.path.join('/foo', 'bar', 'baz').findall(r'/(\w*)') == ['foo', 'bar', 'baz']
+
+class EachTest(FluentTest):
+    
+    def test_should_produce_attrgetter_on_attribute_access(self):
+        class Foo(object):
+            bar = 'baz'
+        expect(_([Foo(), Foo()]).map(_.each.bar)) == ('baz', 'baz')
+    
+    def test_should_produce_itemgetter_on_item_access(self):
+        expect(_([['foo'], ['bar']]).map(_.each[0])) == ('foo', 'bar')
+    
+    def test_should_produce_callable_on_binary_operator(self):
+        expect(_(['foo', 'bar']).map(_.each == 'foo')) == (True, False)
+        expect(_([3, 5]).map(_.each + 3)) == (6, 8)
+        expect(_([3, 5]).map(_.each < 4)) == (True, False)
+    
+    def test_should_produce_callable_on_unary_operator(self):
+        expect(_([3, 5]).map(- _.each)) == (-3, -5)
+        expect(_([3, 5]).map(~ _.each)) == (-4, -6)
+    
+    def _test_should_produce_curried_method_when_called_on_each(self):
+        class Foo(object):
+            def bar(self, text):
+                return 'bar: ' + text
+        expect(_([Foo(), Foo()]).map(_.each.bar('baz'))) == ('bar: baz', 'bar: baz')
 
 class IntegrationTest(FluentTest):
     
