@@ -422,6 +422,8 @@ class Callable(Wrapper):
         
         If one of the args is wrap / _, then this acts as a shortcut to curry instead"""
         # REFACT consider to drop the auto curry - doesn't look like it is so super usefull
+        # If it does turn out usefull, consider to support it everywhere in the library, so every method
+        # becomes auto curryable when called with `wrap` as one of it's arguments
         if wrap in args:
             return wrap(self).curry(*args, **kwargs)
         
