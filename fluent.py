@@ -181,83 +181,20 @@ This library tries to do a little of what underscore does for javascript. Just p
 """
 
 """Future Ideas:
+    
+Not sure how to do these, would be really nice to have cool syntax for these,
+but I don't get how I can sensibly distinguish the syntax for attrgetter and methodcaller
 
-    _.attrgetter = _.lib.operator.attrgetter seems like a nice shortcut and would be pre-wrapped
-just using lib.operator.attrgetter is also not so bad and requires nothing special
-    _([1,2,3]).map(lambda x: (x['foo'], x['bar']))
-    _([1,2,3]).map(_.attrgetter('foo', 'bar')) # this seems to be a nice shortcut
-    _([1,2,3]).map(lib.operator.attrgetter('foo', 'bar'))
-    _([1,2,3]).map(_.each.foo)
-    _([1,2,3]).map(_.itemgetter('foo', 'bar')) # this seems to be a nice shortcut
-    _([1,2,3]).map(lib.operator.itemgetter('foo', 'bar')) # return tuples of items
-    _([1,2,3]).map(_.each['foo', 'bar'])
-    _([1,2,3]).map(lambda x: x.method_name(arg1, kwarg='value')) # just do a lambda...
     _([1,2,3]).map(_.methodcaller('method_name', arg1, kwarg='value')) # this seems to be a nice shortcut
     _([1,2,3]).map(lib.operator.methodcaller('method_name', arg1, kwarg='value'))
     _([1,2,3]).map(_.each.method_name(arg1, kwarg='value'))
+    _([1,2,3]).map(_.curry.method_name(arg1, kwarg='value'))
+    _([1,2,3]).map(_.call.method_name(arg1, kwarg='value'))
+    _([1,2,3]).map(_.each.call.method_name(arg1, kwarg='value'))
 
-
-    _([1,2,3]).map(_.each + 3)
-
-I cold also put all the operator methods on `wrap` to make them easily accessible?
-would make them easily available to curry too
-Could provide some auto_curry feature where
-    `_ % 3` creates a function that modulos it's argument, quite a nice shortcut...
-    `3 % _` is this also possible?
-    _(3).call(3 % _)
-    _(3).call(_.mod(3, _))
-    _(_, 'foo', bar='baz') could become a callable that accepts one argument?
-    _(a_function)(_, 'foo', bar='baz') could become a callable that accepts one argument?
-    _(_, 'foo', _, _, bar='baz') could become a callable that accepts three arguments? (plus any kwargs of course)
-Consider if auto-currying for all methods here would be a cool idea?
-one or multiple placeholders?
-
-    # easy
-    _.each['foo']
-    _.each % 3
-    _.each.foo
-    # almost impossible if _.each.foo is supported too
-    _.each.foo('bar')
-
-
-    _.something('foo') 
-becomes an auto curried method that has a placeholder as the first argument (usually self)
-That would mean an easy version to write most lambdas. Also _ could be used as a placeholder at a specific position.
-Maybe have this on it's own sub-symbol?
-    _.curry.something('foo', _, 'bar')
-    _.each.something('foo', _, 'bar') == lambda x: x.something('foo', _, 'bar')
-    lib.sys.stdin.read().split('\n').filter(_.startswith('fnord')).map(print)
-    lib.sys.stdin.read().split('\n').filter(_.curry.startswith('fnord')).map(print)
-    lib.sys.stdin.read().split('\n').filter(_.each.startswith('fnord')).map(print)
-    lib.sys.stdin.read().split('\n').filter(_.methodcaller('startswith', 'fnord')).map(print)
 
 Support SmallTalk style return value handling. I.e. if a method returns None, wrapper could act as if it had returned 'self' to allow further chaining.
 
-
-not sure this is very usefull, can just .call('foo'.format) stuff
-# list.format = lambda self, format_string: str(format_string.format(*self))
-#
-#
-# str.findall = lambda self, pattern: list(re.findall(pattern, self))
-# # str.split = lambda self, *args, **kwargs: list(__str.split(self, *args, **kwargs))
-# # str.split = list.cast(__str.split)
-# # str.split = str.split.cast(list)
-# # str.split = str.split.chain(list)
-# # str.split = func.compose(str.split, list)
-# str.split = func.wrap(str.split, list)
-# str.upper = lambda self: str(__str.upper(self))
-# str.prepend = lambda self, other: str(other + self)
-# str.format = lambda self, format_string: str(format_string.format(self))
-
-# REFACT accept regex as first argument and route to re.split then instead
-
-# REFACT add imp auto importer, that pre-wraps everything he imports. End effect should be that python is seamlessly usable like this.
-# REFACT add python -m fluent 'code…' support which auto injects module importer and 
-# TODO add flatten to listlikes
-# TODO add sort, groupby, grouped
-# TODO add convenience keyword arguments to map etc.
-# map(attr='attrname') as shortcut for map(attrgetter('attrname'))
-# map(item='itemname') as shortcut for map(itemgetter('itemname'))
 # TODO consider numeric type to do stuff like wrap(3).times(...)
     or wrap([1,2,3]).call(len).times(yank_me)
 """
@@ -489,7 +426,6 @@ class Callable(Wrapper):
     # REFACT consider if there could be more utility in supporting placeholders for more usecases.
     # examples:
     #   Switching argument order?
-    #   multiple placeholders?
     @wrapped
     def curry(self, *args, **kwargs):
         """"Like functools.partial, but with a twist.
