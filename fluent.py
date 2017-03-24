@@ -955,7 +955,7 @@ class IntegrationTest(FluentTest):
     def test_call_module_from_shell(self):
         from subprocess import check_output
         output = check_output(
-            ['python', '-m', 'fluent', "_.lib.sys.stdin.read().split('\\n').imap(str.upper).imap(print).call(list)"],
+            ['python', '-m', 'fluent', "lib.sys.stdin.read().split('\\n').imap(str.upper).imap(print).call(list)"],
             input=b'foo\nbar\nbaz')
         expect(output) == b'FOO\nBAR\nBAZ\n'
 
