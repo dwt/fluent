@@ -174,24 +174,15 @@ the collection. Some examples to clarify this:
 >>> _([1,2,3]).map(- _.each) == [-1,-2,-3]
 >>> _([dict(fnord='foo'), dict(fnord='bar')]).map(_.each['fnord']) == ['foo', 'bar]
 >>> class Foo(object):
->>>     def __init__(self): self.attr = 'attrvalue'
+>>>     attr = 'attrvalue'
+>>>     def method(self, arg): return 'method+'+arg
 >>> _([Foo(), Foo()]).map(_.each.attr) == ['attrvalue', 'attrvalue']
+>>> _([Foo(), Foo()]).map(_.each.call.method('arg')) == ['method+arg', 'method+arg']
 
 This library tries to do a little of what underscore does for javascript. Just provide the missing glue to make the standard library nicer and easier to use - especially for short oneliners or short script. Have fun!
 """
 
 """Future Ideas:
-    
-Not sure how to do these, would be really nice to have cool syntax for these,
-but I don't get how I can sensibly distinguish the syntax for attrgetter and methodcaller
-
-    _([1,2,3]).map(_.methodcaller('method_name', arg1, kwarg='value')) # this seems to be a nice shortcut
-    _([1,2,3]).map(lib.operator.methodcaller('method_name', arg1, kwarg='value'))
-    _([1,2,3]).map(_.each.method_name(arg1, kwarg='value'))
-    _([1,2,3]).map(_.curry.method_name(arg1, kwarg='value'))
-    _([1,2,3]).map(_.call.method_name(arg1, kwarg='value'))
-    _([1,2,3]).map(_.each.call.method_name(arg1, kwarg='value'))
-
 
 Support SmallTalk style return value handling. I.e. if a method returns None, wrapper could act as if it had returned 'self' to allow further chaining.
 
@@ -422,8 +413,7 @@ class Callable(Wrapper):
         
         If one of the args is wrap / _, then this acts as a shortcut to curry instead"""
         # REFACT consider to drop the auto curry - doesn't look like it is so super usefull
-        # If it does turn out usefull, consider to support it everywhere in the library, so every method
-        # becomes auto curryable when called with `wrap` as one of it's arguments
+        # REFACT Consider how to expand this so every method in the library supports auto currying
         if wrap in args:
             return wrap(self).curry(*args, **kwargs)
         
@@ -942,6 +932,10 @@ class EachTest(FluentTest):
         expect(_([3, 5]).map(~ _.each)) == (-4, -6)
     
     def test_should_produce_methodcaller_on_call_attribute(self):
+        # problem: _.each.call is now not an attrgetter
+        # _.each.method.call('foo') # like a method chaining
+        # _.each_call.method('foo')
+        # _.eachcall.method('foo')
         class Tested(object):
             def method(self, arg): return 'method+'+arg
         expect(_(Tested()).call(_.each.call.method('argument'))) == 'method+argument'
