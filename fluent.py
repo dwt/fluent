@@ -380,7 +380,7 @@ def unwrapped(wrapped_function):
         return wrapped_function(self.chain, *args, **kwargs)
     return forwarder
 
-def wrapped_forward(wrapped_function, additional_result_wrapper=None):
+def wrapped_forward(wrapped_function, additional_result_wrapper=None, self_index=1):
     """Forwards a call to a different object
     
     This makes its method available on the wrapper.
@@ -391,7 +391,7 @@ def wrapped_forward(wrapped_function, additional_result_wrapper=None):
     """
     @functools.wraps(wrapped_function)
     def forward(self, *args, **kwargs):
-        return wrapped_function(args[0], self, *args[1:], **kwargs)
+        return wrapped_function(*args[0:self_index], self, *args[self_index:], **kwargs)
     return wrapped(forward, additional_result_wrapper=additional_result_wrapper)
 
 def tupleize(wrapped_function):
