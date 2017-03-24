@@ -702,20 +702,19 @@ class Set(Iterable): pass
 
 # REFACT consider to inherit from Iterable? It's how Python works...
 class Text(Wrapper):
+    "Supports most of the regex methods as if they where native str methods"
     
     # Regex Methods ......................................
     
-    findall = wrapped_forward(re.findall)
-    
-    # REFACT consider to expose iterator versions of all of these (if possible)
-    # finditer -> ifind?
-    # fullmatch
-    # match
-    # search
-    
+    search = wrapped_forward(re.search)
+    match = wrapped_forward(re.match)
+    fullmatch = wrapped_forward(re.match)
     split = wrapped_forward(re.split)
-    
-    # sub, subn
+    findall = wrapped_forward(re.findall)
+    # REFACT consider ifind and find in the spirit of the collection methods?
+    finditer = wrapped_forward(re.finditer)
+    sub = wrapped_forward(re.sub, self_index=2)
+    subn = wrapped_forward(re.subn, self_index=2)
 
 def make_operator(name):
     __op__ = getattr(operator, name)
@@ -843,7 +842,7 @@ class WrapperTest(FluentTest):
         foo = Foo()
         foo.bar = 'baz'
         expect(_(foo).vars()) == {'bar': 'baz'}
-    
+
 class CallableTest(FluentTest):
     
     def test_call(self):
@@ -908,7 +907,7 @@ class SmallTalkLikeBehaviour(FluentTest):
     # wrapped
     # unwrapped
     # wrapped_forward
-    
+
 class IterableTest(FluentTest):
     
     def test_should_call_callable_with_star_splat_of_self(self):
@@ -1011,7 +1010,6 @@ class IterableTest(FluentTest):
         
         expect(_([(1,2),[3,4],(5, [6,7])]).flatten(level=1)) == \
             (1,2,3,4,5,[6,7])
-    
 
 class MappingTest(FluentTest):
     
@@ -1026,12 +1024,25 @@ class MappingTest(FluentTest):
 
 class StrTest(FluentTest):
     
-    def test_findall(self):
-        expect(_("bazfoobar").findall('ba[rz]')) == ['baz', 'bar']
+    def test_search(self):
+        expect(_('foo bar baz').search(r'b.r').span()) == (4,7)
+    
+    def test_match_fullmatch(self):
+        expect(_('foo bar').match(r'foo\s').span()) == (0, 4)
+        expect(_('foo bar').fullmatch(r'foo\sbar').span()) == (0, 7)
     
     def test_split(self):
         expect(_('foo\nbar\nbaz').split(r'\n')) == ['foo', 'bar', 'baz']
         expect(_('foo\nbar/baz').split(r'[\n/]')) == ['foo', 'bar', 'baz']
+    
+    def test_findall_finditer(self):
+        expect(_("bazfoobar").findall('ba[rz]')) == ['baz', 'bar']
+        expect(_("bazfoobar").finditer('ba[rz]').map(_.each.call.span())) == ((0,3), (6,9))
+    
+    def test_sub_subn(self):
+        expect(_('bazfoobar').sub(r'ba.', 'foo')) == 'foofoofoo'
+        expect(_('bazfoobar').sub(r'ba.', 'foo', 1)) == 'foofoobar'
+        expect(_('bazfoobar').sub(r'ba.', 'foo', count=1)) == 'foofoobar'
 
 class ImporterTest(FluentTest):
     
@@ -1090,7 +1101,6 @@ class EachTest(FluentTest):
         expect(lambda: _.each.call('argument')).to_raise(AssertionError, '_.each.call.method_name')
 
 class IntegrationTest(FluentTest):
-    
     
     def test_extrac_and_decode_URIs(self):
         from xml.sax.saxutils import unescape
