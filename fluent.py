@@ -686,6 +686,13 @@ class Iterable(Wrapper):
 
 class Mapping(Iterable):
     
+    def __getattr__(self, name):
+        "Support JavaScript like dict item access via attribute access"
+        if name in self.chain:
+            return self[name]
+        
+        return super().__getattr__(self, name)
+        
     @wrapped
     def star_call(self, function, *args, **kwargs):
         "Calls function(**self), but allows to add args and set defaults for kwargs."
@@ -1013,6 +1020,9 @@ class MappingTest(FluentTest):
         expect(_(dict(foo='bar')).star_call(foo)) == 'bar'
         expect(_(dict(foo='baz')).star_call(foo, foo='bar')) == 'baz'
         expect(_(dict()).star_call(foo, foo='bar')) == 'bar'
+    
+    def test_should_support_attribute_access_to_mapping_items(self):
+        expect(_(dict(foo='bar')).foo) == 'bar'
 
 class StrTest(FluentTest):
     
