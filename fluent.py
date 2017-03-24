@@ -364,6 +364,7 @@ class Wrapper(object):
     setattr = wrapped(setattr)
     getattr = wrapped(getattr)
     hasattr = wrapped(hasattr)
+    delattr = wrapped(delattr)
     
     isinstance = wrapped(isinstance)
     issubclass = wrapped(issubclass)
@@ -705,12 +706,16 @@ class WrapperTest(FluentTest):
         callme = lambda: None
         expect(wrap(callme)) == callme
     
-    def test_hasattr_getattr_setattr(self):
+    def test_hasattr_getattr_setattr_delattr(self):
         expect(wrap((1,2)).hasattr('len'))
         expect(wrap('foo').getattr('__len__')()) == 3
         class Attr(object):
-            foo = 'bar'
+            def __init__(self): self.foo = 'bar'
         expect(wrap(Attr()).setattr('foo', 'baz').foo) == 'baz'
+        
+        expect(wrap(Attr()).delattr('foo').unwrap) == None
+        expect(wrap(Attr()).delattr('foo').chain).isinstance(Attr)
+        expect(wrap(Attr()).delattr('foo').vars()) == {}
     
     def test_isinstance_issubclass(self):
         expect(wrap('foo').isinstance(str)) == True
