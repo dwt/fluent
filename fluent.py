@@ -215,7 +215,7 @@ if hasattr(typing, 'Text'): # strangely not available on ipad
     TextType = typing.Text
 
 
-def wrap(wrapped, *, previous=None):
+def wrap(wrapped, *, previous=None, chain=None):
     """Factory method, wraps anything and returns the appropriate Wrapper subclass.
     
     This is the main entry point into the fluent wonderland. Wrap something and 
@@ -232,11 +232,18 @@ def wrap(wrapped, *, previous=None):
         (typing.Iterable, Iterable),
         (typing.Callable, Callable),
     )
-    for clazz, wrapper in by_type:
-        if isinstance(wrapped, clazz):
-            return wrapper(wrapped, previous=previous)
+    decider = wrapped
+    if wrapped is None and chain is not None:
+        decider = chain
     
-    return Wrapper(wrapped, previous=previous)
+    if wrapped is None and chain is None and previous is not None:
+        chain = previous.chain
+    
+    for clazz, wrapper in by_type:
+        if isinstance(decider, clazz):
+            return wrapper(wrapped, previous=previous, chain=chain)
+    
+    return Wrapper(wrapped, previous=previous, chain=chain)
 
 # sadly _ is pretty much the only valid python identifier that is sombolic and easy to type. Unicode would also be a candidate, but hard to type $, § like in js cannot be used
 _ = wrap
@@ -307,10 +314,11 @@ class Wrapper(object):
        chainable alternatives (.eq, .mul, .add, …)
     """
     
-    def __init__(self, wrapped, previous):
-        assert wrapped is not None or previous is not None, 'Cannot chain off of None'
+    def __init__(self, wrapped, *, previous, chain):
+        assert wrapped is not None or chain is not None, 'Cannot chain off of None'
         self.__wrapped = wrapped
         self.__previous = previous
+        self.__chain = chain
     
     # Proxied methods
     
@@ -337,9 +345,10 @@ class Wrapper(object):
     
     @property
     def chain(self):
-        if self.unwrap is None:
-            return self.previous.unwrap
-        return self.unwrap
+        "Like .unwrap but handles chaining off of methods / functions that return None like SmallTalk does"
+        if self.unwrap is not None:
+            return self.unwrap
+        return self.__chain
     
     # Chainable versions of operators
     
@@ -403,11 +412,10 @@ class Module(Wrapper):
         
         return wrap(module)
 
-wrap.lib = lib = Module(virtual_root_module, previous=None)
+wrap.lib = lib = Module(virtual_root_module, previous=None, chain=None)
 
 class Callable(Wrapper):
     
-    @wrapped
     def __call__(self, *args, **kwargs):
         """"Call through with a twist.
         
@@ -415,10 +423,11 @@ class Callable(Wrapper):
         # REFACT consider to drop the auto curry - doesn't look like it is so super usefull
         # REFACT Consider how to expand this so every method in the library supports auto currying
         if wrap in args:
-            return wrap(self).curry(*args, **kwargs)
+            return self.curry(*args, **kwargs)
         
-        # REFACT consider to return the previous wrapper if this one returnes nill to be more like SmallTalk
-        return self(*args, **kwargs)
+        result = self.chain(*args, **kwargs)
+        chain = None if self.previous is None else self.previous.chain
+        return wrap(result, previous=self, chain=chain)
     
     # REFACT rename to partial for consistency with stdlib?
     # REFACT consider if there could be more utility in supporting placeholders for more usecases.
@@ -636,7 +645,7 @@ class Each(Wrapper):
         return MethodCallerConstructor()
     
 each_marker = object()
-wrap.each = Each(each_marker, previous=None)
+wrap.each = Each(each_marker, previous=None, chain=None)
 
 # Roundable (for all numeric needs?)
     # round, times, repeat, if, else
@@ -765,6 +774,22 @@ class CallableTest(FluentTest):
         expect(_(lambda x: x*2).compose(lambda x: x+3)(5)) == 13
         expect(_(str.strip).compose(str.capitalize)('  fnord  ')) == 'Fnord'
 
+class SmallTalkLikeBehaviour(FluentTest):
+    
+    def test_should_pretend_methods_that_return_None_returned_self(self):
+        expect(_([3,2,1]).sort().unwrap) == None
+        expect(_([3,2,1]).sort().previous.previous) == [1,2,3]
+        expect(_([3,2,1]).sort().chain) == [1,2,3]
+        expect(_([2,3,1]).sort().sort(reverse=True).unwrap) == None
+        expect(_([2,3,1]).sort().sort(reverse=True).previous.previous.previous.previous) == [3,2,1]
+        expect(_([2,3,1]).sort().sort(reverse=True).chain) == [3,2,1]
+    
+    def test_should_chain_off_of_previous_if_our_functions_return_none(self):
+        class Attr(object):
+            foo = 'bar'
+        expect(wrap(Attr()).setattr('foo', 'baz').foo) == 'baz'
+        
+    
 class IterableTest(FluentTest):
     
     def test_should_call_callable_with_star_splat_of_self(self):
