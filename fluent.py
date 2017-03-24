@@ -179,15 +179,38 @@ the collection. Some examples to clarify this:
 >>> _([Foo(), Foo()]).map(_.each.attr) == ['attrvalue', 'attrvalue']
 >>> _([Foo(), Foo()]).map(_.each.call.method('arg')) == ['method+arg', 'method+arg']
 
+One major nuissance for fluent interfaces are methods that return None. Now this is mostly due to
+a feature of python, where methods that don't have a return statement return None.
+While this is way better than e.g. Ruby where that will just return the value of the last 
+expression - which means objects constantly leak internals, it is very annoying if you want to 
+chain off of one of these method calls. Fear not though, fluent has you covered. :) 
+Fluent wrapped objects will behave more like SmallTalk objects, in that they pretend
+that every method that returns None actually returned self - thus allowing chaining. So this just works:
+
+>>> _([3,2,1]).sort().reverse().call(print)
+
+Even though both sort() and reverse() return None
+
 This library tries to do a little of what underscore does for javascript. Just provide the missing glue to make the standard library nicer and easier to use - especially for short oneliners or short script. Have fun!
 """
 
 """Future Ideas:
 
-Support SmallTalk style return value handling. I.e. if a method returns None, wrapper could act as if it had returned 'self' to allow further chaining.
-
 # TODO consider numeric type to do stuff like wrap(3).times(...)
     or wrap([1,2,3]).call(len).times(yank_me)
+
+Rework _.each.call.foo(bar) so 'call' is no longer a used-up symbol on each.
+
+Rework fluent so explicit unwrapping is required to do anythign with wrapped objects. 
+(Basically calling ._ at the end)
+The idea here is that this would likely enable the library to be used in big / bigger 
+projects as it looses it's virus like qualities.
+* Maybe this is best done as a separate import?
+* This would also be a chance to consider always using the iterator versions of 
+  all the collection methods under their original name and automatically unpacking 
+  / triggering the iteration on ._? Not sure that's a great idea, as getting the 
+  iterator to abstract over it is a) great and b) triggering the iteration is also 
+  hard see e.g. groupby.
 """
 
 # REFACT rename wrap -> fluent? perhaps as an alias?
