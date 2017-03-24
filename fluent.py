@@ -434,6 +434,7 @@ class Wrapper(object):
     # Proxied methods
     
     __getattr__ = wrapped(getattr)
+    __getitem__ = wrapped(operator.getitem)
     
     __str__ = unwrapped(str)
     __repr__ = unwrapped(repr)
@@ -773,6 +774,9 @@ class WrapperTest(FluentTest):
     def test_should_wrap_attribute_accesses(self):
         class Foo(): bar = 'baz'
         expect(wrap(Foo()).bar).is_instance(Wrapper)
+    
+    def test_should_wrap_item_accesses(self):
+        expect(_(dict(foo='bar'))['foo']).is_instance(Wrapper)
     
     def test_should_error_when_accessing_missing_attribute(self):
         class Foo(): pass
