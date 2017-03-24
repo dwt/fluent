@@ -430,8 +430,11 @@ class Wrapper(object):
     __getattr__ = wrapped(getattr)
     __getitem__ = wrapped(operator.getitem)
     
-    __str__ = unwrapped(str)
-    __repr__ = unwrapped(repr)
+    def __str__(self):
+        return "fluent.wrap(%s)" % self.chain
+    
+    def __repr__(self):
+        return "fluent.wrap(%r)" % self.chain
     
     # REFACT consider wether I want to support all other operators too or wether explicit 
     # unwrapping is actually a better thing
@@ -763,6 +766,10 @@ class WrapperTest(FluentTest):
     def test_should_not_wrap_a_wrapper_again(self):
         wrapped = _(4)
         expect(type(_(wrapped).unwrap)) == int
+    
+    def test_should_provide_usefull_str_and_repr_output(self):
+        expect(repr(_('foo'))) == "fluent.wrap('foo')"
+        expect(str(_('foo'))) == "fluent.wrap(foo)"
     
     def test_should_wrap_callables(self):
         counter = [0]
