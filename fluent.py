@@ -278,6 +278,7 @@ cover item access off of wrapper
 
 Rework _.each.call.foo(bar) so 'call' is no longer a used-up symbol on each.
 Also _.each.call.method(...) has a somewhat different meaning as the .call method on callable
+could _.each.method(_, ...) work when auto currying is enabled?
 
 Rework fluent so explicit unwrapping is required to do anythign with wrapped objects. 
 (Basically calling ._ at the end)
@@ -296,6 +297,13 @@ projects as it looses it's virus like qualities.
 Consider `python -m fluent 'code'` to auto print the result of 'code' to make it even 
 easier to build shell filters with it. Not sure if this maybe takes away too much control 
 from the author though?
+
+Roundable (for all numeric needs?)
+    round, times, repeat, if_true, if_false, else_
+
+if_true, etc. are pretty much like conditional versions of .tee() I guess.
+
+.if_true(function_to_call).else_(other_function_to_call)
 """
 
 # REFACT rename wrap -> fluent? perhaps as an alias?
@@ -314,15 +322,6 @@ import itertools
 import operator
 import collections.abc
 
-CollectionType = collections.abc.Container
-if hasattr(typing, 'Collection'): # strangely not available on ipad
-    CollectionType = typing.Collection
-
-TextType = str
-if hasattr(typing, 'Text'): # strangely not available on ipad
-    TextType = typing.Text
-
-
 def wrap(wrapped, *, previous=None, chain=None):
     """Factory method, wraps anything and returns the appropriate Wrapper subclass.
     
@@ -334,18 +333,19 @@ def wrap(wrapped, *, previous=None, chain=None):
     
     by_type = (
         (types.ModuleType, Module),
-        (TextType, Text),
+        (typing.Text, Text),
         (typing.Mapping, Mapping),
         (typing.AbstractSet, Set),
         (typing.Iterable, Iterable),
         (typing.Callable, Callable),
     )
-    decider = wrapped
-    if wrapped is None and chain is not None:
-        decider = chain
     
     if wrapped is None and chain is None and previous is not None:
         chain = previous.chain
+    
+    decider = wrapped
+    if wrapped is None and chain is not None:
+        decider = chain
     
     for clazz, wrapper in by_type:
         if isinstance(decider, clazz):
@@ -356,42 +356,49 @@ def wrap(wrapped, *, previous=None, chain=None):
 # sadly _ is pretty much the only valid python identifier that is sombolic and easy to type. Unicode would also be a candidate, but hard to type $, § like in js cannot be used
 _ = wrap
 
-# using these decorators will take care of unwrapping and rewrapping the target object.
-# thus all following code is written as if the methods live on the wrapped object
-def wrapped(wrapped_function, wrap_result=None):
+def wrapped(wrapped_function, additional_result_wrapper=None):
+    """
+    Using these decorators will take care of unwrapping and rewrapping the target object.
+    Thus all following code is written as if the methods live on the wrapped object
+    
+    Also perfect to adapt free functions as instance methods.
+    """
     @functools.wraps(wrapped_function)
     def wrapper(self, *args, **kwargs):
         result = wrapped_function(self.chain, *args, **kwargs)
-        if callable(wrap_result):
-            result = wrap_result(result)
+        if callable(additional_result_wrapper):
+            result = additional_result_wrapper(result)
         return wrap(result, previous=self)
     return wrapper
 
 def unwrapped(wrapped_function):
+    """Like wrapped(), but doesn't wrap the result.
+    
+    Use this to adapt free functions that should not return a wrapped value"""
     @functools.wraps(wrapped_function)
     def forwarder(self, *args, **kwargs):
         return wrapped_function(self.chain, *args, **kwargs)
     return forwarder
 
-def wrapped_forward(wrapped_function, wrap_result=None):
+def wrapped_forward(wrapped_function, additional_result_wrapper=None):
     """Forwards a call to a different object
     
     This makes its method available on the wrapper.
     This specifically models the case where the method forwarded to, 
     takes the current object as its first argument.
     
-    This also deals nicely with the fact that the method is just on the wrong object.
+    This also deals nicely with methods that just live on the wrong object.
     """
     @functools.wraps(wrapped_function)
-    def wrapper(self, *args, **kwargs):
-        result = wrapped_function(args[0], self.chain, *args[1:], **kwargs)
-        if callable(wrap_result):
-            result = wrap_result(result)
-        return wrap(result, previous=self)
-    return wrapper
+    def forward(self, *args, **kwargs):
+        return wrapped_function(args[0], self, *args[1:], **kwargs)
+    return wrapped(forward, additional_result_wrapper=additional_result_wrapper)
 
 def tupleize(wrapped_function):
-    "Wrap the returned obect in a tuple to force execution of iterators"
+    """"Wrap the returned obect in a tuple to force execution of iterators.
+    
+    Especially usefull to de-iterate methods / function
+    """
     @functools.wraps(wrapped_function)
     def wrapper(self, *args, **kwargs):
         return wrap(tuple(wrapped_function(self, *args, **kwargs)), previous=self)
@@ -416,10 +423,6 @@ class Wrapper(object):
        wrapped type. I.e. iterables will gain the collection interface, 
        mappings will gain the mapping interface, strings will gain the 
        string interface, etc.
-    
-    c) Operators like ==, +, *, will just proxy to the wrapped object and 
-       return an unwrapped object. If you want to chain from these, use the
-       chainable alternatives (.eq, .mul, .add, …)
     """
     
     def __init__(self, wrapped, *, previous, chain):
@@ -435,10 +438,9 @@ class Wrapper(object):
     __str__ = unwrapped(str)
     __repr__ = unwrapped(repr)
     
+    # REFACT consider wether I want to support all other operators too or wether explicit 
+    # unwrapping is actually a better thing
     __eq__ = unwrapped(operator.eq)
-    
-    # TODO add all remaining __$__ methods - consider if this can be done generically?
-    # Problem is that python doesn't access __ attributes via __getattr__. :-/
     
     # Breakouts
     
@@ -458,16 +460,13 @@ class Wrapper(object):
             return self.unwrap
         return self.__chain
     
-    # Chainable versions of operators
+    # Utilities
     
     @wrapped
     def call(self, function, *args, **kwargs):
         "Call function with self as first argument"
         # Different from __call__! Calls function(self, …) instead of self(…)
         return function(self, *args, **kwargs)
-    
-    # REFACT eq - keep or toss?
-    eq = wrapped(operator.eq)
     
     setattr = wrapped(setattr)
     getattr = wrapped(getattr)
@@ -477,9 +476,12 @@ class Wrapper(object):
     isinstance = wrapped(isinstance)
     issubclass = wrapped(issubclass)
     
-    @wrapped
     def tee(self, function):
-        function(wrap(self)) # REFACT consider to hand in unwrapped object here to make it easier to work with stdlib methods here, might be unneccessary if wrapper is complete
+        """Like tee on the shell
+        
+        Calls the argument function with self, but then discards the result and allows 
+        further chaining from self."""
+        function(self)
         return self
     
     dir = wrapped(dir)
@@ -503,7 +505,6 @@ class Module(Wrapper):
     >>> wrap(importlib.import_module('sys').stdin).read().map(print)
     
     But of course without creating the intermediate symbol 'stdin' in the current namespace.
-    # TODO replace example with call to importlib implementation
     
     All objects returned from lib are pre-wrapped, so you can chain off of them immediately.
     """
@@ -528,7 +529,7 @@ class Callable(Wrapper):
     def __call__(self, *args, **kwargs):
         """"Call through with a twist.
         
-        If one of the args is wrap / _, then this acts as a shortcut to curry instead"""
+        If one of the args is `wrap` / `_`, then this acts as a shortcut to curry instead"""
         # REFACT consider to drop the auto curry - doesn't look like it is so super usefull
         # REFACT Consider how to expand this so every method in the library supports auto currying
         if wrap in args:
@@ -543,47 +544,41 @@ class Callable(Wrapper):
     # examples:
     #   Switching argument order?
     @wrapped
-    def curry(self, *args, **kwargs):
+    def curry(self, *curry_args, **curry_kwargs):
         """"Like functools.partial, but with a twist.
         
-        If you use wrap (best imported as _) as a positional argument,
-        upon the actual call, arguments will be left-filled for those placeholders.
+        If you use `wrap` or `_` as a positional argument, upon the actual call, 
+        arguments will be left-filled for those placeholders.
+        
         For example:
         
-        >>> from fluent import wrap as _
         >>> _(operator.add).curry(_, 'foo')('bar') == 'barfoo'
         """
-        # would be so nice to just use functools.partial(self, *args, **kwargs)
-        # but they don't support placeholders
         placeholder = wrap
-        def merge_args(curried_args, fargs):
+        def merge_args(curried_args, args):
+            assert curried_args.count(placeholder) == len(args), \
+                'Need the right ammount of arguments for the placeholders'
+            
             new_args = list(curried_args)
             if placeholder in curried_args:
-                assert curried_args.count(placeholder) == len(fargs), \
-                    'Need the right ammount of arguments for the placeholders'
                 index = 0
-                for arg in fargs:
+                for arg in args:
                     index = new_args.index(placeholder, index)
                     new_args[index] = arg
             return new_args
+        
         @functools.wraps(self)
-        def wrapper(*fargs, **fkeywords):
-            # TODO do I want the curried arguments to overwrite the 
-            # direct ones or should they define defaults?
-            # Currently they define defaults. This feels similar to how python handles
-            #  keyword arguments in function definitions, but i wonder if the other 
-            # way around would be more usefull here?
-            new_kwargs = dict(kwargs, **fkeywords)
-            new_args = merge_args(args, fargs)
-            return self(*new_args, **new_kwargs)
+        def wrapper(*actual_args, **actual_kwargs):
+            return self(
+                *merge_args(curry_args, actual_args),
+                **dict(curry_kwargs, **actual_kwargs)
+            )
         return wrapper
     
     @wrapped
     def compose(self, outer):
         return lambda *args, **kwargs: outer(self(*args, **kwargs))
     # REFACT consider aliasses wrap = chain = cast = compose
-    # Also not so sure if this is really so helpfull as the i* versions of the iterators 
-    # basically allow the same thing
 
 class Iterable(Wrapper):
     """Add iterator methods to any iterable.
@@ -596,14 +591,15 @@ class Iterable(Wrapper):
     
     Thus all iterators on this class are by default immediate, i.e. they don't return the 
     iterator but instead consume it immediately and return a tuple. Of course if needed, 
-    there is also an i{map,zip,enumerate,...} version for your enjoyment.
+    there is also an i{map,zip,enumerate,...} version for your enjoyment that returns the 
+    iterator.
     """
     
     __iter__ = unwrapped(iter)
     
     @wrapped
     def star_call(self, function, *args, **kwargs):
-        "Call function with *self as first argument"
+        "Calls function(*self), but allows to prepend args and add kwargs."
         return function(*args, *self, **kwargs)
     
     # This looks like it should be the same as 
@@ -612,7 +608,11 @@ class Iterable(Wrapper):
     
     @wrapped
     def join(self, with_what):
-        "Like str.join, but the other way around. Bohoo!"
+        """"Like str.join, but the other way around. Bohoo!
+        
+        Also calls str on all elements of the collection before handing 
+        it off to str.join as a convenience.
+        """
         return with_what.join(map(str, self))
     
     ## Reductors .........................................
@@ -630,8 +630,8 @@ class Iterable(Wrapper):
     imap = wrapped_forward(map)
     map = tupleize(imap)
     
-    istarmap = wrapped_forward(itertools.starmap)
-    starmap = tupleize(istarmap)
+    istar_map = istarmap = wrapped_forward(itertools.starmap)
+    star_map = starmap = tupleize(istarmap)
     
     ifilter = wrapped_forward(filter)
     filter = tupleize(ifilter)
@@ -651,9 +651,7 @@ class Iterable(Wrapper):
         return zip(*[iter(self)]*group_length)
     grouped = tupleize(igrouped)
     
-    @wrapped
-    def izip(self, *args):
-        return zip(self, *args)
+    izip = wrapped(zip)
     zip = tupleize(izip)
     
     @wrapped
@@ -676,25 +674,21 @@ class Iterable(Wrapper):
             result.append((key, tuple(values)))
         return wrap(tuple(result))
     
-    @wrapped
     def tee(self, function):
         "This override tries to retain iterators, as a speedup"
-        if not isinstance(self, CollectionType): # probably a consuming iterator
-            first, second = itertools.tee(self, 2)
-            function(wrap(first)) # REFACT here too, do I want to hand out unwrapped objects for better interoperability?
-            return second
-        else: # can't call super from here, as self is not the real self
-            function(wrap(self))
-            return self
+        if hasattr(self.chain, '__next__'): # iterator
+            first, second = itertools.tee(self.chain, 2)
+            function(wrap(first, previous=self))
+            return wrap(second, previous=self)
+        else:
+            return super().tee(function)
 
 class Mapping(Iterable):
     
-    # REFACT rename: kwargs_call?
     @wrapped
-    def splat_call(self, function, *args, **kwargs):
-        "Calls function(**self), but allows to override kwargs"
-        # REFACT curry sets defaults - maybe I want this here too for consistency?
-        return function(*args, **dict(self, **kwargs))
+    def star_call(self, function, *args, **kwargs):
+        "Calls function(**self), but allows to add args and set defaults for kwargs."
+        return function(*args, **dict(kwargs, **self))
 
 class Set(Iterable): pass
 
@@ -705,7 +699,8 @@ class Text(Wrapper):
     
     findall = wrapped_forward(re.findall)
     
-    # finditer
+    # REFACT consider to expose iterator versions of all of these (if possible)
+    # finditer -> ifind?
     # fullmatch
     # match
     # search
@@ -714,18 +709,18 @@ class Text(Wrapper):
     
     # sub, subn
 
+def make_operator(name):
+    __op__ = getattr(operator, name)
+    @functools.wraps(__op__)
+    def wrapper(self, *others):
+        return wrap(__op__).curry(wrap, *others)
+    return wrapper
+
 class Each(Wrapper):
     
     for name in dir(operator):
         if not name.startswith('__'):
             continue
-        
-        def make_operator(name):
-            __op__ = getattr(operator, name)
-            functools.wraps(__op__)
-            def wrapper(self, *others):
-                return wrap(__op__).curry(wrap, *others)
-            return wrapper
         locals()[name] = make_operator(name)
     
     @wrapped
@@ -755,9 +750,6 @@ class Each(Wrapper):
     
 each_marker = object()
 wrap.each = Each(each_marker, previous=None, chain=None)
-
-# Roundable (for all numeric needs?)
-    # round, times, repeat, if, else
 
 import unittest
 from pyexpect import expect
@@ -859,8 +851,8 @@ class CallableTest(FluentTest):
     
     def test_tee_breakout_a_function_with_side_effects_and_disregard_return_value(self):
         side_effect = {}
-        def tee(a_list): side_effect['tee'] = a_list.join('-')
-        expect(wrap([1,2,3]).tee(tee)) == [1,2,3]
+        def observer(a_list): side_effect['tee'] = a_list.join('-')
+        expect(wrap([1,2,3]).tee(observer)) == [1,2,3]
         expect(side_effect['tee']) == '1-2-3'
         
         def fnording(ignored): return 'fnord'
@@ -982,6 +974,8 @@ class IterableTest(FluentTest):
         }
     
     def test_tee_should_not_break_iterators(self):
+        # This should work because the extend as well als the .call(list) 
+        # should not exhaust the iterator created by .imap()
         recorder = []
         def record(generator): recorder.extend(generator)
         expect(wrap([1,2,3]).imap(lambda x: x*x).tee(record).call(list)) == [1,4,9]
@@ -1015,8 +1009,9 @@ class MappingTest(FluentTest):
     
     def test_should_call_callable_with_double_star_splat_as_keyword_arguments(self):
         def foo(*, foo): return foo
-        expect(wrap(dict(foo='bar')).splat_call(foo)) == 'bar'
-        expect(wrap(dict(foo='baz')).splat_call(foo, foo='bar')) == 'bar'
+        expect(wrap(dict(foo='bar')).star_call(foo)) == 'bar'
+        expect(wrap(dict(foo='baz')).star_call(foo, foo='bar')) == 'baz'
+        expect(wrap(dict()).star_call(foo, foo='bar')) == 'bar'
 
 class StrTest(FluentTest):
     
