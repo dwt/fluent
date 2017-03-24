@@ -350,7 +350,7 @@ def wrap(wrapped, *, previous=None, chain=None):
 # sadly _ is pretty much the only valid python identifier that is sombolic and easy to type. Unicode would also be a candidate, but hard to type $, § like in js cannot be used
 _ = wrap
 
-def wrapped(wrapped_function, additional_result_wrapper=None):
+def wrapped(wrapped_function, additional_result_wrapper=None, self_index=0):
     """
     Using these decorators will take care of unwrapping and rewrapping the target object.
     Thus all following code is written as if the methods live on the wrapped object
@@ -359,7 +359,7 @@ def wrapped(wrapped_function, additional_result_wrapper=None):
     """
     @functools.wraps(wrapped_function)
     def wrapper(self, *args, **kwargs):
-        result = wrapped_function(self.chain, *args, **kwargs)
+        result = wrapped_function(*args[0:self_index], self.chain, *args[self_index:], **kwargs)
         if callable(additional_result_wrapper):
             result = additional_result_wrapper(result)
         return wrap(result, previous=self)
@@ -383,10 +383,7 @@ def wrapped_forward(wrapped_function, additional_result_wrapper=None, self_index
     
     This also deals nicely with methods that just live on the wrong object.
     """
-    @functools.wraps(wrapped_function)
-    def forward(self, *args, **kwargs):
-        return wrapped_function(*args[0:self_index], self, *args[self_index:], **kwargs)
-    return wrapped(forward, additional_result_wrapper=additional_result_wrapper)
+    return wrapped(wrapped_function, additional_result_wrapper=additional_result_wrapper, self_index=self_index)
 
 def tupleize(wrapped_function):
     """"Wrap the returned obect in a tuple to force execution of iterators.
