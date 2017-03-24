@@ -271,8 +271,6 @@ I envision this to be very usefull in quick python scripts and shell one liner f
 
 """Future Ideas:
 
-cover item access off of wrapper
-
 # TODO consider numeric type to do stuff like wrap(3).times(...)
     or wrap([1,2,3]).call(len).times(yank_me)
 
@@ -293,10 +291,6 @@ projects as it looses it's virus like qualities.
 * This would require carefull analysis where wrapped objects are handed out as arguments
   to called methods e.g. .tee(). Also requires __repr__ and __str__ implementations that
   make sense.
-
-Consider `python -m fluent 'code'` to auto print the result of 'code' to make it even 
-easier to build shell filters with it. Not sure if this maybe takes away too much control 
-from the author though?
 
 Roundable (for all numeric needs?)
     round, times, repeat, if_true, if_false, else_
