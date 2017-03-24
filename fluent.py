@@ -773,60 +773,62 @@ class WrapperTest(FluentTest):
     
     def test_should_wrap_attribute_accesses(self):
         class Foo(): bar = 'baz'
-        expect(wrap(Foo()).bar).is_instance(Wrapper)
+        expect(_(Foo()).bar).is_instance(Wrapper)
     
     def test_should_wrap_item_accesses(self):
         expect(_(dict(foo='bar'))['foo']).is_instance(Wrapper)
     
     def test_should_error_when_accessing_missing_attribute(self):
         class Foo(): pass
-        expect(lambda: wrap(Foo().missing)).to_raise(AttributeError)
+        expect(lambda: _(Foo().missing)).to_raise(AttributeError)
     
     def test_should_explictly_unwrap(self):
         foo = 1
-        expect(wrap(foo).unwrap).is_(foo)
+        expect(_(foo).unwrap).is_(foo)
     
     def test_should_wrap_according_to_returned_type(self):
-        expect(wrap('foo')).is_instance(Text)
-        expect(wrap([])).is_instance(Iterable)
-        expect(wrap({})).is_instance(Mapping)
-        expect(wrap({1})).is_instance(Set)
+        expect(_('foo')).is_instance(Text)
+        expect(_([])).is_instance(Iterable)
+        expect(_(iter([]))).is_instance(Iterable)
+        expect(_({})).is_instance(Mapping)
+        expect(_({1})).is_instance(Set)
         
-        expect(wrap(lambda: None)).is_instance(Callable)
+        expect(_(lambda: None)).is_instance(Callable)
         class CallMe(object):
             def __call__(self): pass
-        expect(wrap(CallMe())).is_instance(Callable)
+        expect(_(CallMe())).is_instance(Callable)
         
-        expect(wrap(object())).is_instance(Wrapper)
+        expect(_(object())).is_instance(Wrapper)
     
     def test_should_remember_call_chain(self):
         def foo(): return 'bar'
-        expect(wrap(foo)().unwrap) == 'bar'
-        expect(wrap(foo)().previous.unwrap) == foo
+        expect(_(foo)().unwrap) == 'bar'
+        expect(_(foo)().previous.unwrap) == foo
     
     def test_should_delegate_equality_test_to_wrapped_instance(self):
-        expect(wrap(1)) == 1
-        expect(wrap('42')) == '42'
+        # REFACT makes these tests much nicer - but probably has to go to make this library less virus like
+        expect(_(1)) == 1
+        expect(_('42')) == '42'
         callme = lambda: None
-        expect(wrap(callme)) == callme
+        expect(_(callme)) == callme
     
     def test_hasattr_getattr_setattr_delattr(self):
-        expect(wrap((1,2)).hasattr('len'))
-        expect(wrap('foo').getattr('__len__')()) == 3
+        expect(_((1,2)).hasattr('len'))
+        expect(_('foo').getattr('__len__')()) == 3
         class Attr(object):
             def __init__(self): self.foo = 'bar'
-        expect(wrap(Attr()).setattr('foo', 'baz').foo) == 'baz'
+        expect(_(Attr()).setattr('foo', 'baz').foo) == 'baz'
         
-        expect(wrap(Attr()).delattr('foo').unwrap) == None
-        expect(wrap(Attr()).delattr('foo').chain).isinstance(Attr)
-        expect(wrap(Attr()).delattr('foo').vars()) == {}
+        expect(_(Attr()).delattr('foo').unwrap) == None
+        expect(_(Attr()).delattr('foo').chain).isinstance(Attr)
+        expect(_(Attr()).delattr('foo').vars()) == {}
     
     def test_isinstance_issubclass(self):
-        expect(wrap('foo').isinstance(str)) == True
-        expect(wrap('foo').isinstance(int)) == False
-        expect(wrap(str).issubclass(object)) == True
-        expect(wrap(str).issubclass(str)) == True
-        expect(wrap(str).issubclass(int)) == False
+        expect(_('foo').isinstance(str)) == True
+        expect(_('foo').isinstance(int)) == False
+        expect(_(str).issubclass(object)) == True
+        expect(_(str).issubclass(str)) == True
+        expect(_(str).issubclass(int)) == False
     
     def test_dir_vars(self):
         expect(_(object()).dir()).contains('__class__', '__init__', '__eq__')
@@ -848,26 +850,23 @@ class CallableTest(FluentTest):
         expect(wrap([1,2,3]).star_call(str.format, '{} - {} : {}')) == '1 - 2 : 3'
     
     def test_should_call_callable_with_wrapped_as_first_argument(self):
-        expect(wrap([1,2,3]).call(min)) == 1
-        expect(wrap([1,2,3]).call(min)) == 1
-        expect(wrap('foo').call(str.upper)) == 'FOO'
-        expect(wrap('foo').call(str.upper)) == 'FOO'
+        expect(_([1,2,3]).call(min)) == 1
+        expect(_([1,2,3]).call(min)) == 1
+        expect(_('foo').call(str.upper)) == 'FOO'
+        expect(_('foo').call(str.upper)) == 'FOO'
     
     def test_tee_breakout_a_function_with_side_effects_and_disregard_return_value(self):
         side_effect = {}
         def observer(a_list): side_effect['tee'] = a_list.join('-')
-        expect(wrap([1,2,3]).tee(observer)) == [1,2,3]
+        expect(_([1,2,3]).tee(observer)) == [1,2,3]
         expect(side_effect['tee']) == '1-2-3'
         
         def fnording(ignored): return 'fnord'
-        expect(wrap([1,2,3]).tee(fnording)) == [1,2,3]
-    
-    def _test_tee_should_work_fine_with_functions_not_expecting_a_wrapper(self):
-        pass
+        expect(_([1,2,3]).tee(fnording)) == [1,2,3]
     
     def test_curry(self):
-        expect(wrap(lambda x, y: x*y).curry(2, 3)()) == 6
-        expect(wrap(lambda x=1, y=2: x*y).curry(x=3)()) == 6
+        expect(_(lambda x, y: x*y).curry(2, 3)()) == 6
+        expect(_(lambda x=1, y=2: x*y).curry(x=3)()) == 6
     
     def test_auto_currying(self):
         expect(_(lambda x: x + 3)(_)(3)) == 6
@@ -896,7 +895,7 @@ class SmallTalkLikeBehaviour(FluentTest):
     def test_should_chain_off_of_previous_if_our_functions_return_none(self):
         class Attr(object):
             foo = 'bar'
-        expect(wrap(Attr()).setattr('foo', 'baz').foo) == 'baz'
+        expect(_(Attr()).setattr('foo', 'baz').foo) == 'baz'
     
     # TODO check individually that the different forms of wrapping behave according to the SmallTalk contract
     # wrapped
@@ -906,55 +905,55 @@ class SmallTalkLikeBehaviour(FluentTest):
 class IterableTest(FluentTest):
     
     def test_should_call_callable_with_star_splat_of_self(self):
-        expect(wrap([1,2,3]).star_call(lambda x, y, z: z-x-y)) == 0
+        expect(_([1,2,3]).star_call(lambda x, y, z: z-x-y)) == 0
     
     def test_join(self):
-        expect(wrap(['1','2','3']).join(' ')) == '1 2 3'
-        expect(wrap([1,2,3]).join(' ')) == '1 2 3'
+        expect(_(['1','2','3']).join(' ')) == '1 2 3'
+        expect(_([1,2,3]).join(' ')) == '1 2 3'
     
     def test_any(self):
-        expect(wrap((True, False)).any()) == True
-        expect(wrap((False, False)).any()) == False
+        expect(_((True, False)).any()) == True
+        expect(_((False, False)).any()) == False
     
     def test_all(self):
-        expect(wrap((True, False)).all()) == False
-        expect(wrap((True, True)).all()) == True
+        expect(_((True, False)).all()) == False
+        expect(_((True, True)).all()) == True
     
     def test_len(self):
-        expect(wrap((1,2,3)).len()) == 3
+        expect(_((1,2,3)).len()) == 3
     
     def test_min_max_sum(self):
-        expect(wrap([1,2]).min()) == 1
-        expect(wrap([1,2]).max()) == 2
-        expect(wrap((1,2,3)).sum()) == 6
+        expect(_([1,2]).min()) == 1
+        expect(_([1,2]).max()) == 2
+        expect(_((1,2,3)).sum()) == 6
     
     def test_map(self):
-        expect(wrap([1,2,3]).imap(lambda x: x * x).call(list)) == [1, 4, 9]
-        expect(wrap([1,2,3]).map(lambda x: x * x)) == (1, 4, 9)
+        expect(_([1,2,3]).imap(lambda x: x * x).call(list)) == [1, 4, 9]
+        expect(_([1,2,3]).map(lambda x: x * x)) == (1, 4, 9)
     
     def test_starmap(self):
-        expect(wrap([(1,2), (3,4)]).istarmap(lambda x, y: x+y).call(list)) == [3, 7]
-        expect(wrap([(1,2), (3,4)]).starmap(lambda x, y: x+y)) == (3, 7)
+        expect(_([(1,2), (3,4)]).istarmap(lambda x, y: x+y).call(list)) == [3, 7]
+        expect(_([(1,2), (3,4)]).starmap(lambda x, y: x+y)) == (3, 7)
     
     def test_filter(self):
-        expect(wrap([1,2,3]).ifilter(lambda x: x > 1).call(list)) == [2,3]
-        expect(wrap([1,2,3]).filter(lambda x: x > 1)) == (2,3)
+        expect(_([1,2,3]).ifilter(lambda x: x > 1).call(list)) == [2,3]
+        expect(_([1,2,3]).filter(lambda x: x > 1)) == (2,3)
     
     def test_zip(self):
-        expect(wrap((1,2)).izip((3,4)).call(tuple)) == ((1, 3), (2, 4))
-        expect(wrap((1,2)).izip((3,4), (5,6)).call(tuple)) == ((1, 3, 5), (2, 4, 6))
+        expect(_((1,2)).izip((3,4)).call(tuple)) == ((1, 3), (2, 4))
+        expect(_((1,2)).izip((3,4), (5,6)).call(tuple)) == ((1, 3, 5), (2, 4, 6))
         
-        expect(wrap((1,2)).zip((3,4))) == ((1, 3), (2, 4))
-        expect(wrap((1,2)).zip((3,4), (5,6))) == ((1, 3, 5), (2, 4, 6))
+        expect(_((1,2)).zip((3,4))) == ((1, 3), (2, 4))
+        expect(_((1,2)).zip((3,4), (5,6))) == ((1, 3, 5), (2, 4, 6))
     
     def test_reduce(self):
         # no iterator version of reduce as it's not a mapping
-        expect(wrap((1,2)).reduce(operator.add)) == 3
+        expect(_((1,2)).reduce(operator.add)) == 3
     
     def test_grouped(self):
-        expect(wrap((1,2,3,4,5,6)).igrouped(2).call(list)) == [(1,2), (3,4), (5,6)]
-        expect(wrap((1,2,3,4,5,6)).grouped(2)) == ((1,2), (3,4), (5,6))
-        expect(wrap((1,2,3,4,5)).grouped(2)) == ((1,2), (3,4))
+        expect(_((1,2,3,4,5,6)).igrouped(2).call(list)) == [(1,2), (3,4), (5,6)]
+        expect(_((1,2,3,4,5,6)).grouped(2)) == ((1,2), (3,4), (5,6))
+        expect(_((1,2,3,4,5)).grouped(2)) == ((1,2), (3,4))
     
     def test_group_by(self):
         actual = {}
@@ -982,49 +981,47 @@ class IterableTest(FluentTest):
         # should not exhaust the iterator created by .imap()
         recorder = []
         def record(generator): recorder.extend(generator)
-        expect(wrap([1,2,3]).imap(lambda x: x*x).tee(record).call(list)) == [1,4,9]
+        expect(_([1,2,3]).imap(lambda x: x*x).tee(record).call(list)) == [1,4,9]
         expect(recorder) == [1,4,9]
     
     def test_enumerate(self):
-        expect(wrap(('foo', 'bar')).ienumerate().call(list)) == [(0, 'foo'), (1, 'bar')]
-        expect(wrap(('foo', 'bar')).enumerate()) == ((0, 'foo'), (1, 'bar'))
+        expect(_(('foo', 'bar')).ienumerate().call(list)) == [(0, 'foo'), (1, 'bar')]
+        expect(_(('foo', 'bar')).enumerate()) == ((0, 'foo'), (1, 'bar'))
     
     def test_reversed_sorted(self):
-        expect(wrap([2,1,3]).ireversed().call(list)) == [3,1,2]
-        expect(wrap([2,1,3]).reversed()) == (3,1,2)
-        expect(wrap([2,1,3]).isorted().call(list)) == [1,2,3]
-        expect(wrap([2,1,3]).sorted()) == (1,2,3)
-        expect(wrap([2,1,3]).isorted(reverse=True).call(list)) == [3,2,1]
-        expect(wrap([2,1,3]).sorted(reverse=True)) == (3,2,1)
+        expect(_([2,1,3]).ireversed().call(list)) == [3,1,2]
+        expect(_([2,1,3]).reversed()) == (3,1,2)
+        expect(_([2,1,3]).isorted().call(list)) == [1,2,3]
+        expect(_([2,1,3]).sorted()) == (1,2,3)
+        expect(_([2,1,3]).isorted(reverse=True).call(list)) == [3,2,1]
+        expect(_([2,1,3]).sorted(reverse=True)) == (3,2,1)
     
     def test_flatten(self):
-        expect(wrap([(1,2),[3,4],(5, [6,7])]).iflatten().call(list)) == \
+        expect(_([(1,2),[3,4],(5, [6,7])]).iflatten().call(list)) == \
             [1,2,3,4,5,6,7]
-        expect(wrap([(1,2),[3,4],(5, [6,7])]).flatten()) == \
+        expect(_([(1,2),[3,4],(5, [6,7])]).flatten()) == \
             (1,2,3,4,5,6,7)
         
-        expect(wrap([(1,2),[3,4],(5, [6,7])]).flatten(level=1)) == \
+        expect(_([(1,2),[3,4],(5, [6,7])]).flatten(level=1)) == \
             (1,2,3,4,5,[6,7])
     
-    def _tee_should_work_fine_with_functions_that_dont_expect_wrappers(self):
-        pass
 
 class MappingTest(FluentTest):
     
     def test_should_call_callable_with_double_star_splat_as_keyword_arguments(self):
         def foo(*, foo): return foo
-        expect(wrap(dict(foo='bar')).star_call(foo)) == 'bar'
-        expect(wrap(dict(foo='baz')).star_call(foo, foo='bar')) == 'baz'
-        expect(wrap(dict()).star_call(foo, foo='bar')) == 'bar'
+        expect(_(dict(foo='bar')).star_call(foo)) == 'bar'
+        expect(_(dict(foo='baz')).star_call(foo, foo='bar')) == 'baz'
+        expect(_(dict()).star_call(foo, foo='bar')) == 'bar'
 
 class StrTest(FluentTest):
     
     def test_findall(self):
-        expect(wrap("bazfoobar").findall('ba[rz]')) == ['baz', 'bar']
+        expect(_("bazfoobar").findall('ba[rz]')) == ['baz', 'bar']
     
     def test_split(self):
-        expect(wrap('foo\nbar\nbaz').split(r'\n')) == ['foo', 'bar', 'baz']
-        expect(wrap('foo\nbar/baz').split(r'[\n/]')) == ['foo', 'bar', 'baz']
+        expect(_('foo\nbar\nbaz').split(r'\n')) == ['foo', 'bar', 'baz']
+        expect(_('foo\nbar/baz').split(r'[\n/]')) == ['foo', 'bar', 'baz']
 
 class ImporterTest(FluentTest):
     
@@ -1090,7 +1087,7 @@ class IntegrationTest(FluentTest):
         line = '''<td><img src='/sitefiles/star_5.png' height='15' width='75' alt=''></td>
             <td><input style='width:200px; outline:none; border-style:solid; border-width:1px; border-color:#ccc;' type='text' id='ydxerpxkpcfqjaybcssw' readonly='readonly' onClick="select_text('ydxerpxkpcfqjaybcssw');" value='http://list.iblocklist.com/?list=ydxerpxkpcfqjaybcssw&amp;fileformat=p2p&amp;archiveformat=gz'></td>'''
 
-        actual = wrap(line).findall(r'value=\'(.*)\'').imap(unescape).call(list)
+        actual = _(line).findall(r'value=\'(.*)\'').imap(unescape).call(list)
         expect(actual) == ['http://list.iblocklist.com/?list=ydxerpxkpcfqjaybcssw&fileformat=p2p&archiveformat=gz']
     
     def test_call_module_from_shell(self):
