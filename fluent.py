@@ -261,6 +261,10 @@ Even though both sort() and reverse() return None
 
 Of course, if you unwrap at any point with `.unwrap` or `._` you will get the true return value of `None`.
 
+## Easy Shell Filtering with Python
+
+
+
 # Famous Last Words
 
 This library tries to do a little of what underscore does for javascript. Just provide the missing glue to make the standard library nicer and easier to use - especially for short oneliners or short script. Have fun!
@@ -298,6 +302,21 @@ Roundable (for all numeric needs?)
 if_true, etc. are pretty much like conditional versions of .tee() I guess.
 
 .if_true(function_to_call).else_(other_function_to_call)
+
+consider to make chain/previous/unwrap functions for similarity with the other stuff
+
+solve this inconsistency
+
+>>> from fluent import *
+>>> _([None]).pop()
+fluent.wrap([])
+>>> _([None]).pop().chain
+[]
+>>> _([None]).pop()
+fluent.wrap([])
+>>> _([1]).pop()
+fluent.wrap(1)
+
 """
 
 # REFACT rename wrap -> fluent? perhaps as an alias?
