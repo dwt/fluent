@@ -29,7 +29,7 @@ functions, it becomes a nightmare if longer statements are built up from them.
 
 Don't believe me? Try to parse this simple example as fast as you can:
 
->>> map(print, map(str.upper, sys.stdin.read().split('\n')))
+    >>> map(print, map(str.upper, sys.stdin.read().split('\n')))
 
 How many backtrackings did you have to do? To me this code means, finding out that it starts in the 
 middle at `sys.stdin.read().split('\n')`, then I have to backtrack to `map(str.upper, …)`, then to 
@@ -46,14 +46,14 @@ So, what's the problem you say? Just don't do it, it's not pythonic you say! Wel
 main workarounds available for this mess. One is to use list comprehension / generator 
 statements like this:
 
->>> [print(line.upper()) for line in sys.stdin.read().split('\n')]
+    >>> [print(line.upper()) for line in sys.stdin.read().split('\n')]
 
 This is clearly better. Now you only have to skip back and forth once instead of twice Yay! Win! 
 To me that is not a good workaround. Sure it's nice to easily be able to create generators this 
 way, but it still requires of me to find where the statement starts and to backtrack to the beginning 
 to see what is happening. Oh, but they support filtering too!
 
->>> [print(line.upper()) for line in sys.stdin.read().split('\n') if line.upper().startswith('FNORD')]
+    >>> [print(line.upper()) for line in sys.stdin.read().split('\n') if line.upper().startswith('FNORD')]
 
 Well, this is little better. For one thing, this doesn't solve the backtracking problem, but more 
 importantly, if the filtering has to be done on the processed version (here artificially on 
@@ -61,16 +61,16 @@ importantly, if the filtering has to be done on the processed version (here arti
 
 The solution? Nest them!
 
-[print(line) for line in (line.upper() for line in sys.stdin.read().split('\n')) if line.startswith('FNORD')]
+    >>> [print(line) for line in (line.upper() for line in sys.stdin.read().split('\n')) if line.startswith('FNORD')]
 
 Do you start seing the problem?
 
 Compare it to this:
 
->>> for line in sys.stdin.read().split('\n'):
->>>     uppercased = line.upper()
->>>     if uppercased.startswith('FNORD'):
->>>         print(uppercased)
+    >>> for line in sys.stdin.read().split('\n'):
+    >>>     uppercased = line.upper()
+    >>>     if uppercased.startswith('FNORD'):
+    >>>         print(uppercased)
 
 Almost all my complaints are gone. It reads and writes almost completely in order it is computed.
 Easy to read, easy to write - but one drawback. It's not an expression - it's a bunch of statements.
@@ -83,24 +83,24 @@ Of course you can use explaining variables to untangle the mess of using higher 
 
 Consider this code:
 
->>> cross_product_of_dependency_labels = \
->>>     set(map(frozenset, itertools.product(*map(attrgetter('_labels'), dependencies))))
+    >>> cross_product_of_dependency_labels = \
+    >>>     set(map(frozenset, itertools.product(*map(attrgetter('_labels'), dependencies))))
 
 That certainly is hard to read (and write). Pulling out explaining variables, makes it better. Like so:
 
->>> labels = map(attrgetter('_labels'), dependencies)
->>> cross_product_of_dependency_labels = set(map(frozenset, itertools.product(*labels)))
+    >>> labels = map(attrgetter('_labels'), dependencies)
+    >>> cross_product_of_dependency_labels = set(map(frozenset, itertools.product(*labels)))
 
 Better, but still hard to read. Sure, those explaining variables are nice and sometimes 
 essential to understand the code. - but it does take up space in lines, and space in my head 
 while parsing this code. The question would be - is this really easier to read than something 
 like this?
 
->>> cross_product_of_dependency_labels = _(dependencies) \
->>>     .map(_.each._labels) \
->>>     .star_call(itertools.product) \
->>>     .map(frozenset) \
->>>     .call(set)
+    >>> cross_product_of_dependency_labels = _(dependencies) \
+    >>>     .map(_.each._labels) \
+    >>>     .star_call(itertools.product) \
+    >>>     .map(frozenset) \
+    >>>     .call(set)
 
 Sure you are not used to this at first, but consider the advantages. The intermediate variable 
 names are abstracted away - the data flows through the methods completely naturally. No jumping 
