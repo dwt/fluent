@@ -39,7 +39,7 @@ def wrap(wrapped, *, previous=None, chain=None):
     )
     
     if wrapped is None and chain is None and previous is not None:
-        chain = previous.chain
+        chain = previous.__.unwrap
     
     decider = wrapped
     if wrapped is None and chain is not None:
@@ -64,7 +64,7 @@ def wrapped(wrapped_function, additional_result_wrapper=None, self_index=0):
     """
     @functools.wraps(wrapped_function)
     def wrapper(self, *args, **kwargs):
-        result = wrapped_function(*args[0:self_index], self.chain, *args[self_index:], **kwargs)
+        result = wrapped_function(*args[0:self_index], self.unwrap, *args[self_index:], **kwargs)
         if callable(additional_result_wrapper):
             result = additional_result_wrapper(result)
         return wrap(result, previous=self)
@@ -76,7 +76,7 @@ def unwrapped(wrapped_function):
     Use this to adapt free functions that should not return a wrapped value"""
     @functools.wraps(wrapped_function)
     def forwarder(self, *args, **kwargs):
-        return wrapped_function(self.chain, *args, **kwargs)
+        return wrapped_function(self.unwrap, *args, **kwargs)
     return forwarder
 
 def wrapped_forward(wrapped_function, additional_result_wrapper=None, self_index=1):
@@ -133,14 +133,10 @@ class Wrapper(object):
     __getitem__ = wrapped(operator.getitem)
     
     def __str__(self):
-        return "fluent.wrap(%s)" % self.chain
+        return "fluent.wrap(%s)" % self.unwrap
     
     def __repr__(self):
-        return "fluent.wrap(%r)" % self.chain
-    
-    # REFACT consider wether I want to support all other operators too or wether explicit 
-    # unwrapping is actually a better thing
-    __eq__ = unwrapped(operator.eq)
+        return "fluent.wrap(%r)" % (self.unwrap, )
     
     # Breakouts
     
@@ -154,11 +150,12 @@ class Wrapper(object):
         return self.__previous
     
     @property
-    def chain(self):
-        "Like .unwrap but handles chaining off of methods / functions that return None like SmallTalk does"
-        if self.unwrap is not None:
-            return self.unwrap
-        return self.__chain
+    def __(self):
+        "Like .unwrap but handles chaining off of methods / functions that return None like SmallTalk does - and returns a wrapper"
+        chain = self.unwrap
+        if chain is None:
+            chain = self.__chain
+        return wrap(chain, previous=self)
     
     # Utilities
     
@@ -210,15 +207,15 @@ class Module(Wrapper):
     """
     
     def __getattr__(self, name):
-        if hasattr(self.chain, name):
-            return wrap(getattr(self.chain, name))
+        if hasattr(self.unwrap, name):
+            return wrap(getattr(self.unwrap, name))
         
         import importlib
         module = None
-        if self.chain is virtual_root_module:
+        if self.unwrap is virtual_root_module:
             module = importlib.import_module(name)
         else:
-            module = importlib.import_module('.'.join((self.chain.__name__, name)))
+            module = importlib.import_module('.'.join((self.unwrap.__name__, name)))
         
         return wrap(module)
 
@@ -235,8 +232,8 @@ class Callable(Wrapper):
         if wrap in args:
             return self.curry(*args, **kwargs)
         
-        result = self.chain(*args, **kwargs)
-        chain = None if self.previous is None else self.previous.chain
+        result = self.unwrap(*args, **kwargs)
+        chain = None if self.previous is None else self.previous.__.unwrap
         return wrap(result, previous=self, chain=chain)
     
     # REFACT rename to partial for consistency with stdlib?
@@ -376,8 +373,8 @@ class Iterable(Wrapper):
     
     def tee(self, function):
         "This override tries to retain iterators, as a speedup"
-        if hasattr(self.chain, '__next__'): # iterator
-            first, second = itertools.tee(self.chain, 2)
+        if hasattr(self.unwrap, '__next__'): # iterator
+            first, second = itertools.tee(self.unwrap, 2)
             function(wrap(first, previous=self))
             return wrap(second, previous=self)
         else:
@@ -387,7 +384,7 @@ class Mapping(Iterable):
     
     def __getattr__(self, name):
         "Support JavaScript like dict item access via attribute access"
-        if name in self.chain:
+        if name in self.unwrap:
             return self[name]
         
         return super().__getattr__(self, name)
@@ -419,7 +416,7 @@ def make_operator(name):
     __op__ = getattr(operator, name)
     @functools.wraps(__op__)
     def wrapper(self, *others):
-        return wrap(__op__).curry(wrap, *others)
+        return wrap(__op__).curry(wrap, *others).unwrap
     return wrapper
 
 class Each(Wrapper):
@@ -429,11 +426,9 @@ class Each(Wrapper):
             continue
         locals()[name] = make_operator(name)
     
-    @wrapped
     def __getattr__(self, name):
         return operator.attrgetter(name)
     
-    @wrapped
     def __getitem__(self, index):
         return operator.itemgetter(index)
     
@@ -450,7 +445,7 @@ class Each(Wrapper):
             def __call__(self, *args, **kwargs):
                 assert self._method_name is not None, \
                     'Need to access the method to call first! E.g. _.each.call.method_name(arg1, kwarg="arg2")'
-                return wrap(operator.methodcaller(self._method_name, *args, **kwargs))
+                return operator.methodcaller(self._method_name, *args, **kwargs)
         
         return MethodCallerConstructor()
     
