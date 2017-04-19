@@ -51,7 +51,8 @@ def wrap(wrapped, *, previous=None, chain=None):
     
     return Wrapper(wrapped, previous=previous, chain=chain)
 
-# sadly _ is pretty much the only valid python identifier that is sombolic and easy to type. Unicode would also be a candidate, but hard to type $, § like in js cannot be used
+# sadly _ is pretty much the only valid python identifier that is sombolic and easy to type. Unicode would also be a candidate, but hard to type.
+# $, § like in js cannot be used
 _ = wrap
 
 def wrapped(wrapped_function, additional_result_wrapper=None, self_index=0):

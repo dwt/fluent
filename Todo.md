@@ -39,3 +39,8 @@ fluent.wrap([])
 fluent.wrap([])
 >>> _([1]).pop()
 fluent.wrap(1)
+
+
+consider to support something like this
+
+    expect(_(operator.add).curry(_._2, _._1)('foo', 'bar')) == 'barfoo'
