@@ -64,11 +64,11 @@ class WrapperTest(FluentTest):
         expect(_('foo').getattr('__len__')()._) == 3
         class Attr(object):
             def __init__(self): self.foo = 'bar'
-        expect(_(Attr()).setattr('foo', 'baz').__.foo._) == 'baz'
+        expect(_(Attr()).setattr('foo', 'baz').self.foo._) == 'baz'
         
         expect(_(Attr()).delattr('foo').unwrap) == None
-        expect(_(Attr()).delattr('foo').__.unwrap).isinstance(Attr)
-        expect(_(Attr()).delattr('foo').__.vars()._) == {}
+        expect(_(Attr()).delattr('foo').self.unwrap).isinstance(Attr)
+        expect(_(Attr()).delattr('foo').self.vars()._) == {}
     
     def test_isinstance_issubclass(self):
         expect(_('foo').isinstance(str)._) == True
@@ -134,15 +134,15 @@ class SmallTalkLikeBehaviour(FluentTest):
         expect(_([3,2,1]).sort().unwrap) == None
         expect(_([3,2,1]).sort()._) == None
         expect(_([3,2,1]).sort().previous.previous._) == [1,2,3]
-        expect(_([3,2,1]).sort().__.unwrap) == [1,2,3]
+        expect(_([3,2,1]).sort().self.unwrap) == [1,2,3]
         
-        expect(_([2,3,1]).sort().__.sort(reverse=True).unwrap) == None
-        expect(_([2,3,1]).sort().__.sort(reverse=True).previous.previous.previous.previous.previous._) == [3,2,1]
-        expect(_([2,3,1]).sort().__.sort(reverse=True).__._) == [3,2,1]
+        expect(_([2,3,1]).sort().self.sort(reverse=True).unwrap) == None
+        expect(_([2,3,1]).sort().self.sort(reverse=True).previous.previous.previous.previous.previous._) == [3,2,1]
+        expect(_([2,3,1]).sort().self.sort(reverse=True).self._) == [3,2,1]
         
         class Attr(object):
             foo = 'bar'
-        expect(_(Attr()).setattr('foo', 'baz').__.foo._) == 'baz'
+        expect(_(Attr()).setattr('foo', 'baz').self.foo._) == 'baz'
 
 class IterableTest(FluentTest):
     

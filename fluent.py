@@ -40,7 +40,7 @@ def wrap(wrapped, *, previous=None, chain=None):
     )
     
     if wrapped is None and chain is None and previous is not None:
-        chain = previous.__.unwrap
+        chain = previous.self.unwrap
     
     decider = wrapped
     if wrapped is None and chain is not None:
@@ -151,7 +151,7 @@ class Wrapper(object):
         return self.__previous
     
     @property
-    def __(self):
+    def self(self):
         "Like .unwrap but handles chaining off of methods / functions that return None like SmallTalk does - and returns a wrapper"
         chain = self.unwrap
         if chain is None:
@@ -234,7 +234,7 @@ class Callable(Wrapper):
             return self.curry(*args, **kwargs)
         
         result = self.unwrap(*args, **kwargs)
-        chain = None if self.previous is None else self.previous.__.unwrap
+        chain = None if self.previous is None else self.previous.self.unwrap
         return wrap(result, previous=self, chain=chain)
     
     # REFACT rename to partial for consistency with stdlib?
