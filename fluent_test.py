@@ -355,6 +355,3 @@ class IntegrationTest(FluentTest):
             input=b'foo\nbar\nbaz')
         expect(output) == b'FOO\nBAR\nBAZ\n'
     
-    def test_use_imported_module_as_wrap_function(self):
-        import fluent as _f
-        expect(_f('foo').upper()._) == 'FOO'
