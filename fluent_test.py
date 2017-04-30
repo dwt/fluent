@@ -2,8 +2,9 @@ import unittest
 from pyexpect import expect
 import pytest
 
+import fluent
 from fluent import *
-from fluent import Wrapper, Text, Iterable, Mapping, Set, Callable
+
 import operator
 
 class FluentTest(unittest.TestCase): pass
@@ -21,16 +22,16 @@ class WrapperTest(FluentTest):
     def test_should_wrap_callables(self):
         counter = [0]
         def foo(): counter[0] += 1
-        expect(_(foo)).is_instance(Wrapper)
+        expect(_(foo)).is_instance(fluent.Wrapper)
         _(foo)()
         expect(counter[0]) == 1
     
     def test_should_wrap_attribute_accesses(self):
         class Foo(): bar = 'baz'
-        expect(_(Foo()).bar).is_instance(Wrapper)
+        expect(_(Foo()).bar).is_instance(fluent.Wrapper)
     
     def test_should_wrap_item_accesses(self):
-        expect(_(dict(foo='bar'))['foo']).is_instance(Wrapper)
+        expect(_(dict(foo='bar'))['foo']).is_instance(fluent.Wrapper)
     
     def test_should_error_when_accessing_missing_attribute(self):
         class Foo(): pass
@@ -41,18 +42,18 @@ class WrapperTest(FluentTest):
         expect(_(foo).unwrap).is_(foo)
     
     def test_should_wrap_according_to_returned_type(self):
-        expect(_('foo')).is_instance(Text)
-        expect(_([])).is_instance(Iterable)
-        expect(_(iter([]))).is_instance(Iterable)
-        expect(_({})).is_instance(Mapping)
-        expect(_({1})).is_instance(Set)
+        expect(_('foo')).is_instance(fluent.Text)
+        expect(_([])).is_instance(fluent.Iterable)
+        expect(_(iter([]))).is_instance(fluent.Iterable)
+        expect(_({})).is_instance(fluent.Mapping)
+        expect(_({1})).is_instance(fluent.Set)
         
-        expect(_(lambda: None)).is_instance(Callable)
+        expect(_(lambda: None)).is_instance(fluent.Callable)
         class CallMe(object):
             def __call__(self): pass
-        expect(_(CallMe())).is_instance(Callable)
+        expect(_(CallMe())).is_instance(fluent.Callable)
         
-        expect(_(object())).is_instance(Wrapper)
+        expect(_(object())).is_instance(fluent.Wrapper)
     
     def test_should_remember_call_chain(self):
         def foo(): return 'bar'
