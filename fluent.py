@@ -11,15 +11,15 @@ __all__ = [
     'lib', # wrapper for python import machinery, access every importable package / function directly on this via attribute access
 ]
 
-import typing
-import re
-import math
-import types
+import collections.abc
 import functools
 import itertools
+import math
 import operator
-import collections.abc
+import re
 import sys
+import typing
+import types
 
 def wrap(wrapped, *, previous=None, chain=None):
     """Factory method, wraps anything and returns the appropriate Wrapper subclass.
@@ -240,7 +240,7 @@ class Callable(Wrapper):
     # REFACT rename to partial for consistency with stdlib?
     # REFACT consider if there could be more utility in supporting placeholders for more usecases.
     # examples:
-    #   Switching argument order?
+    #   Switching argument order? _._1, _._2 as placeholders with order
     @wrapped
     def curry(self, *curry_args, **curry_kwargs):
         """"Like functools.partial, but with a twist.
