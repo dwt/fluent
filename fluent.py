@@ -4,10 +4,10 @@
 
 # This library is principally created for python 3. However python 2 support may be doable and is welcomed.
 
-# REFACT rename wrap -> fluent? perhaps as an alias?
+# Make `from fluent import *` work sensibly
 __all__ = [
     'wrap', # generic wrapper factory that returns the appropriate subclass in this package according to what is wrapped
-    '_', # _ is an alias for wrap
+    '_', '_f', # aliasses for wrap (_ for convenience, _f when you use gettext)
     'lib', # wrapper for python import machinery, access every importable package / function directly on this via attribute access
 ]
 
@@ -52,8 +52,8 @@ def wrap(wrapped, *, previous=None, chain=None):
     return Wrapper(wrapped, previous=previous, chain=chain)
 
 # sadly _ is pretty much the only valid python identifier that is sombolic and easy to type. Unicode would also be a candidate, but hard to type.
-# $, § like in js cannot be used
-_ = wrap
+# $, § like in js cannot be used. _f _$ are pretty much the only alternatives
+_ = _f = wrap
 
 def wrapped(wrapped_function, additional_result_wrapper=None, self_index=0):
     """
