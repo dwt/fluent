@@ -19,6 +19,7 @@ import functools
 import itertools
 import operator
 import collections.abc
+import sys
 
 def wrap(wrapped, *, previous=None, chain=None):
     """Factory method, wraps anything and returns the appropriate Wrapper subclass.
@@ -452,7 +453,19 @@ class Each(Wrapper):
 each_marker = object()
 wrap.each = Each(each_marker, previous=None, chain=None)
 
+# Make `import fluent as _; _('foo').match('fo')._ work
+class FluentModuleWrapper(object):
+    __module = sys.modules[__name__]
+    
+    def __call__(self, *args, **kwargs):
+        return wrap(*args, **kwargs)
+    
+    def __getattr__(self, name):
+        return getattr(self.__module, name)
 
+sys.modules[__name__] = FluentModuleWrapper()
+
+# Make the module executable via `python -m fluent "some fluent using python code"`
 if __name__ == '__main__':
     import sys
     assert len(sys.argv) == 2, \

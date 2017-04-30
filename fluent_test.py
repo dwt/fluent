@@ -347,12 +347,14 @@ class EachTest(FluentTest):
 class IntegrationTest(FluentTest):
     
     def test_extrac_and_decode_URIs(self):
+        from fluent import _
+        
         from xml.sax.saxutils import unescape
         line = '''<td><img src='/sitefiles/star_5.png' height='15' width='75' alt=''></td>
             <td><input style='width:200px; outline:none; border-style:solid; border-width:1px; border-color:#ccc;' type='text' id='ydxerpxkpcfqjaybcssw' readonly='readonly' onClick="select_text('ydxerpxkpcfqjaybcssw');" value='http://list.iblocklist.com/?list=ydxerpxkpcfqjaybcssw&amp;fileformat=p2p&amp;archiveformat=gz'></td>'''
 
-        actual = _(line).findall(r'value=\'(.*)\'').imap(unescape).call(list)._
-        expect(actual) == ['http://list.iblocklist.com/?list=ydxerpxkpcfqjaybcssw&fileformat=p2p&archiveformat=gz']
+        actual = _(line).findall(r'value=\'(.*)\'').map(unescape)._
+        expect(actual) == ('http://list.iblocklist.com/?list=ydxerpxkpcfqjaybcssw&fileformat=p2p&archiveformat=gz',)
     
     def test_call_module_from_shell(self):
         from subprocess import check_output
@@ -360,3 +362,7 @@ class IntegrationTest(FluentTest):
             ['python', '-m', 'fluent', "lib.sys.stdin.read().split('\\n').imap(str.upper).imap(print).call(list)"],
             input=b'foo\nbar\nbaz')
         expect(output) == b'FOO\nBAR\nBAZ\n'
+    
+    def test_use_imported_module_as_wrap_function(self):
+        import fluent as _f
+        expect(_f('foo').upper()._) == 'FOO'
