@@ -129,8 +129,6 @@ class CallableTest(FluentTest):
         expect(_(str.strip).compose(str.capitalize)('  fnord  ')._) == 'Fnord'
 
 class SmallTalkLikeBehaviour(FluentTest):
-    # REFACT consider if it is better to have a predictable __ that will always allow you to get rid of the return value
-    # So you can do calls purely for their side effects.
     
     def test_should_pretend_methods_that_return_None_returned_self(self):
         expect(_([3,2,1]).sort().unwrap) == None
@@ -141,16 +139,10 @@ class SmallTalkLikeBehaviour(FluentTest):
         expect(_([2,3,1]).sort().__.sort(reverse=True).unwrap) == None
         expect(_([2,3,1]).sort().__.sort(reverse=True).previous.previous.previous.previous.previous._) == [3,2,1]
         expect(_([2,3,1]).sort().__.sort(reverse=True).__._) == [3,2,1]
-    
-    def test_should_chain_off_of_previous_if_our_functions_return_none(self):
+        
         class Attr(object):
             foo = 'bar'
         expect(_(Attr()).setattr('foo', 'baz').__.foo._) == 'baz'
-    
-    # TODO check individually that the different forms of wrapping behave according to the SmallTalk contract
-    # wrapped
-    # unwrapped
-    # wrapped_forward
 
 class IterableTest(FluentTest):
     
