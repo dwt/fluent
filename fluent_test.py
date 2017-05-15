@@ -2,8 +2,7 @@ import unittest
 from pyexpect import expect
 import pytest
 
-import fluent
-from fluent import *
+import fluent as _
 
 import operator
 
@@ -22,16 +21,16 @@ class WrapperTest(FluentTest):
     def test_should_wrap_callables(self):
         counter = [0]
         def foo(): counter[0] += 1
-        expect(_(foo)).is_instance(fluent.Wrapper)
+        expect(_(foo)).is_instance(_.Wrapper)
         _(foo)()
         expect(counter[0]) == 1
     
     def test_should_wrap_attribute_accesses(self):
         class Foo(): bar = 'baz'
-        expect(_(Foo()).bar).is_instance(fluent.Wrapper)
+        expect(_(Foo()).bar).is_instance(_.Wrapper)
     
     def test_should_wrap_item_accesses(self):
-        expect(_(dict(foo='bar'))['foo']).is_instance(fluent.Wrapper)
+        expect(_(dict(foo='bar'))['foo']).is_instance(_.Wrapper)
     
     def test_should_error_when_accessing_missing_attribute(self):
         class Foo(): pass
@@ -42,18 +41,18 @@ class WrapperTest(FluentTest):
         expect(_(foo).unwrap).is_(foo)
     
     def test_should_wrap_according_to_returned_type(self):
-        expect(_('foo')).is_instance(fluent.Text)
-        expect(_([])).is_instance(fluent.Iterable)
-        expect(_(iter([]))).is_instance(fluent.Iterable)
-        expect(_({})).is_instance(fluent.Mapping)
-        expect(_({1})).is_instance(fluent.Set)
+        expect(_('foo')).is_instance(_.Text)
+        expect(_([])).is_instance(_.Iterable)
+        expect(_(iter([]))).is_instance(_.Iterable)
+        expect(_({})).is_instance(_.Mapping)
+        expect(_({1})).is_instance(_.Set)
         
-        expect(_(lambda: None)).is_instance(fluent.Callable)
+        expect(_(lambda: None)).is_instance(_.Callable)
         class CallMe(object):
             def __call__(self): pass
-        expect(_(CallMe())).is_instance(fluent.Callable)
+        expect(_(CallMe())).is_instance(_.Callable)
         
-        expect(_(object())).is_instance(fluent.Wrapper)
+        expect(_(object())).is_instance(_.Wrapper)
     
     def test_should_remember_call_chain(self):
         def foo(): return 'bar'
@@ -95,7 +94,7 @@ class CallableTest(FluentTest):
         expect(_(lambda x=3: x)(4)._) == 4
     
     def test_star_call(self):
-        expect(wrap([1,2,3]).star_call(str.format, '{} - {} : {}')._) == '1 - 2 : 3'
+        expect(_([1,2,3]).star_call(str.format, '{} - {} : {}')._) == '1 - 2 : 3'
     
     def test_should_call_callable_with_wrapped_as_first_argument(self):
         expect(_([1,2,3]).call(min)._) == 1
@@ -285,16 +284,16 @@ class ImporterTest(FluentTest):
     
     def test_import_top_level_module(self):
         import sys
-        expect(lib.sys._) == sys
+        expect(_.lib.sys._) == sys
     
     def test_import_symbol_from_top_level_module(self):
         import sys
-        expect(lib.sys.stdin._) == sys.stdin
+        expect(_.lib.sys.stdin._) == sys.stdin
     
     def test_import_submodule_that_is_also_a_symbol_in_the_parent_module(self):
         import os
-        expect(lib.os.name._) == os.name
-        expect(lib.os.path.join._) == os.path.join
+        expect(_.lib.os.name._) == os.name
+        expect(_.lib.os.path.join._) == os.path.join
     
     def test_import_submodule_that_is_not_a_symbol_in_the_parent_module(self):
         import dbm
@@ -303,10 +302,10 @@ class ImporterTest(FluentTest):
         def delayed_import():
             import dbm.dumb
             return dbm.dumb
-        expect(lib.dbm.dumb._) == delayed_import()
+        expect(_.lib.dbm.dumb._) == delayed_import()
     
     def test_imported_objects_are_pre_wrapped(self):
-        lib.os.path.join('/foo', 'bar', 'baz').findall(r'/(\w*)')._ == ['foo', 'bar', 'baz']
+        _.lib.os.path.join('/foo', 'bar', 'baz').findall(r'/(\w*)')._ == ['foo', 'bar', 'baz']
 
 class EachTest(FluentTest):
     
@@ -336,12 +335,15 @@ class EachTest(FluentTest):
             def method(self, arg): return 'method+'+arg
         expect(_(Tested()).call(_.each.call.method('argument'))._) == 'method+argument'
         expect(lambda: _.each.call('argument')).to_raise(AssertionError, '_.each.call.method_name')
+    
+    def _test_should_allow_creating_callables_without_call(self):
+        expect(_.each.foo) == attrgetter('foo')
+        expect(_.each.foo(_, 'bar', 'baz')) == methodcaller('foo').curry(_, 'bar', 'baz')
+        expect(_.call.foo('bar', 'baz')) == methodcaller('foo').curry(_, 'bar', 'baz')
 
 class IntegrationTest(FluentTest):
     
     def test_extrac_and_decode_URIs(self):
-        from fluent import _
-        
         from xml.sax.saxutils import unescape
         line = '''<td><img src='/sitefiles/star_5.png' height='15' width='75' alt=''></td>
             <td><input style='width:200px; outline:none; border-style:solid; border-width:1px; border-color:#ccc;' type='text' id='ydxerpxkpcfqjaybcssw' readonly='readonly' onClick="select_text('ydxerpxkpcfqjaybcssw');" value='http://list.iblocklist.com/?list=ydxerpxkpcfqjaybcssw&amp;fileformat=p2p&amp;archiveformat=gz'></td>'''

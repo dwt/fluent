@@ -56,6 +56,10 @@ def wrap(wrapped, *, previous=None, chain=None):
 # $, § like in js cannot be used. _f _$ are pretty much the only alternatives
 _ = _f = wrap
 
+def public(something):
+    setattr(wrap, something.__name__, something)
+    return something
+
 def wrapped(wrapped_function, additional_result_wrapper=None, self_index=0):
     """
     Using these decorators will take care of unwrapping and rewrapping the target object.
@@ -101,6 +105,7 @@ def tupleize(wrapped_function):
         return wrap(tuple(wrapped_function(self, *args, **kwargs)), previous=self)
     return wrapper
 
+@public
 class Wrapper(object):
     """Universal wrapper.
     
@@ -187,6 +192,8 @@ class Wrapper(object):
 
 # REFACT consider to use wrap as the placeholder to have less symbols? Probably not worth it...
 virtual_root_module = object()
+
+@public
 class Module(Wrapper):
     """Importer shortcut.
     
@@ -222,6 +229,7 @@ class Module(Wrapper):
 
 wrap.lib = lib = Module(virtual_root_module, previous=None, chain=None)
 
+@public
 class Callable(Wrapper):
     
     def __call__(self, *args, **kwargs):
@@ -278,6 +286,7 @@ class Callable(Wrapper):
         return lambda *args, **kwargs: outer(self(*args, **kwargs))
     # REFACT consider aliasses wrap = chain = cast = compose
 
+@public
 class Iterable(Wrapper):
     """Add iterator methods to any iterable.
     
@@ -381,6 +390,7 @@ class Iterable(Wrapper):
         else:
             return super().tee(function)
 
+@public
 class Mapping(Iterable):
     
     def __getattr__(self, name):
@@ -395,9 +405,11 @@ class Mapping(Iterable):
         "Calls function(**self), but allows to add args and set defaults for kwargs."
         return function(*args, **dict(kwargs, **self))
 
+@public
 class Set(Iterable): pass
 
 # REFACT consider to inherit from Iterable? It's how Python works...
+@public
 class Text(Wrapper):
     "Supports most of the regex methods as if they where native str methods"
     
@@ -420,6 +432,7 @@ def make_operator(name):
         return wrap(__op__).curry(wrap, *others).unwrap
     return wrapper
 
+@public
 class Each(Wrapper):
     
     for name in dir(operator):
@@ -453,6 +466,8 @@ class Each(Wrapper):
 each_marker = object()
 wrap.each = each = Each(each_marker, previous=None, chain=None)
 
+
+
 # Make the module executable via `python -m fluent "some fluent using python code"`
 if __name__ == '__main__':
     import sys
@@ -460,3 +475,6 @@ if __name__ == '__main__':
         "Usage: python -m fluent 'some code that can access fluent functions without having to import them'"
     
     exec(sys.argv[1], dict(wrap=wrap, _=_, lib=lib))
+else:
+    import sys
+    sys.modules[__name__] = wrap
