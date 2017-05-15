@@ -18,6 +18,12 @@ def wrap(wrapped, *, previous=None, chain=None):
     
     This is the main entry point into the fluent wonderland. Wrap something and 
     everything you call off of that will stay wrapped in the apropriate wrappers.
+    
+    Use dir to discover the available wrappers.
+    
+        >>> import fluent; print(dir(fluent))
+    
+    For documentation and development @see https://github.com/dwt/fluent
     """
     if isinstance(wrapped, Wrapper):
         return wrapped
@@ -183,7 +189,7 @@ virtual_root_module = object()
 
 @public
 class Module(Wrapper):
-    """Importer shortcut.
+    """Imports as expressions. Already pre-wrapped.
     
     All attribute accesses to instances of this class are converted to
     an import statement, but as an expression that returns the wrapped imported object.
@@ -216,9 +222,11 @@ class Module(Wrapper):
         return wrap(module)
 
 wrap.lib = Module(virtual_root_module, previous=None, chain=None)
+wrap.lib.__name__ = 'lib'
 
 @public
 class Callable(Wrapper):
+    """Higher order methods for callables."""
     
     def __call__(self, *args, **kwargs):
         """"Call through with a twist.
@@ -380,6 +388,7 @@ class Iterable(Wrapper):
 
 @public
 class Mapping(Iterable):
+    """Index into dicts like objects. As JavaScript can."""
     
     def __getattr__(self, name):
         "Support JavaScript like dict item access via attribute access"
@@ -387,14 +396,17 @@ class Mapping(Iterable):
             return self[name]
         
         return super().__getattr__(self, name)
-        
+    
+    # REFACT consider rename to splat_call to differentiate that it does something else tha
+    # Callable.star_call
     @wrapped
     def star_call(self, function, *args, **kwargs):
         "Calls function(**self), but allows to add args and set defaults for kwargs."
         return function(*args, **dict(kwargs, **self))
 
 @public
-class Set(Iterable): pass
+class Set(Iterable):
+    """Fnord"""
 
 # REFACT consider to inherit from Iterable? It's how Python works...
 @public
@@ -420,11 +432,15 @@ def make_operator(name):
         return wrap(__op__).curry(wrap, *others).unwrap
     return wrapper
 
-@public
 class Each(Wrapper):
+    """Create functions from expressions.
+
+    Use `_f.each.foo` to create attrgetters, `_f.each['foo']` to create itemgetters,
+    _f.each.call.foo() to create methodcallers or `_f.each == 'foo'` to create callable operators
+    """
     
     for name in dir(operator):
-        if not name.startswith('__'):
+        if not name.startswith('__') or name == '__doc__':
             continue
         locals()[name] = make_operator(name)
     
@@ -450,11 +466,10 @@ class Each(Wrapper):
                 return operator.methodcaller(self._method_name, *args, **kwargs)
         
         return MethodCallerConstructor()
-    
+
 each_marker = object()
 wrap.each = Each(each_marker, previous=None, chain=None)
-
-
+wrap.each.__name__ = 'each'
 
 # Make the module executable via `python -m fluent "some fluent using python code"`
 if __name__ == '__main__':
@@ -463,4 +478,8 @@ if __name__ == '__main__':
     
     exec(sys.argv[1], dict(wrap=wrap, _=wrap, lib=wrap.lib))
 else:
+    module = sys.modules[__name__]
+    wrap.__name__ = __name__
+    wrap.__module__ == module
+    wrap.__package__ = __package__
     sys.modules[__name__] = wrap

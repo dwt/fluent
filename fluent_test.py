@@ -357,4 +357,23 @@ class IntegrationTest(FluentTest):
             ['python', '-m', 'fluent', "lib.sys.stdin.read().split('\\n').imap(str.upper).imap(print).call(list)"],
             input=b'foo\nbar\nbaz')
         expect(output) == b'FOO\nBAR\nBAZ\n'
+
+class DocumentationTest(FluentTest):
+    
+    def test_wrap_has_usefull_docstring(self):
+        expect(_.__doc__).matches(r'dir\(fluent\)')
+        expect(_.__doc__).matches(r'https://github.com/dwt/fluent')
+    
+    def test_classes_have_usefull_docstrings(self):
+        expect(_.Wrapper.__doc__).matches(r'Universal wrapper')
+        expect(_.Callable.__doc__).matches(r'Higher order')
+        expect(_.Iterable.__doc__).matches(r'Add iterator methods to any iterable')
+        expect(_.Mapping.__doc__).matches(r'Index into dicts')
+        expect(_.Text.__doc__).matches(r'regex methods')
+        
+        expect(_.Set.__doc__).matches(r'Fnord')
+    
+    def test_special_proxies_have_usefull_docstrings(self):
+        expect(_.lib.__doc__).matches('Imports as expressions')
+        expect(_.each.__doc__).matches('functions from expressions')
     
