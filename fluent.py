@@ -4,22 +4,14 @@
 
 # This library is principally created for python 3. However python 2 support may be doable and is welcomed.
 
-# Make `from fluent import *` work sensibly
-__all__ = [
-    'wrap', # generic wrapper factory that returns the appropriate subclass in this package according to what is wrapped
-    '_', '_f', # aliasses for wrap (_ for convenience, _f when you use gettext)
-    'lib', # wrapper for python import machinery, access every importable package / function directly on this via attribute access
-]
-
-import collections.abc
 import functools
 import itertools
 import math
 import operator
 import re
 import sys
-import typing
 import types
+import typing
 
 def wrap(wrapped, *, previous=None, chain=None):
     """Factory method, wraps anything and returns the appropriate Wrapper subclass.
@@ -51,10 +43,6 @@ def wrap(wrapped, *, previous=None, chain=None):
             return wrapper(wrapped, previous=previous, chain=chain)
     
     return Wrapper(wrapped, previous=previous, chain=chain)
-
-# sadly _ is pretty much the only valid python identifier that is sombolic and easy to type. Unicode would also be a candidate, but hard to type.
-# $, § like in js cannot be used. _f _$ are pretty much the only alternatives
-_ = _f = wrap
 
 def public(something):
     setattr(wrap, something.__name__, something)
@@ -227,7 +215,7 @@ class Module(Wrapper):
         
         return wrap(module)
 
-wrap.lib = lib = Module(virtual_root_module, previous=None, chain=None)
+wrap.lib = Module(virtual_root_module, previous=None, chain=None)
 
 @public
 class Callable(Wrapper):
@@ -366,7 +354,7 @@ class Iterable(Wrapper):
         "Modeled after rubys array.flatten @see http://ruby-doc.org/core-1.9.3/Array.html#method-i-flatten"
         for element in self:
             if level > 0 and isinstance(element, typing.Iterable):
-                for subelement in _(element).iflatten(level=level-1):
+                for subelement in wrap(element).iflatten(level=level-1):
                     yield subelement
             else:
                 yield element
@@ -464,17 +452,15 @@ class Each(Wrapper):
         return MethodCallerConstructor()
     
 each_marker = object()
-wrap.each = each = Each(each_marker, previous=None, chain=None)
+wrap.each = Each(each_marker, previous=None, chain=None)
 
 
 
 # Make the module executable via `python -m fluent "some fluent using python code"`
 if __name__ == '__main__':
-    import sys
     assert len(sys.argv) == 2, \
         "Usage: python -m fluent 'some code that can access fluent functions without having to import them'"
     
-    exec(sys.argv[1], dict(wrap=wrap, _=_, lib=lib))
+    exec(sys.argv[1], dict(wrap=wrap, _=wrap, lib=wrap.lib))
 else:
-    import sys
     sys.modules[__name__] = wrap
