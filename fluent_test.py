@@ -128,22 +128,6 @@ class CallableTest(FluentTest):
         expect(_(lambda x: x*2).compose(lambda x: x+3)(5)._) == 13
         expect(_(str.strip).compose(str.capitalize)('  fnord  ')._) == 'Fnord'
 
-class SmallTalkLikeBehaviour(FluentTest):
-    
-    def test_should_pretend_methods_that_return_None_returned_self(self):
-        expect(_([3,2,1]).sort().unwrap) == None
-        expect(_([3,2,1]).sort()._) == None
-        expect(_([3,2,1]).sort().previous.previous._) == [1,2,3]
-        expect(_([3,2,1]).sort().self.unwrap) == [1,2,3]
-        
-        expect(_([2,3,1]).sort().self.sort(reverse=True).unwrap) == None
-        expect(_([2,3,1]).sort().self.sort(reverse=True).previous.previous.previous.previous.previous._) == [3,2,1]
-        expect(_([2,3,1]).sort().self.sort(reverse=True).self._) == [3,2,1]
-        
-        class Attr(object):
-            foo = 'bar'
-        expect(_(Attr()).setattr('foo', 'baz').self.foo._) == 'baz'
-
 class IterableTest(FluentTest):
     
     def test_should_call_callable_with_star_splat_of_self(self):
@@ -340,6 +324,37 @@ class EachTest(FluentTest):
         expect(_.each.foo) == attrgetter('foo')
         expect(_.each.foo(_, 'bar', 'baz')) == methodcaller('foo').curry(_, 'bar', 'baz')
         expect(_.call.foo('bar', 'baz')) == methodcaller('foo').curry(_, 'bar', 'baz')
+
+class WrapperLeakTest(FluentTest):
+    
+    def test_wrapped_objects_will_wrap_every_action_to_them(self):
+        expect(_('foo').upper()).is_instance(_.Wrapper)
+        expect(_([1,2,3])[1]).is_instance(_.Wrapper)
+        expect(_(lambda: 'foo')()).is_instance(_.Wrapper)
+        expect(_(dict(foo='bar')).foo).is_instance(_.Wrapper)
+    
+    def test_function_expressions_return_unwrapped_objects(self):
+        class Foo(object):
+            bar = 'baz'
+        expect(_.each.bar(Foo())) == 'baz'
+        expect((_.each + 3)(4)) == 7
+        expect(_.each['foo'](dict(foo='bar'))) == 'bar'
+    
+class SmallTalkLikeBehaviour(FluentTest):
+    
+    def test_should_pretend_methods_that_return_None_returned_self(self):
+        expect(_([3,2,1]).sort().unwrap) == None
+        expect(_([3,2,1]).sort()._) == None
+        expect(_([3,2,1]).sort().previous.previous._) == [1,2,3]
+        expect(_([3,2,1]).sort().self.unwrap) == [1,2,3]
+        
+        expect(_([2,3,1]).sort().self.sort(reverse=True).unwrap) == None
+        expect(_([2,3,1]).sort().self.sort(reverse=True).previous.previous.previous.previous.previous._) == [3,2,1]
+        expect(_([2,3,1]).sort().self.sort(reverse=True).self._) == [3,2,1]
+        
+        class Attr(object):
+            foo = 'bar'
+        expect(_(Attr()).setattr('foo', 'baz').self.foo._) == 'baz'
 
 class IntegrationTest(FluentTest):
     
