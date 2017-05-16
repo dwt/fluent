@@ -107,6 +107,7 @@ def tupleize(wrapped_function):
         return wrap(tuple(wrapped_function(self, *args, **kwargs)), previous=self)
     return wrapper
 
+
 @public
 class Wrapper(object):
     """Universal wrapper.
@@ -133,18 +134,18 @@ class Wrapper(object):
         assert wrapped is not None or chain is not None, 'Cannot chain off of None'
         self.__wrapped = wrapped
         self.__previous = previous
-        self.__chain = chain
-    
-    # Proxied methods
-    
-    __getattr__ = wrapped(getattr)
-    __getitem__ = wrapped(operator.getitem)
+        self.__chain = chain # REFACT consider rename to __self?
     
     def __str__(self):
         return "fluent.wrap(%s)" % self.unwrap
     
     def __repr__(self):
         return "fluent.wrap(%r)" % (self.unwrap, )
+    
+    # Proxied methods
+    
+    __getattr__ = wrapped(getattr)
+    __getitem__ = wrapped(operator.getitem)
     
     # Breakouts
     
@@ -164,6 +165,35 @@ class Wrapper(object):
         if chain is None:
             chain = self.__chain
         return wrap(chain, previous=self)
+    
+    @property
+    def proxy(self):
+        """Allow access to shadowed attriutes.
+        
+        Breakout that allows access to attributes of the wrapped object that are shadowed by 
+        methods on the various wrapper classes.
+        
+        
+            >>> class UnfortunateNames(object):
+            >>>     def previous(self, *args):
+            >>>         return args
+            
+        This raises TypeError, because Wrapper.previous() shadows UnfortunateNames.previous():
+        
+            >>> _(UnfortunateNames()).previous('foo')) 
+        
+        This works as expected:
+        
+            >>> _(UnfortunateNames()).proxy.previous('foo')._) == ('foo',)
+        
+        """
+        # @public
+        class Proxy(object):
+            def __init__(self, proxied):
+                self.__proxied = proxied
+            def __getattr__(self, name):
+                return wrap(getattr(self.__proxied.unwrap, name), previous=self.__proxied)
+        return Proxy(self)
     
     # Utilities
     

@@ -339,7 +339,34 @@ class WrapperLeakTest(FluentTest):
         expect(_.each.bar(Foo())) == 'baz'
         expect((_.each + 3)(4)) == 7
         expect(_.each['foo'](dict(foo='bar'))) == 'bar'
+
+class AccessShadowedAttributesOnWrappedObjects(FluentTest):
     
+    def test_use_getitem_to_bypass_overrides(self):
+        class UnfortunateNames(object):
+            def previous(self, *args):
+                return args
+        
+        def producer(*args):
+            return UnfortunateNames()
+        
+        expect(_(producer)().previous('foo')).is_instance(_.Wrapper)
+        expect(_(UnfortunateNames()).proxy.previous('foo')._) == ('foo',)
+    
+    def test_chain_is_not_broken_by_proxy_usage(self):
+        class UnfortunateNames(object):
+            def previous(self, *args):
+                return args
+        
+        expect(_(UnfortunateNames()).proxy.previous('foo').previous.previous._).is_instance(UnfortunateNames)
+    
+    def test_smalltalk_like_behaviour_is_not_broken_by_proxy(self):
+        class UnfortunateNames(object):
+            def previous(self, *args):
+                self.args = args
+        
+        expect(_(UnfortunateNames()).proxy.previous('foo').self.args._) == ('foo',)
+
 class SmallTalkLikeBehaviour(FluentTest):
     
     def test_should_pretend_methods_that_return_None_returned_self(self):
