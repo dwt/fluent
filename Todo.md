@@ -1,3 +1,8 @@
+Review the library so no wrapped objects leak
+    especially out of _.each
+
+Review documentation to ensure it is accessible and complete via `help()` and sphinx generated docs
+
 consider numeric type to do stuff like wrap(3).times(...)
     or wrap([1,2,3]).call(len).times(yank_me)
 
@@ -28,19 +33,13 @@ if_true, etc. are pretty much like conditional versions of .tee() I guess.
 
 consider to make chain/previous/unwrap functions for similarity with the other stuff
 
-solve this inconsistency
-
->>> from fluent import *
->>> _([None]).pop()
-fluent.wrap([])
->>> _([None]).pop().chain
-[]
->>> _([None]).pop()
-fluent.wrap([])
->>> _([1]).pop()
-fluent.wrap(1)
-
 
 consider to support something like this
 
     expect(_(operator.add).curry(_._2, _._1)('foo', 'bar')) == 'barfoo'
+
+example why list comprehension is really bad (Found in zope unit tests)
+
+def u7(x):
+    stuff = [i + j for toplevel, in x for i, j in toplevel]
+    assert stuff == [3, 7]
