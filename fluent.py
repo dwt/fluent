@@ -444,7 +444,9 @@ class Each(Wrapper):
     """Create functions from expressions.
 
     Use `_f.each.foo` to create attrgetters, `_f.each['foo']` to create itemgetters,
-    _f.each.call.foo() to create methodcallers or `_f.each == 'foo'` to create callable operators
+    _f.each.call.foo() to create methodcallers or `_f.each == 'foo'` to create callable operators.
+    
+    Note that all generated functions never wrap their arguments or return values.
     """
     
     for name in dir(operator):

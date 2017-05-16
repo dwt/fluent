@@ -1,6 +1,3 @@
-Review the library so no wrapped objects leak
-    especially out of _.each
-
 Review documentation to ensure it is accessible and complete via `help()` and sphinx generated docs
 
 consider numeric type to do stuff like wrap(3).times(...)
