@@ -23,7 +23,15 @@ def wrap(wrapped, *, previous=None, chain=None):
     
         >>> import fluent; print(dir(fluent))
     
-    For documentation and development @see https://github.com/dwt/fluent
+    You can also use fluent as an executable module for shell one offs
+    
+        >>> python3 -m fluent "lib.sys.stdin.readlines().map($SOMETHING).map(print)"
+    
+    To see what is available, use:
+    
+        >>> python3 -m fluent "print(locals().keys())"
+    
+    For further documentation and development @see https://github.com/dwt/fluent
     """
     if isinstance(wrapped, Wrapper):
         return wrapped
