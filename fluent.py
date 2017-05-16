@@ -476,7 +476,7 @@ if __name__ == '__main__':
     assert len(sys.argv) == 2, \
         "Usage: python -m fluent 'some code that can access fluent functions without having to import them'"
     
-    exec(sys.argv[1], dict(wrap=wrap, _=wrap, lib=wrap.lib))
+    exec(sys.argv[1], dict(wrap=wrap, _=wrap, lib=wrap.lib, each=wrap.each))
 else:
     module = sys.modules[__name__]
     wrap.__name__ = __name__
