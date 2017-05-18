@@ -17,7 +17,7 @@ def readme():
               'See http://johnmacfarlane.net/pandoc/')
     return str(open(os.path.join(here, 'README.md')).read())
 
-setup(
+setup_args = dict(
     name='fluent',
     version='1.0.0',
     description='Python wrapper for stdlib (and other) objects to give them a fluent interface.',
@@ -40,3 +40,6 @@ setup(
         'Topic :: Utilities',
     ],
 )
+
+if __name__ == '__main__':
+    setup(**setup_args)
