@@ -2,8 +2,6 @@
 
 Use python in a more object oriented, saner and shorter way.
 
-## WARNING
-
 First: A word of warning. This library is an experiment. It is based on a wrapper that aggressively wraps anything it comes in contact with and tries to stay invisible from then on (apart from adding methods).
 
 If you do not end each fluent statement with a `.unwrap` or `._` operation to get a normal python object back, the wrapper will spread in your runtime image like a virus, 'infecting' more and more objects causing strange side effects. So remember: Always religiously unwrap your objects at the end of a fluent statement.
