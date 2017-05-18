@@ -58,7 +58,15 @@ def wrap(wrapped, *, previous=None, chain=None):
     
     return Wrapper(wrapped, previous=previous, chain=chain)
 
+wrap.__all__ = ['wrap', '_']
+wrap.wrap = wrap._ = wrap
+
 def public(something):
+    something = protected(something)
+    wrap.__all__.append(something.__name__)
+    return something
+
+def protected(something):
     setattr(wrap, something.__name__, something)
     return something
 
@@ -108,7 +116,7 @@ def tupleize(wrapped_function):
     return wrapper
 
 
-@public
+@protected
 class Wrapper(object):
     """Universal wrapper.
     
@@ -225,7 +233,7 @@ class Wrapper(object):
 # REFACT consider to use wrap as the placeholder to have less symbols? Probably not worth it...
 virtual_root_module = object()
 
-@public
+@protected
 class Module(Wrapper):
     """Imports as expressions. Already pre-wrapped.
     
@@ -261,8 +269,9 @@ class Module(Wrapper):
 
 wrap.lib = Module(virtual_root_module, previous=None, chain=None)
 wrap.lib.__name__ = 'lib'
+public(wrap.lib)
 
-@public
+@protected
 class Callable(Wrapper):
     """Higher order methods for callables."""
     
@@ -320,7 +329,7 @@ class Callable(Wrapper):
         return lambda *args, **kwargs: outer(self(*args, **kwargs))
     # REFACT consider aliasses wrap = chain = cast = compose
 
-@public
+@protected
 class Iterable(Wrapper):
     """Add iterator methods to any iterable.
     
@@ -424,7 +433,7 @@ class Iterable(Wrapper):
         else:
             return super().tee(function)
 
-@public
+@protected
 class Mapping(Iterable):
     """Index into dicts like objects. As JavaScript can."""
     
@@ -442,12 +451,12 @@ class Mapping(Iterable):
         "Calls function(**self), but allows to add args and set defaults for kwargs."
         return function(*args, **dict(kwargs, **self))
 
-@public
+@protected
 class Set(Iterable):
     """Fnord"""
 
 # REFACT consider to inherit from Iterable? It's how Python works...
-@public
+@protected
 class Text(Wrapper):
     "Supports most of the regex methods as if they where native str methods"
     
@@ -510,6 +519,7 @@ class Each(Wrapper):
 each_marker = object()
 wrap.each = Each(each_marker, previous=None, chain=None)
 wrap.each.__name__ = 'each'
+public(wrap.each)
 
 # Make the module executable via `python -m fluent "some fluent using python code"`
 if __name__ == '__main__':

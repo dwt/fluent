@@ -399,6 +399,20 @@ class IntegrationTest(FluentTest):
             ['python', '-m', 'fluent', "lib.sys.stdin.read().split('\\n').imap(each.call.upper()).imap(print).call(list)"],
             input=b'foo\nbar\nbaz')
         expect(output) == b'FOO\nBAR\nBAZ\n'
+    
+    def test_can_import_public_symbols(self):
+        from fluent import lib,  each, _ as _f, Wrapper
+        import sys
+        expect(lib.sys._) == sys
+        expect(_f(3)).is_instance(Wrapper)
+        expect((each + 3)(4)) == 7
+    
+    def test_can_get_symbols_via_star_import(self):
+        from subprocess import check_output
+        output = check_output(['python', '-c', "from fluent import *; print(locals().keys())"])
+        # default symbols get imported
+        expect(output.decode()).contains('wrap', '_', 'lib', 'each')
+        expect(output.decode()).not_contains('Wrapper')
 
 class DocumentationTest(FluentTest):
     
