@@ -60,7 +60,7 @@ def wrap(wrapped, *, previous=None, chain=None):
     
     return Wrapper(wrapped, previous=previous, chain=chain)
 
-wrap.wrap = wrap._ = wrap
+wrap.wrap = wrap._ = _ = wrap
 
 def public(something):
     something = protected(something)
