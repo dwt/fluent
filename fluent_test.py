@@ -389,7 +389,7 @@ class IntegrationTest(FluentTest):
         from xml.sax.saxutils import unescape
         line = '''<td><img src='/sitefiles/star_5.png' height='15' width='75' alt=''></td>
             <td><input style='width:200px; outline:none; border-style:solid; border-width:1px; border-color:#ccc;' type='text' id='ydxerpxkpcfqjaybcssw' readonly='readonly' onClick="select_text('ydxerpxkpcfqjaybcssw');" value='http://list.iblocklist.com/?list=ydxerpxkpcfqjaybcssw&amp;fileformat=p2p&amp;archiveformat=gz'></td>'''
-
+        
         actual = _(line).findall(r'value=\'(.*)\'').map(unescape)._
         expect(actual) == ('http://list.iblocklist.com/?list=ydxerpxkpcfqjaybcssw&fileformat=p2p&archiveformat=gz',)
     
@@ -408,11 +408,15 @@ class IntegrationTest(FluentTest):
         expect((each + 3)(4)) == 7
     
     def test_can_get_symbols_via_star_import(self):
-        from subprocess import check_output
-        output = check_output(['python', '-c', "from fluent import *; print(locals().keys())"])
-        # default symbols get imported
-        expect(output.decode()).contains('wrap', '_', 'lib', 'each')
-        expect(output.decode()).not_contains('Wrapper')
+        nested_locals = {}
+        exec('from fluent import *; locals()', {}, nested_locals)
+        expect(nested_locals).has_subdict( _=_, wrap=_, lib=_.lib, each=_.each)
+        # only symbols from __all__ get imported
+        expect(nested_locals.keys()).not_contains('Wrapper')
+    
+    def test_can_access_original_module(self):
+        import types
+        expect(_.module).instanceof(types.ModuleType)
 
 class DocumentationTest(FluentTest):
     

@@ -13,6 +13,8 @@ import sys
 import types
 import typing
 
+__all__ = ['wrap', '_'] # + @public
+
 def wrap(wrapped, *, previous=None, chain=None):
     """Factory method, wraps anything and returns the appropriate Wrapper subclass.
     
@@ -58,12 +60,11 @@ def wrap(wrapped, *, previous=None, chain=None):
     
     return Wrapper(wrapped, previous=previous, chain=chain)
 
-wrap.__all__ = ['wrap', '_']
 wrap.wrap = wrap._ = wrap
 
 def public(something):
     something = protected(something)
-    wrap.__all__.append(something.__name__)
+    __all__.append(something.__name__)
     return something
 
 def protected(something):
@@ -267,9 +268,9 @@ class Module(Wrapper):
         
         return wrap(module)
 
-wrap.lib = Module(virtual_root_module, previous=None, chain=None)
-wrap.lib.__name__ = 'lib'
-public(wrap.lib)
+lib = Module(virtual_root_module, previous=None, chain=None)
+lib.__name__ = 'lib'
+public(lib)
 
 @protected
 class Callable(Wrapper):
@@ -517,9 +518,9 @@ class Each(Wrapper):
         return MethodCallerConstructor()
 
 each_marker = object()
-wrap.each = Each(each_marker, previous=None, chain=None)
-wrap.each.__name__ = 'each'
-public(wrap.each)
+each = Each(each_marker, previous=None, chain=None)
+each.__name__ = 'each'
+public(each)
 
 # Make the module executable via `python -m fluent "some fluent using python code"`
 if __name__ == '__main__':
@@ -528,8 +529,8 @@ if __name__ == '__main__':
     
     exec(sys.argv[1], dict(wrap=wrap, _=wrap, lib=wrap.lib, each=wrap.each))
 else:
-    module = sys.modules[__name__]
     wrap.__name__ = __name__
-    wrap.__module__ == module
+    wrap.module = sys.modules[__name__]
     wrap.__package__ = __package__
+    wrap.__all__ = __all__
     sys.modules[__name__] = wrap
