@@ -1,3 +1,5 @@
+ensure documented functions are listed in source order
+
 Review documentation to ensure it is accessible and complete via `help()` and sphinx generated docs
 
 consider numeric type to do stuff like wrap(3).times(...)
