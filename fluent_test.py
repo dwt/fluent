@@ -1,10 +1,10 @@
 import unittest
+from unittest.mock import patch
 from pyexpect import expect
-import pytest
 
 import fluent as _
 
-import operator
+import io, os, operator, sys
 
 class FluentTest(unittest.TestCase): pass
 
@@ -85,10 +85,10 @@ class WrapperTest(FluentTest):
         expect(_(foo).vars()._) == {'bar': 'baz'}
     
     def test_print(self):
-        import io
         out = io.StringIO()
         _([1,2,3]).print(file=out)
         expect(out.getvalue()) == '[1, 2, 3]\n'
+    
 
 class CallableTest(FluentTest):
     
@@ -273,15 +273,12 @@ class StrTest(FluentTest):
 class ImporterTest(FluentTest):
     
     def test_import_top_level_module(self):
-        import sys
         expect(_.lib.sys._) == sys
     
     def test_import_symbol_from_top_level_module(self):
-        import sys
         expect(_.lib.sys.stdin._) == sys.stdin
     
     def test_import_submodule_that_is_also_a_symbol_in_the_parent_module(self):
-        import os
         expect(_.lib.os.name._) == os.name
         expect(_.lib.os.path.join._) == os.path.join
     
@@ -402,13 +399,12 @@ class IntegrationTest(FluentTest):
     def test_call_module_from_shell(self):
         from subprocess import check_output
         output = check_output(
-            ['python', '-m', 'fluent', "lib.sys.stdin.read().split('\\n').imap(each.call.upper()).imap(print).call(list)"],
+            ['python', '-m', 'fluent', "lib.sys.stdin.read().split('\\n').imap(each.call.upper()).map(print)"],
             input=b'foo\nbar\nbaz')
         expect(output) == b'FOO\nBAR\nBAZ\n'
     
     def test_can_import_public_symbols(self):
         from fluent import lib,  each, _ as _f, Wrapper
-        import sys
         expect(lib.sys._) == sys
         expect(_f(3)).is_instance(Wrapper)
         expect((each + 3)(4)) == 7
@@ -442,4 +438,19 @@ class DocumentationTest(FluentTest):
     def test_special_proxies_have_usefull_docstrings(self):
         expect(_.lib.__doc__).matches('Imports as expressions')
         expect(_.each.__doc__).matches('functions from expressions')
+    
+    def test_help_method_outputs_correct_docstrings(self):
+        with patch.object(sys, 'stdout', io.StringIO()):
+            sys.stdout = io.StringIO()
+            help(_)
+            expect(sys.stdout.getvalue()).matches('Help on function fluent.wrap')
+        
+        with patch.object(sys, 'stdout', io.StringIO()):
+            sys.stdout = io.StringIO()
+            _(list).help()
+            expect(sys.stdout.getvalue()).matches('Help on class list in module builtins')
+    
+    def test_lib_and_wrap_have_usefull_repr(self):
+        expect(repr(_.lib)).matches('virtual root module')
+        expect(repr(_.each)).matches('lambda generator')
     

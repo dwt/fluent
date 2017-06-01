@@ -231,9 +231,10 @@ class Wrapper(object):
     dir = wrapped(dir)
     vars = wrapped(vars)
     print = wrapped(print)
+    help = wrapped(help)
 
 # REFACT consider to use wrap as the placeholder to have less symbols? Probably not worth it...
-virtual_root_module = object()
+virtual_root_module = "virtual root module"
 
 @protected
 class Module(Wrapper):
@@ -518,7 +519,7 @@ class Each(Wrapper):
         
         return MethodCallerConstructor()
 
-each_marker = object()
+each_marker = "lambda generator"
 each = Each(each_marker, previous=None, chain=None)
 each.__name__ = 'each'
 public(each)
@@ -530,7 +531,7 @@ if __name__ == '__main__':
     
     exec(sys.argv[1], dict(wrap=wrap, _=wrap, lib=wrap.lib, each=wrap.each))
 else:
-    wrap.__name__ = __name__
+    wrap.__name__ = __name__ + '.' + wrap.__name__
     wrap.module = sys.modules[__name__]
     wrap.__package__ = __package__
     wrap.__all__ = __all__
