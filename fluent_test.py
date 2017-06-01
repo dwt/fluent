@@ -88,7 +88,6 @@ class WrapperTest(FluentTest):
         out = io.StringIO()
         _([1,2,3]).print(file=out)
         expect(out.getvalue()) == '[1, 2, 3]\n'
-    
 
 class CallableTest(FluentTest):
     

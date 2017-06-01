@@ -63,9 +63,8 @@ def wrap(wrapped, *, previous=None, chain=None):
 wrap.wrap = wrap._ = _ = wrap
 
 def public(something):
-    something = protected(something)
     __all__.append(something.__name__)
-    return something
+    return protected(something)
 
 def protected(something):
     setattr(wrap, something.__name__, something)
@@ -485,10 +484,10 @@ def make_operator(name):
 class Each(Wrapper):
     """Create functions from expressions.
 
-    Use `_f.each.foo` to create attrgetters, `_f.each['foo']` to create itemgetters,
-    _f.each.call.foo() to create methodcallers or `_f.each == 'foo'` to create callable operators.
+    Use ``each.foo`` to create attrgetters, ``each['foo']`` to create itemgetters,
+    ``each.call.foo()`` to create methodcallers or ``each == 'foo'`` (with pretty much any operator) to create callable operators.
     
-    Note that all generated functions never wrap their arguments or return values.
+    Note: All generated functions never wrap their arguments or return values.
     """
     
     for name in dir(operator):
