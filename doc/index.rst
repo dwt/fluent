@@ -8,6 +8,7 @@ The fluent Library
 
 .. toctree::
    :titlesonly:
+   :numbered:
    :caption: For more information see:
 
    Narrative Documentation <Readme>
@@ -86,6 +87,7 @@ Further information
 
 .. toctree::
    :titlesonly:
+   :numbered:
 
    Narrative Documentation <Readme>
    API Documentation <API-Docs>
