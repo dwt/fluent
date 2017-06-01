@@ -1,9 +1,9 @@
 Generated API Documentation
-==================
+===========================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
+
 
 
 fluent.wrap
@@ -22,23 +22,30 @@ fluent.Wrapper
 --------------
 .. autoclass:: fluent.Wrapper
    :members:
+   :undoc-members:
+   :special-members: __getattr__, __getitem__
+
 
 fluent.Callable
 ---------------
 .. autoclass:: fluent.Callable
    :members:
+   :undoc-members:
 
 fluent.Iterable
 ---------------
 .. autoclass:: fluent.Iterable
    :members:
+   :undoc-members:
 
 fluent.Mapping
 --------------
 .. autoclass:: fluent.Mapping
    :members:
+   :undoc-members:
 
 fluent.Text
 -----------
 .. autoclass:: fluent.Text
    :members:
+   :undoc-members:

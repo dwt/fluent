@@ -7,12 +7,12 @@ The fluent Library
 ==================
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Python wrapper for stdlib (and other) objects to give them a fluent interface.
-   :numbered: 2
+   :titlesonly:
+   :caption: For more information see:
 
-   Readme
-   API-Docs
+   Narrative Documentation <Readme>
+   API Documentation <API-Docs>
+
 
 Project Matters
 ---------------
@@ -25,10 +25,16 @@ Documentation: TODO
 
 Build Server: TODO
 
+
+What problem does fluent solve
+------------------------------
+
+The fluent library is a syntactic sugar library for python. It allows you to write more things as expressions, which traditionally require statements in python. The goal is to allow writing beautiful fluent code with standard library or your objects, as defined at https://en.wikipedia.org/wiki/Fluent_interface
+
 Quick Start
 -----------
 
-Fluent is a powerfull library, that allows you to use existing libraries through a fluent interface. This is especially usefull since most of the python standard library was written in a way that makes it hard to be used in this style.
+Fluent is a powerful library, that allows you to use existing libraries through a fluent interface. This is especially useful since most of the python standard library was written in a way that makes it hard to be used in this style.
 
 This makes Fluent really usefull to write small python shell filters, to do something that Python is good at, for example finding stuff with regexes::
 
@@ -75,4 +81,13 @@ Just import fluent under the name you would like to use it. For short scripts I 
     >>> from fluent import wrap as _, lib, each
     >>> _(range(10)).map(each * 3)
 
-Have phun!
+Further information
+-------------------
+
+.. toctree::
+   :titlesonly:
+
+   Narrative Documentation <Readme>
+   API Documentation <API-Docs>
+
+And most important of all: Have phun!
