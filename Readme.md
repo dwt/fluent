@@ -8,18 +8,9 @@ Please Note: **This library is an experiment.** It is based on a wrapper that ag
 
 ## Introduction: Why use fluent?
 
-The Python standard library includes many useful, time-saving convenience
-methods such as `map`, `zip`, `filter` and `join`. The problem that motivated
-me to write fluent is that these convenience methods are often available as
-free functions or on (arguably) the wrong object.
+The Python standard library includes many useful, time-saving convenience methods such as `map`, `zip`, `filter` and `join`. The problem that motivated me to write fluent is that these convenience methods are often available as free functions or on (arguably) the wrong object.
 
-For example, `map`, `zip`, and `filter` all operate on iterable objects but
-they are implemented as free functions -- which goes against the principle of
-objected oriented coding. 
-
-One unfortunate side effect of writing python code using these
-free functions is that the reader must often mentally skip back and forth in a line of code to
-understand what it does, making the code more difficult to understand.
+For example, `map`, `zip`, and `filter` all operate on iterable objects but they are implemented as free functions. This not only goes against my sense of how object oriented code should behave, but more importantly, writing python code using these free functions requires that the reader must often mentally skip back and forth in a line of code to understand what it does, making the code more difficult to understand.
 
 Let's use the following simple example to analyse this problem:
 
@@ -37,17 +28,19 @@ One alternative to the above approach is to use list comprehension / generator s
 
 This is clearly better: I only have to skip back and forth once instead of twice.
 
-This approach still leaves room for improvement though because I have to find where the statement starts and to then backtrack to the beginning to see what is happening. "Oh", you say, "but they support filtering too!"
+This approach still leaves room for improvement though because I have to find where the statement starts and to then backtrack to the beginning to see what is happening. Adding filtering to list comprehensions doesn't help:
 
     >>> [print(line.upper()) for line in sys.stdin.read().split('\n') if line.upper().startswith('FNORD')]
 
-Sorry, but this is just worse. For one thing, this doesn't solve the backtracking problem. But, more importantly, if the filtering has to be done on the processed version (here artificially on `line.upper().startswith()`) then the operation has to be applied twice - which sucks because you have to write it twice, but also because it is computed twice.
+The backtracking problem persists. Additionally, if the filtering has to be done on the processed version (here artificially on `line.upper().startswith()`) then the operation has to be applied twice - which sucks because you have to write it twice, but also because it is computed twice.
 
 The solution? Nest them!
 
-    >>> [print(line) for line in (line.upper() for line in sys.stdin.read().split('\n')) if line.startswith('FNORD')]
+    >>> [print(line) for line in \
+    >>>     (line.upper() for line in sys.stdin.read().split('\n')) \
+    >>>          if line.startswith('FNORD')]
 
-Do you start seing the problem?
+Which gets us back to all the initial problems with nested statements and manually having to check for the right ammount of closing parens.
 
 Compare it to this:
 
@@ -82,23 +75,23 @@ That certainly is hard to read (and write). Pulling out explaining variables, ma
 
 Better, but still hard to read. Sure, those explaining variables are nice and sometimes essential to understand the code. - but it does take up space in lines, and space in my head while parsing this code. The question would be - is this really easier to read than something like this?
 
-    >>> cross_product_of_dependency_labels = (
-    >>>     _f(dependencies)
+    >>> cross_product_of_dependency_labels = (_(dependencies)
     >>>     .map(_.each._labels)
     >>>     .star_call(itertools.product)
     >>>     .map(frozenset)
-    >>>     .call(set)._
+    >>>     .call(set)
+    >>>     ._
     >>> )
 
 Sure you are not used to this at first, but consider the advantages. The intermediate variable names are abstracted away - the data flows through the methods completely naturally. No jumping back and forth to parse this at all. It just reads and writes exactly in the order it is computed.
 
-What I think that I want to accomplish, I can write down directly in order. Oh, and I don't have to keep track of extra closing parantheses at the end of the expression.
+To me this means, that what I think that I want to accomplish, I can write down directly in order. And I don't have to keep track of extra closing parantheses at the end of the expression.
 
 So what is the essence of all of this?
 
 Python is an object oriented language - but it doesn't really use what object orientation has tought us about how we can work with collections and higher order methods in the languages that came before it (I think of SmallTalk here, but more recently also Ruby). Why can't I make those beautiful fluent call chains that SmallTalk could do 20 years ago in Python today?
 
-Well, now you can.
+Well, now I can and you can too.
 
 ## Features
 
@@ -226,26 +219,18 @@ Fluent wrapped objects will have a `self` property, that allows you to continue 
 
 Even though both sort() and reverse() return None
 
-------------------------------
 Of course, if you unwrap at any point with `.unwrap` or `._` you will get the true return value of `None`.
 
 ## Caveats
 
-If you do not end each fluent statement with a `.unwrap` or `._` operation to get a normal python object back, the wrapper will spread in your runtime image like a virus, 'infecting' more and more objects causing strange side effects. So remember: Always religiously unwrap your objects at the end of a fluent statement.
+If you do not end each fluent statement with a `.unwrap` or `._` operation to get a normal python object back, the wrapper will spread in your runtime image like a virus, 'infecting' more and more objects causing strange side effects. So remember: Always religiously unwrap your objects at the end of a fluent statement, when using fluent in bigger projects.
 
     >>> _f("foo").uppercase().match('(foo)').group(0)._
 
-That being said, not having to unwrap is perfect for short scripts and especially 'one-off' shell commands. Use it's power wisely!
-
-
-------------------------------
+That being said, `str()` and `repr()` output is clearly marked, so this is easy to debug. Also, not having to unwrap is perfect for short scripts and especially 'one-off' shell commands. Use fluents power wisely!
 
 ## Famous Last Words
 
 This library tries to do a little of what libraries like underscore or lodash or jQuery do for Javascript. Just provide the missing glue to make the standard library nicer and easier to use - especially for short oneliners or short script. Have fun!
 
-While I know that this may not be such big concerns in big projects (see
-warning at the beginning) I envision this to be very usefull in quick python
-scripts and shell one liners and filters, where python was previously just that
-little bit too hard to use, that 'overflowed the barrel' and prevented you from
-doing so.
+I envision this to be very usefull in quick python scripts and shell one liners and filters, where python was previously just that little bit too hard to use, that 'overflowed the barrel' and prevented you from doing so.
