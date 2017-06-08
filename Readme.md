@@ -97,14 +97,27 @@ Well, now I can and you can too.
 
 To enable this style of coding this library has some features that might not be so obvious at first.
 
-### Aggressive (specialized) wrapping
+### Importing the library
 
 It is recomended to import and use the library by renaming it to something locally unique.:
 
     >>> import fluent as _f
-    >>> _f(something)
 
-`_f` is actually the function `wrap` in the fluent module, which is a factory function that returns a subclass of Wrapper, the basic and main object of this library. In projects where gettext is not also involved I tend to use `_` as the name.
+or 
+
+    >>> import fluent as _
+
+I prefer `_` for small projects and `_f` for larger projects where gettext is used.
+
+If you want you can also import the library in the classic way:
+
+    >>> from fluent import _, lib, each
+
+But it is not required to import all these symbols, as they are all also available as attributes on `_`. Also, the library exposes itself as an executable module, i.e. the module `fluent` itself is the central wrapper function and can be used directly by renaming it to what you need locally.
+
+### Aggressive (specialized) wrapping
+
+`_` is actually the function `wrap` in the fluent module, which is a factory function that returns a subclass of Wrapper, the basic and main object of this library.
 
 This does two things: First it ensures that every attribute access, item access or method call off of the wrapped object will also return a wrapped object. This means that once you wrap something, unless you unwrap it explicitly via `.unwrap` or `._` it stays wrapped - pretty much no matter what you do with it. The second thing this does is that it returns a subclass of Wrapper that has a specialized set 
 of methods, depending on the type of what is wrapped. I envision this to expand in the future, but right now the most usefull wrappers are: Iterable, where we add all the python collection functions (map, filter, zip, reduce, …) as well as a good batch of methods from itertools and a few extras for good measure. Callable, where we add `.curry()` and `.compose()` and Text, where most of the regex methods are added. [Explore the method documentation for what you can do]()).
@@ -162,7 +175,7 @@ So instead of
 
 You can do
 
-    >>> input = _f.lib.sys.stdin.read()
+    >>> input = _.lib.sys.stdin.read()
 
 As a bonus, everything imported via lib is already pre-wrapped, so you can chain off of it immediately.
 
@@ -189,7 +202,7 @@ I mean, python does have attrgetter, itemgetter and methodcaller - they are just
     >>> _([Foo(), Foo()]).map(attrgetter(attr)) == ['attrvalue', 'attrvalue']
     >>> _([Foo(), Foo()]).map(methodcaller(method, 'arg')) == ['method+arg', 'method+arg']
 
-So there is an object `_.each` that just exposes a bit of syntactic shugar for these (and the other operators). Basically, everything you do to `_f.each` it will do to each object in the collection:
+So there is an object `_.each` that just exposes a bit of syntactic shugar for these (and the other operators). Basically, everything you do to `_.each` it will do to each object in the collection:
 
     >>> _([1,2,3]).map(_.each + 3) == [4,5,6]
     >>> _([1,2,3]).filter(_.each < 3) == [1,2]
@@ -225,7 +238,7 @@ Of course, if you unwrap at any point with `.unwrap` or `._` you will get the tr
 
 If you do not end each fluent statement with a `.unwrap` or `._` operation to get a normal python object back, the wrapper will spread in your runtime image like a virus, 'infecting' more and more objects causing strange side effects. So remember: Always religiously unwrap your objects at the end of a fluent statement, when using fluent in bigger projects.
 
-    >>> _f("foo").uppercase().match('(foo)').group(0)._
+    >>> _("foo").uppercase().match('(foo)').group(0)._
 
 That being said, `str()` and `repr()` output is clearly marked, so this is easy to debug. Also, not having to unwrap is perfect for short scripts and especially 'one-off' shell commands. Use fluents power wisely!
 
