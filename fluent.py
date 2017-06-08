@@ -148,7 +148,7 @@ class Wrapper(object):
         return "fluent.wrap(%s)" % self.unwrap
     
     def __repr__(self):
-        return "fluent.wrap(%r)" % (self.unwrap, )
+        return "fluent.wrap(%r)" % self.unwrap
     
     # Proxied methods
     
