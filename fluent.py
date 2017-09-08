@@ -284,39 +284,63 @@ class Callable(Wrapper):
         chain = None if self.previous is None else self.previous.self.unwrap
         return wrap(result, previous=self, chain=chain)
     
-    # REFACT rename to partial for consistency with stdlib?
-    # REFACT consider if there could be more utility in supporting placeholders for more usecases.
-    # examples:
-    #   Switching argument order? _._1, _._2 as placeholders with order
     @wrapped
-    def curry(self, *curry_args, **curry_kwargs):
+    def curry(self, *args_and_placeholders, **default_kwargs):
         """"Like functools.partial, but with a twist.
         
         If you use `wrap` or `_` as a positional argument, upon the actual call, 
         arguments will be left-filled for those placeholders.
         
-        For example:
+        >>> _(operator.add).curry(_, 'foo')('bar')._ == 'barfoo'
         
-        >>> _(operator.add).curry(_, 'foo')('bar') == 'barfoo'
+        If you use wrap._$NUMBER (with $NUMBER < 10) you can take full controll 
+        over the ordering of the arguments.
+        
+        >>> _(a_function).curry(_._0, _._0, _.7)
+        
+        This will repeat the first argument twice, then take the 8th and ignore all in between.
+        
+        You can also mix numbered with generic placeholders, but since it can be hard to read, 
+        I would not advise it.
+        
+        There is also `_._args` which is the placeholder for the `*args` variable argument list specifier.
+        (Note that it is only supported in the last position of the positional argument list.)
+        
+        >>> _(operator.add).curry(_.args)('foo', 'bar)._ == 'foobar'
         """
         placeholder = wrap
-        def merge_args(curried_args, args):
-            assert curried_args.count(placeholder) == len(args), \
-                'Need the right ammount of arguments for the placeholders'
-            
-            new_args = list(curried_args)
-            if placeholder in curried_args:
-                index = 0
-                for arg in args:
-                    index = new_args.index(placeholder, index)
-                    new_args[index] = arg
-            return new_args
+        splat_args_placeholder = wrap._args
+        reordering_placeholders = tuple(getattr(wrap, '_%i' % index) for index in range(10))
+        all_placeholders = (placeholder, splat_args_placeholder) + reordering_placeholders
+        def merge_args(args_and_placeholders, args):
+            def assert_enough_args(required_number):
+                assert required_number < len(args), \
+                    'Not enough arguments given to curried function. Need at least %i, got %i: %r' \
+                        % (placeholder_index, len(args), args)
+            new_arguments = list()
+            placeholder_index = -1
+            for index, arg_or_placeholder in enumerate(args_and_placeholders):
+                if arg_or_placeholder in all_placeholders:
+                    placeholder_index += 1
+                if arg_or_placeholder is placeholder:
+                    assert_enough_args(placeholder_index)
+                    new_arguments.append(args[placeholder_index])
+                elif arg_or_placeholder in reordering_placeholders:
+                    assert_enough_args(arg_or_placeholder.unwrap)
+                    new_arguments.append(args[arg_or_placeholder.unwrap])
+                elif arg_or_placeholder is splat_args_placeholder:
+                    assert index + 1 == len(args_and_placeholders), \
+                        'Variable arguments placeholder <_args> needs to be last'
+                    new_arguments.extend(args[placeholder_index:])
+                else: # real argument
+                    new_arguments.append(arg_or_placeholder)
+            return new_arguments
         
         @functools.wraps(self)
         def wrapper(*actual_args, **actual_kwargs):
             return self(
-                *merge_args(curry_args, actual_args),
-                **dict(curry_kwargs, **actual_kwargs)
+                *merge_args(args_and_placeholders, actual_args),
+                **dict(default_kwargs, **actual_kwargs)
             )
         return wrapper
     
@@ -520,6 +544,11 @@ each_marker = "lambda generator"
 each = Each(each_marker, previous=None, chain=None)
 each.__name__ = 'each'
 public(each)
+
+# add reordering placeholders to wrap to make it easy to reorder arguments in curry
+for index in range(10): # arbitrary limit, can be increased as neccessary
+    setattr(wrap, '_%i' % index, wrap(index))
+wrap._args = wrap('*')
 
 # Make the module executable via `python -m fluent "some fluent using python code"`
 if __name__ == '__main__':

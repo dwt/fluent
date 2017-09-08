@@ -4,7 +4,7 @@ from pyexpect import expect
 
 import fluent as _
 
-import io, os, operator, sys
+import functools, io, os, operator, sys
 
 class FluentTest(unittest.TestCase): pass
 
@@ -123,6 +123,28 @@ class CallableTest(FluentTest):
     def test_curry_should_support_placeholders_to_curry_later_positional_arguments(self):
         expect(_(operator.add).curry(_, 'foo')('bar')._) == 'barfoo'
         expect(_(lambda x, y, z: x + y + z).curry(_, 'baz', _)('foo', 'bar')._) == 'foobazbar'
+    
+    def test_curry_should_allow_reordering_arguments(self):
+        expect(_(lambda x, y: x + y).curry(_._1, _._0)('foo', 'bar')._) == 'barfoo'
+        expect(_(lambda x, y, z: x + y + z).curry(_._1, 'baz', _._0)('foo', 'bar')._) == 'barbazfoo'
+    
+    def test_curry_should_raise_if_number_of_arguments_missmatch(self):
+        expect(lambda: _(lambda x, y: x + y).curry(_, _)('foo')).to_raise(AssertionError, 'Not enough arguments')
+        expect(lambda: _(lambda x, y: x + y).curry(_._1)('foo')).to_raise(AssertionError, 'Not enough arguments')
+    
+    def test_curry_can_handle_variable_argument_lists(self):
+        add = _(lambda *args: functools.reduce(operator.add, args))
+        expect(add.curry('foo', _._args)('bar', 'baz')._) == 'foobarbaz'
+        expect(add.curry(_, _._args)('foo', 'bar', 'baz')._) == 'foobarbaz'
+        expect(add.curry(_._1, _._args)('foo', 'bar', 'baz')._) == 'barbarbaz'
+        
+        # varargs need to be last
+        expect(lambda: add.curry(_._args, _)('foo', 'bar')).to_raise(AssertionError, 'Variable arguments placeholder <_args> needs to be last')
+    
+    def test_curry_can_be_applied_multiple_times(self):
+        add = _(lambda *args: functools.reduce(operator.add, args))
+        expect(add.curry(_, 'bar', _).curry('foo', _)('baz')._) == 'foobarbaz'
+        expect(add.curry(_._1, 'baz', _._0).curry('foo', _)('bar')._) == 'barbazfoo'
     
     def test_compose_cast_wraps_chain(self):
         expect(_(lambda x: x*2).compose(lambda x: x+3)(5)._) == 13
