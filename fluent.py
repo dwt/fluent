@@ -328,6 +328,10 @@ class Callable(Wrapper):
     
     @wrapped
     def compose(self, outer):
+        """Compose two functions.
+        >>>  inner_function.compose(outer_function) \
+            == lambda *args, **kwargs: outer_function(inner_function(*args, **kwargs))
+        """
         return lambda *args, **kwargs: outer(self(*args, **kwargs))
     # REFACT consider aliasses wrap = chain = cast = compose
 
