@@ -159,11 +159,17 @@ class Wrapper(object):
     
     @property
     def unwrap(self):
+        """Returns the underlying wrapped value of this wrapper instance."""
         return self.__wrapped
     _ = unwrap # alias
     
     @property
     def previous(self):
+        """Returns the previous wrapper in the chain of wrappers.
+        
+        This allows you to walk the chain of wrappers that where created in your expression. 
+        Mainly used internally but might be usefull for introspection.
+        """
         return self.__previous
     
     @property
