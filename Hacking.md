@@ -2,6 +2,10 @@
 
 > ./setup.py test -q
 
+# How to generate the documentation
+
+> cd docs; rm -rf _build; make html
+
 # How to send patches
 
 With unit tests please.
