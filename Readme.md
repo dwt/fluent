@@ -145,7 +145,7 @@ Consider this shell text filter written in python:
     >    | python3 -c "import sys, re; from xml.sax.saxutils import unescape; \
     >                  print('\n'.join(map(unescape, re.findall(r'value=\'(.*)\'', sys.stdin.read()))))" 
 
-Sure it has all the backtracking problems I talked about already. Using fluent this coulld be much shorter.
+Sure it has all the backtracking problems I talked about already. Using fluent this could be much shorter.
 
     $ curl -sL 'https://www.iblocklist.com/lists.php' \
     >   | egrep -A1 'star_[345]' \
@@ -181,7 +181,7 @@ As a bonus, everything imported via lib is already pre-wrapped, so you can chain
 
 ### Generating lambda's from expressions
 
-`lambda` is great - it's often exactly what the doctor ordered. But it can also be a bit annyoing if you have to write it down everytime you just want to get an attribute or call a method on every object in a collection.
+`lambda` is great - it's often exactly what the doctor ordered. But it can also be annyoing if you have to write it down everytime you just want to get an attribute or call a method on every object in a collection.
 
     >>> _([dict(fnord='foo'), dict(fnord='bar')]).map(lambda each: each['fnord']) == ['foo', 'bar]
     >>> class Foo(object):
@@ -192,7 +192,7 @@ As a bonus, everything imported via lib is already pre-wrapped, so you can chain
 
 Sure it works, but wouldn't it be nice if we could save a variable and do this a bit shorter?
 
-I mean, python does have attrgetter, itemgetter and methodcaller - they are just a bit inconvenient to use:
+Python does have attrgetter, itemgetter and methodcaller - they are just a bit inconvenient to use:
 
     >>> from operator import itemgetter, attrgetter, methodcaller
     >>> _([dict(fnord='foo'), dict(fnord='bar')]).map(itemgetter('fnord')) == ['foo', 'bar]
@@ -202,7 +202,7 @@ I mean, python does have attrgetter, itemgetter and methodcaller - they are just
     >>> _([Foo(), Foo()]).map(attrgetter(attr)) == ['attrvalue', 'attrvalue']
     >>> _([Foo(), Foo()]).map(methodcaller(method, 'arg')) == ['method+arg', 'method+arg']
 
-So there is an object `_.each` that just exposes a bit of syntactic shugar for these (and the other operators). Basically, everything you do to `_.each` it will do to each object in the collection:
+To ease this the object `_.each` is provided, that just exposes a bit of syntactic shugar for these (and the other operators). Basically, everything you do to `_.each` it will do to each object in the collection:
 
     >>> _([1,2,3]).map(_.each + 3) == [4,5,6]
     >>> _([1,2,3]).filter(_.each < 3) == [1,2]
@@ -214,13 +214,13 @@ So there is an object `_.each` that just exposes a bit of syntactic shugar for t
     >>> _([Foo(), Foo()]).map(_.each.attr) == ['attrvalue', 'attrvalue']
     >>> _([Foo(), Foo()]).map(_.each.call.method('arg')) == ['method+arg', 'method+arg']
 
-Yeah I know `_.each.call.*()` is crude - but I haven't found a good syntax to get rid of the .call yet. Feedback welcome.
+I know `_.each.call.*()` is crude - but I haven't found a good syntax to get rid of the .call yet. Feedback welcome.
 
 ### Chaining off of methods that return None
 
 A major nuissance for using fluent interfaces are methods that return None. Sadly, many methods in python return None, if they mostly exhibit a side effect on the object. Consider for example `list.sort()`.
 
-Now this is mostly a feature of python, where methods that don't have a return statement return None.
+This is a feature of python, where methods that don't have a return statement return None.
 
 While this is way better than e.g. Ruby where that will just return the value of the last expression - which means objects constantly leak internals - it is very annoying if you want to chain off of one of these method calls.
 
