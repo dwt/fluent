@@ -120,11 +120,6 @@ class CallableTest(FluentTest):
         expect(_(lambda x, y: x*y).curry(2, 3)()._) == 6
         expect(_(lambda x=1, y=2: x*y).curry(x=3)()._) == 6
     
-    def test_auto_currying(self):
-        expect(_(lambda x: x + 3)(_)(3)._) == 6
-        expect(_(lambda x, y: x + y)(_, 'foo')('bar')._) == 'barfoo'
-        expect(_(lambda x, y: x + y)('foo', _)('bar')._) == 'foobar'
-        
     def test_curry_should_support_placeholders_to_curry_later_positional_arguments(self):
         expect(_(operator.add).curry(_, 'foo')('bar')._) == 'barfoo'
         expect(_(lambda x, y, z: x + y + z).curry(_, 'baz', _)('foo', 'bar')._) == 'foobazbar'

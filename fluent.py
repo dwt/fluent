@@ -278,13 +278,7 @@ class Callable(Wrapper):
     """Higher order methods for callables."""
     
     def __call__(self, *args, **kwargs):
-        """"Call through with a twist.
-        
-        If one of the args is `wrap` / `_`, then this acts as a shortcut to curry instead"""
-        # REFACT consider to drop the auto curry - doesn't look like it is so super usefull
-        # REFACT Consider how to expand this so every method in the library supports auto currying
-        if wrap in args:
-            return self.curry(*args, **kwargs)
+        """"Call through to the wrapped function."""
         
         result = self.unwrap(*args, **kwargs)
         chain = None if self.previous is None else self.previous.self.unwrap
