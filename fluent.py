@@ -14,6 +14,7 @@ import types
 import typing
 
 __all__ = ['wrap', '_'] # + @public
+NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS = 10
 
 def wrap(wrapped, *, previous=None, chain=None):
     """Factory method, wraps anything and returns the appropriate Wrapper subclass.
@@ -316,7 +317,7 @@ class Callable(Wrapper):
         """
         placeholder = wrap
         splat_args_placeholder = wrap._args
-        reordering_placeholders = tuple(getattr(wrap, '_%i' % index) for index in range(10))
+        reordering_placeholders = tuple(getattr(wrap, '_%i' % index) for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS))
         all_placeholders = (placeholder, splat_args_placeholder) + reordering_placeholders
         def merge_args(args_and_placeholders, args):
             def assert_enough_args(required_number):
@@ -552,7 +553,7 @@ each.__name__ = 'each'
 public(each)
 
 # add reordering placeholders to wrap to make it easy to reorder arguments in curry
-for index in range(10): # arbitrary limit, can be increased as neccessary
+for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS): # arbitrary limit, can be increased as neccessary
     setattr(wrap, '_%i' % index, wrap(index))
 wrap._args = wrap('*')
 
