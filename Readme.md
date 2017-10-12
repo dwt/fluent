@@ -4,7 +4,7 @@ Fluent helps you write more object-oriented and concise python code.
 
 It is inspired by jQuery and underscore / lodash from the javascript world. It also takes some inspiration from Ruby / SmallTalk -- in particluar, collections and how to work with them.
 
-Please Note: **This library is an experiment.** It is based on a wrapper that aggressively wraps anything it comes in contact with and tries to stay invisible. We'll address this in section [Caveats] below.
+Please Note: **This library is an experiment.** It is based on a wrapper that aggressively wraps anything it comes in contact with and tries to stay invisible. We'll address this in section **Caveats** below.
 
 ## Introduction: Why use fluent?
 
