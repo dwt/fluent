@@ -11,7 +11,7 @@ def readme():
     from subprocess import CalledProcessError
     try:
         from subprocess import check_output
-        return str(check_output(['pandoc', '--from', 'markdown', '--to', 'rst', os.path.join(here, 'README.md')]))
+        return str(check_output(['pandoc', '--from', 'markdown', '--to', 'rst', os.path.join(here, 'README.md')]), 'utf8')
     except (ImportError, OSError, CalledProcessError) as error:
         print('python2.6 and pandoc is required to get the description as rst (as required to get nice rendering in pypi) - using the original markdown instead.',
               'See http://johnmacfarlane.net/pandoc/')
@@ -19,7 +19,7 @@ def readme():
 
 setup_args = dict(
     name='fluentpy',
-    version='1.0.0',
+    version='1.0.1',
     description='Python wrapper for stdlib (and your) objects to give them a fluent interface.',
     long_description=readme(),
     url='https://github.com/dwt/fluent',
