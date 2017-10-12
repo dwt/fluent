@@ -18,27 +18,34 @@ def readme():
     return str(open(os.path.join(here, 'README.md')).read())
 
 setup_args = dict(
-    name='fluent',
+    name='fluentpy',
     version='1.0.0',
-    description='Python wrapper for stdlib (and other) objects to give them a fluent interface.',
+    description='Python wrapper for stdlib (and your) objects to give them a fluent interface.',
     long_description=readme(),
+    url='https://github.com/dwt/fluent',
     author='Martin Häcker',
     author_email='mhaecker@mac.com',
     license='ISC',
-    url='https://github.com/dwt/fluent',
-    py_modules=['fluent'],
-    include_package_data=True,
-    test_suite="fluent_test.py",
-    classifiers=[
+    classifiers=(
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: ISC License (ISCL)',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Libraries',
         'Topic :: Utilities',
-    ],
+        'License :: OSI Approved :: ISC License (ISCL)',
+        'Programming Language :: Python :: 3',
+    ),
+    keywords='wrapper,smalltalk,ruby,fluent,interface,functional',
+    py_modules=['fluentpy'],
+    python_requires='>=3.5',
+    include_package_data=True,
+    test_suite="fluent_test.py",
+    tests_require=(
+        'pyexpect',
+        # Release-Dependencies
+        'pypandoc', # just to get pandoc - which we use directly
+        'twine', # to upload releases
+    ),
 )
 
 if __name__ == '__main__':

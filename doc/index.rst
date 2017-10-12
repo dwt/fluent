@@ -87,7 +87,6 @@ Further information
 
 .. toctree::
    :titlesonly:
-   :numbered:
 
    Narrative Documentation <Readme>
    API Documentation <API-Docs>

@@ -24,6 +24,7 @@ fluent.Wrapper
    :members:
    :undoc-members:
    :special-members: __getattr__, __getitem__
+   :member-order: bysource
 
 
 fluent.Callable

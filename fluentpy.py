@@ -24,15 +24,15 @@ def wrap(wrapped, *, previous=None, chain=None):
     
     Use dir to discover the available wrappers.
     
-        >>> import fluent; print(dir(fluent))
+        >>> import fluentpy; print(dir(fluentpy))
     
     You can also use fluent as an executable module for shell one offs
     
-        >>> python3 -m fluent "lib.sys.stdin.readlines().map($SOMETHING).map(print)"
+        >>> python3 -m fluentpy "lib.sys.stdin.readlines().map($SOMETHING).map(print)"
     
     To see what is available, use:
     
-        >>> python3 -m fluent "print(locals().keys())"
+        >>> python3 -m fluentpy "print(locals().keys())"
     
     For further documentation and development @see https://github.com/dwt/fluent
     """
@@ -146,10 +146,10 @@ class Wrapper(object):
         self.__chain = chain # REFACT consider rename to __self?
     
     def __str__(self):
-        return "fluent.wrap(%s)" % self.unwrap
+        return "fluentpy.wrap(%s)" % self.unwrap
     
     def __repr__(self):
-        return "fluent.wrap(%r)" % self.unwrap
+        return "fluentpy.wrap(%r)" % self.unwrap
     
     # Proxied methods
     
@@ -557,10 +557,10 @@ for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS): # arbitrary limit, ca
     setattr(wrap, '_%i' % index, wrap(index))
 wrap._args = wrap('*')
 
-# Make the module executable via `python -m fluent "some fluent using python code"`
+# Make the module executable via `python -m fluentpy "some fluent using python code"`
 if __name__ == '__main__':
     assert len(sys.argv) == 2, \
-        "Usage: python -m fluent 'some code that can access fluent functions without having to import them'"
+        "Usage: python -m fluentpy 'some code that can access fluent functions without having to import them'"
     
     exec(sys.argv[1], dict(wrap=wrap, _=wrap, lib=wrap.lib, each=wrap.each))
 else:

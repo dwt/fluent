@@ -87,7 +87,7 @@ pygments_style = 'sphinx'
 todo_include_todos = False
 
 autodoc_member_order = 'bysource'
-autoclass_content = 'both'
+# autoclass_content = 'class' #'both'
 
 # -- Options for HTML output ----------------------------------------------
 
