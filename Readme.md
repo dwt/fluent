@@ -142,13 +142,13 @@ Import statements are (ahem) statements in python. This is fine, but can be real
 
 Consider this shell text filter written in python:
 
-    $ curl -sL 'https://www.iblocklist.com/lists.php' | egrep -A1 'star_[345]' \
+    $ curl -sL 'https://example.com/lists.php' | egrep -A1 'star_[345]' \
     >    | python3 -c "import sys, re; from xml.sax.saxutils import unescape; \
     >                  print('\n'.join(map(unescape, re.findall(r'value=\'(.*)\'', sys.stdin.read()))))" 
 
 Sure it has all the backtracking problems I talked about already. Using fluent this could be much shorter.
 
-    $ curl -sL 'https://www.iblocklist.com/lists.php' \
+    $ curl -sL 'https://example.com/lists.php' \
     >   | egrep -A1 'star_[345]' \
     >   | python3 -c "import fluentpy as _; import sys, re; from xml.sax.saxutils import unescape; \
     >              _(sys.stdin.read()).findall(r'value=\'(.*)\'').map(unescape).map(print)"
