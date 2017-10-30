@@ -4,6 +4,33 @@
 
 # This library is principally created for python 3. However python 2 support may be doable and is welcomed.
 
+
+"""
+To use this module just import it with a short custom name. I recommend:
+
+    >>> import fluentpy as _ # for scripts / projects that don't use gettext
+    >>> import fluentpy as _f # for everything else
+
+If you want / need this to be less magical, you can import the main wrapper normally
+
+    >>> from fluentpy import wrap # or `_`, if you're not using gettext
+
+Then to use the module, wrap any value and start chaining off of it. To get started try this:
+
+    $ python3 -m fluentpy '_(_).dir().print()'
+    $ python3 -m fluentpy '_(_).help()'
+
+This is incidentally the second way to use this module, as a helper that makes it easier to 
+write short fast shell filters in python.
+
+    $ echo "foo\nbar\nbaz" | python3 -m fluentpy "lib.sys.stdin.readlines().map(each.call.upper()).map(print)"
+
+Try to rewrite that in classical python (as a one line shell filter) and see which version spells out what happens in 
+which order more clearly.
+
+For further documentation and development see this documentation or the source at https://github.com/dwt/fluent
+"""
+
 import functools
 import itertools
 import math
@@ -14,6 +41,8 @@ import types
 import typing
 
 __all__ = ['wrap', '_'] # + @public
+__api__ = ['wrap'] # + @protected
+
 NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS = 10
 
 def wrap(wrapped, *, previous=None, chain=None):
@@ -22,19 +51,11 @@ def wrap(wrapped, *, previous=None, chain=None):
     This is the main entry point into the fluent wonderland. Wrap something and 
     everything you call off of that will stay wrapped in the apropriate wrappers.
     
-    Use dir to discover the available wrappers.
+    It is usually imported like this:
     
-        >>> import fluentpy; print(dir(fluentpy))
-    
-    You can also use fluent as an executable module for shell one offs
-    
-        >>> python3 -m fluentpy "lib.sys.stdin.readlines().map($SOMETHING).map(print)"
-    
-    To see what is available, use:
-    
-        >>> python3 -m fluentpy "print(locals().keys())"
-    
-    For further documentation and development @see https://github.com/dwt/fluent
+        >>> import fluentpy as _
+        >>> import fluentpy as _f
+        >>> from fluentpy import wrap
     """
     if isinstance(wrapped, Wrapper):
         return wrapped
@@ -68,6 +89,7 @@ def public(something):
     return protected(something)
 
 def protected(something):
+    __api__.append(something.__name__)
     setattr(wrap, something.__name__, something)
     return something
 
@@ -355,7 +377,7 @@ class Callable(Wrapper):
     def compose(self, outer):
         """Compose two functions.
         >>>  inner_function.compose(outer_function) \
-            == lambda *args, **kwargs: outer_function(inner_function(*args, **kwargs))
+        ...    == lambda *args, **kwargs: outer_function(inner_function(*args, **kwargs))
         """
         return lambda *args, **kwargs: outer(self(*args, **kwargs))
     # REFACT consider aliasses wrap = chain = cast = compose
@@ -380,7 +402,7 @@ class Iterable(Wrapper):
     
     @wrapped
     def star_call(self, function, *args, **kwargs):
-        "Calls function(*self), but allows to prepend args and add kwargs."
+        "Calls `function(*self)`, but allows to prepend args and add kwargs."
         return function(*args, *self, **kwargs)
     
     # This looks like it should be the same as 
@@ -479,7 +501,7 @@ class Mapping(Iterable):
     # Callable.star_call
     @wrapped
     def star_call(self, function, *args, **kwargs):
-        "Calls function(**self), but allows to add args and set defaults for kwargs."
+        "Calls `function(**self)`, but allows to add args and set defaults for kwargs."
         return function(*args, **dict(kwargs, **self))
 
 @protected
@@ -564,8 +586,13 @@ if __name__ == '__main__':
     
     exec(sys.argv[1], dict(wrap=wrap, _=wrap, lib=wrap.lib, each=wrap.each))
 else:
-    wrap.__name__ = __name__ + '.' + wrap.__name__
-    wrap.module = sys.modules[__name__]
-    wrap.__package__ = __package__
-    wrap.__all__ = __all__
-    sys.modules[__name__] = wrap
+    @functools.wraps(wrap)
+    def executable_module(*args, **kwargs): return wrap(*args, **kwargs)
+    executable_module.__name__ = __name__ + '.' + wrap.__name__
+    executable_module.module = sys.modules[__name__]
+    executable_module.__package__ = __package__
+    executable_module.__all__ = __all__
+    executable_module.__api__ = __api__
+    executable_module.__file__ = __file__
+    executable_module.__doc__ = __doc__
+    sys.modules[__name__] = executable_module
