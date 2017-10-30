@@ -10,9 +10,10 @@ The fluent Library
    :titlesonly:
    :numbered:
    :caption: For more information see:
+   :hidden:
 
    Narrative Documentation <Readme>
-   API Documentation <API-Docs>
+   fluentpy/fluentpy
 
 
 Project Matters
@@ -89,6 +90,6 @@ Further information
    :titlesonly:
 
    Narrative Documentation <Readme>
-   API Documentation <API-Docs>
+   fluentpy/fluentpy
 
 And most important of all: Have phun!
