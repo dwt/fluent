@@ -1,6 +1,4 @@
-ensure documented functions are listed in source order
-
-Review documentation to ensure it is accessible and complete via `help()` and sphinx generated docs
+upload documentation to pythonhosted or readthedocs
 
 consider numeric type to do stuff like wrap(3).times(...)
     or wrap([1,2,3]).call(len).times(yank_me)
