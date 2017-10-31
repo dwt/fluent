@@ -1,3 +1,4 @@
+replace all last remnants of fluent by fluentpy in the documentation
 upload documentation to pythonhosted or readthedocs
 
 consider numeric type to do stuff like wrap(3).times(...)
