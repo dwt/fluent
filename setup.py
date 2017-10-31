@@ -19,7 +19,7 @@ def readme():
 
 setup_args = dict(
     name='fluentpy',
-    version='1.0.1',
+    version='1.0.2a2',
     description='Python wrapper for stdlib (and your) objects to give them a fluent interface.',
     long_description=readme(),
     url='https://github.com/dwt/fluent',
