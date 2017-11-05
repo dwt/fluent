@@ -83,6 +83,7 @@ def wrap(wrapped, *, previous=None, chain=None):
     return Wrapper(wrapped, previous=previous, chain=chain)
 
 wrap.wrap = wrap._ = _ = wrap
+_wrap_alternatives = [wrap]
 
 def public(something):
     __all__.append(something.__name__)
@@ -337,10 +338,10 @@ class Callable(Wrapper):
         
         >>> _(operator.add).curry(_.args)('foo', 'bar)._ == 'foobar'
         """
-        placeholder = wrap
+        placeholders = tuple(_wrap_alternatives)
         splat_args_placeholder = wrap._args
         reordering_placeholders = tuple(getattr(wrap, '_%i' % index) for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS))
-        all_placeholders = (placeholder, splat_args_placeholder) + reordering_placeholders
+        all_placeholders = placeholders + (splat_args_placeholder,) + reordering_placeholders
         def merge_args(args_and_placeholders, args):
             def assert_enough_args(required_number):
                 assert required_number < len(args), \
@@ -351,7 +352,7 @@ class Callable(Wrapper):
             for index, arg_or_placeholder in enumerate(args_and_placeholders):
                 if arg_or_placeholder in all_placeholders:
                     placeholder_index += 1
-                if arg_or_placeholder is placeholder:
+                if arg_or_placeholder in placeholders:
                     assert_enough_args(placeholder_index)
                     new_arguments.append(args[placeholder_index])
                 elif arg_or_placeholder in reordering_placeholders:
@@ -595,4 +596,5 @@ else:
     executable_module.__api__ = __api__
     executable_module.__file__ = __file__
     executable_module.__doc__ = __doc__
+    _wrap_alternatives.append(executable_module)
     sys.modules[__name__] = executable_module
