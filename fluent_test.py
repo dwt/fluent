@@ -444,7 +444,7 @@ class IntegrationTest(FluentTest):
 class DocumentationTest(FluentTest):
     
     def test_wrap_has_usefull_docstring(self):
-        expect(_.__doc__).matches(r'dir\(fluentpy\)')
+        expect(_.__doc__).matches(r'_\(_\)\.dir\(\)\.print\(\)')
         expect(_.__doc__).matches(r'https://github.com/dwt/fluent')
     
     def test_classes_have_usefull_docstrings(self):
