@@ -432,7 +432,8 @@ class IntegrationTest(FluentTest):
     def test_can_get_symbols_via_star_import(self):
         nested_locals = {}
         exec('from fluentpy import *; locals()', {}, nested_locals)
-        expect(nested_locals).has_subdict( _=_, wrap=_, lib=_.lib, each=_.each)
+        # need _._ here so we don't get the executable module wrapper that we get from `import fluentpy as _`
+        expect(nested_locals).has_subdict( _=_._, wrap=_._, lib=_.lib, each=_.each)
         # only symbols from __all__ get imported
         expect(nested_locals.keys()).not_contains('Wrapper')
     
