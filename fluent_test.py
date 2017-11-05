@@ -88,6 +88,10 @@ class WrapperTest(FluentTest):
         out = io.StringIO()
         _([1,2,3]).print(file=out)
         expect(out.getvalue()) == '[1, 2, 3]\n'
+    
+    def test_str_and_repr_work(self):
+        expect(str(_((1,2)))) == 'fluentpy.wrap((1, 2))'
+        expect(repr(_((1,2)))) == 'fluentpy.wrap((1, 2))'
 
 class CallableTest(FluentTest):
     

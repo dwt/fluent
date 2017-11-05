@@ -168,10 +168,10 @@ class Wrapper(object):
         self.__chain = chain # REFACT consider rename to __self?
     
     def __str__(self):
-        return "fluentpy.wrap(%s)" % self.unwrap
+        return "fluentpy.wrap(%s)" % (self.unwrap,)
     
     def __repr__(self):
-        return "fluentpy.wrap(%r)" % self.unwrap
+        return "fluentpy.wrap(%r)" % (self.unwrap,)
     
     # Proxied methods
     
