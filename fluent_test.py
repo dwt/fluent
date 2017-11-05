@@ -344,9 +344,15 @@ class EachTest(FluentTest):
         expect(lambda: _.each.call('argument')).to_raise(AssertionError, '_.each.call.method_name')
     
     def _test_should_allow_creating_callables_without_call(self):
+        # This is likely not possible to attain due to the shortcomming that .foo already
+        # needs to create the attgetter, and we cannot distinguish a call to it from the calls map, etc. do
         expect(_.each.foo) == attrgetter('foo')
         expect(_.each.foo(_, 'bar', 'baz')) == methodcaller('foo').curry(_, 'bar', 'baz')
         expect(_.call.foo('bar', 'baz')) == methodcaller('foo').curry(_, 'bar', 'baz')
+    
+    def _test_should_allow_attribute_access_to_dict_items_when_iterating(self):
+        # This is also likely impossible, as it would require reimplementing map, etc.
+        expect(_([{'key': 'foo'},{'key':'bar'}]).map(_.each.key))
 
 class WrapperLeakTest(FluentTest):
     

@@ -1,3 +1,7 @@
+find a way to allow something like map(_.each.foo, _.each.bar) or .map(.each['foo', 'bar'])
+
+allow [{'foo': 'bar'},{'foo':'baz'}].map(each.foo)
+
 replace all last remnants of fluent by fluentpy in the documentation
 upload documentation to pythonhosted or readthedocs
 
