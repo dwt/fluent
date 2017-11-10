@@ -536,7 +536,7 @@ class Text(Wrapper):
     sub = wrapped_forward(re.sub, self_index=2)
     subn = wrapped_forward(re.subn, self_index=2)
 
-def make_operator(name):
+def _make_operator(name):
     __op__ = getattr(operator, name)
     @functools.wraps(__op__)
     def wrapper(self, *others):
@@ -555,7 +555,7 @@ class Each(Wrapper):
     for name in dir(operator):
         if not name.startswith('__') or name == '__doc__':
             continue
-        locals()[name] = make_operator(name)
+        locals()[name] = _make_operator(name)
     
     def __getattr__(self, name):
         return operator.attrgetter(name)
