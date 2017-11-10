@@ -39,6 +39,7 @@ import re
 import sys
 import types
 import typing
+import pprint
 
 __all__ = ['wrap', '_'] # + @public
 __api__ = ['wrap'] # + @protected
@@ -260,7 +261,9 @@ class Wrapper(object):
     dir = wrapped(dir)
     vars = wrapped(vars)
     print = wrapped(print)
+    pprint = wrapped(pprint.pprint)
     help = wrapped(help)
+
 
 # REFACT consider to use wrap as the placeholder to have less symbols? Probably not worth it...
 virtual_root_module = "virtual root module"
