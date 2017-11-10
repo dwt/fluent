@@ -559,6 +559,7 @@ class Each(Wrapper):
         if not name.startswith('__') or name == '__doc__':
             continue
         locals()[name] = _make_operator(name)
+    del name # prevent promotion to class variable
     
     def __getattr__(self, name):
         return operator.attrgetter(name)
