@@ -357,21 +357,25 @@ class Callable(Wrapper):
         all_placeholders = placeholders + (splat_args_placeholder,) + reordering_placeholders
         def merge_args(args_and_placeholders, args):
             def assert_enough_args(required_number):
-                assert required_number < len(args), \
+                assert len(args) > required_number, \
                     'Not enough arguments given to curried function. Need at least %i, got %i: %r' \
                         % (placeholder_index, len(args), args)
+            
+            def is_placeholder(needle, haystack):
+                return any(map(lambda each: each is needle, haystack))
+                
             new_arguments = list()
             placeholder_index = -1
             for index, arg_or_placeholder in enumerate(args_and_placeholders):
-                if arg_or_placeholder in all_placeholders:
+                if is_placeholder(arg_or_placeholder, all_placeholders):
                     placeholder_index += 1
-                if arg_or_placeholder in placeholders:
+                if is_placeholder(arg_or_placeholder, placeholders):
                     assert_enough_args(placeholder_index)
                     new_arguments.append(args[placeholder_index])
-                elif arg_or_placeholder in reordering_placeholders:
+                elif is_placeholder(arg_or_placeholder, reordering_placeholders):
                     assert_enough_args(arg_or_placeholder.unwrap)
                     new_arguments.append(args[arg_or_placeholder.unwrap])
-                elif arg_or_placeholder is splat_args_placeholder:
+                elif is_placeholder(arg_or_placeholder, [splat_args_placeholder]):
                     assert index + 1 == len(args_and_placeholders), \
                         'Variable arguments placeholder <_args> needs to be last'
                     new_arguments.extend(args[placeholder_index:])
