@@ -496,11 +496,11 @@ class Iterable(Wrapper):
     
     igroupby = wrapped(itertools.groupby)
     def groupby(self, *args, **kwargs):
-        # Need an extra wrapping function to consume the deep iterators in time
+        # Need an extra wrapping function to consume the values iterators before the next iteration invalidates it
         result = []
         for key, values in self.igroupby(*args, **kwargs):
             result.append((key, tuple(values)))
-        return wrap(tuple(result))
+        return wrap(tuple(result), previous=self)
     
     def tee(self, function):
         "This override tries to retain iterators, as a speedup"
