@@ -259,6 +259,10 @@ class IterableTest(FluentTest):
         
         expect(_([(1,2),[3,4],(5, [6,7])]).flatten(level=1)._) == \
             (1,2,3,4,5,[6,7])
+    
+    def test_for_in_should_easily_get_wrapped_items(self):
+        for element in _([1,2,3]).iter():
+            expect(element).isinstance(_.Wrapper)
 
 class MappingTest(FluentTest):
     
