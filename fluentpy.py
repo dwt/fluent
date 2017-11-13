@@ -604,15 +604,15 @@ public(each)
 
 # add reordering placeholders to wrap to make it easy to reorder arguments in curry
 for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS): # arbitrary limit, can be increased as neccessary
-    setattr(wrap, '_%i' % index, wrap(index))
-wrap._args = wrap('*')
+    public(wrap(index), '_%i' % index)
+public(wrap('*'), '_args')
 
 # Make the module executable via `python -m fluentpy "some fluent using python code"`
 if __name__ == '__main__':
     assert len(sys.argv) == 2, \
         "Usage: python -m fluentpy 'some code that can access fluent functions without having to import them'"
     
-    exec(sys.argv[1], dict(wrap=wrap, _=wrap, lib=wrap.lib, each=wrap.each))
+    exec(sys.argv[1], vars(wrap))
 else:
     @functools.wraps(wrap)
     def executable_module(*args, **kwargs): return wrap(*args, **kwargs)

@@ -451,7 +451,7 @@ class IntegrationTest(FluentTest):
         nested_locals = {}
         exec('from fluentpy import *; locals()', {}, nested_locals)
         # need _._ here so we don't get the executable module wrapper that we get from `import fluentpy as _`
-        expect(nested_locals).has_subdict( _=_._, wrap=_._, lib=_.lib, each=_.each)
+        expect(nested_locals).has_subdict( _=_._, wrap=_._, lib=_.lib, each=_.each, _1=_._1, _9=_._9)
         # only symbols from __all__ get imported
         expect(nested_locals.keys()).not_contains('Wrapper')
     
