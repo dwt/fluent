@@ -377,9 +377,9 @@ class WrapperLeakTest(FluentTest):
     def test_function_expressions_return_unwrapped_objects(self):
         class Foo(object):
             bar = 'baz'
-        expect(_.each.bar(Foo())) == 'baz'
-        expect((_.each + 3)(4)) == 7
-        expect(_.each['foo'](dict(foo='bar'))) == 'bar'
+        expect(_.each.bar(Foo())).is_('baz')
+        expect((_.each + 3)(4)).is_(7)
+        expect(_.each['foo'](dict(foo='bar'))).is_('bar')
 
 class AccessShadowedAttributesOnWrappedObjects(FluentTest):
     
