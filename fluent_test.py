@@ -223,15 +223,13 @@ class IterableTest(FluentTest):
             3: (3,3)
         }
         
-        actual = {}
-        for key, values in _((1,1,2,2,3,3)).groupby()._:
-            actual[key] = tuple(values)
+        actual = _((1,1,2,2,3,3)).groupby()._
         
-        expect(actual) == {
-            1: (1,1),
-            2: (2,2),
-            3: (3,3)
-        }
+        expect(actual) == (
+            (1, (1,1)),
+            (2, (2,2)),
+            (3, (3,3)),
+        )
     
     def test_tee_should_not_break_iterators(self):
         # This should work because the extend as well als the .call(list) 
