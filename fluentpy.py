@@ -86,13 +86,13 @@ def wrap(wrapped, *, previous=None, chain=None):
 wrap.wrap = wrap._ = _ = wrap
 _wrap_alternatives = [wrap]
 
-def public(something):
-    __all__.append(something.__name__)
-    return protected(something)
+def public(something, optional_name=None):
+    __all__.append(optional_name or something.__name__)
+    return protected(something, optional_name=optional_name)
 
-def protected(something):
-    __api__.append(something.__name__)
-    setattr(wrap, something.__name__, something)
+def protected(something, optional_name=None):
+    __api__.append(optional_name or something.__name__)
+    setattr(wrap, optional_name or something.__name__, something)
     return something
 
 def wrapped(wrapped_function, additional_result_wrapper=None, self_index=0):
