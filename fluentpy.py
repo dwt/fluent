@@ -573,7 +573,9 @@ class Each(Wrapper):
     del name # prevent promotion to class variable
     
     def __getattr__(self, name):
-        return operator.attrgetter(name)
+        # Experimentally using this to allow attribute access for dictionaries just as all other wrapped dicts would allow
+        return lambda obj: getattr(_(obj), name)._
+        # return operator.attrgetter(name)
     
     def __getitem__(self, index):
         return operator.itemgetter(index)

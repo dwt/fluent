@@ -350,6 +350,11 @@ class EachTest(FluentTest):
         expect(_(Tested()).call(_.each.call.method('argument'))._) == 'method+argument'
         expect(lambda: _.each.call('argument')).to_raise(AssertionError, '_.each.call.method_name')
     
+    def test_should_behave_as_if_each_was_wrapped(self):
+        expect(_.each.first(dict(first='foo'))) == 'foo'
+        expect(_([dict(first='foo')]).map(_.each.first)._) == ('foo',)
+        
+    
     def _test_should_allow_creating_callables_without_call(self):
         # This is likely not possible to attain due to the shortcomming that .foo already
         # needs to create the attgetter, and we cannot distinguish a call to it from the calls map, etc. do
