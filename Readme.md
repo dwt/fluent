@@ -183,7 +183,7 @@ As a bonus, everything imported via lib is already pre-wrapped, so you can chain
 
 `lambda` is great - it's often exactly what the doctor ordered. But it can also be annyoing if you have to write it down everytime you just want to get an attribute or call a method on every object in a collection.
 
-    >>> _([dict(fnord='foo'), dict(fnord='bar')]).map(lambda each: each['fnord']) == ['foo', 'bar]
+    >>> _([{'fnord'='foo'}, {'fnord'='bar'}]).map(lambda each: each['fnord']) == ['foo', 'bar]
     >>> class Foo(object):
     >>>     attr = 'attrvalue'
     >>>     def method(self, arg): return 'method+'+arg
@@ -195,12 +195,12 @@ Sure it works, but wouldn't it be nice if we could save a variable and do this a
 Python does have attrgetter, itemgetter and methodcaller - they are just a bit inconvenient to use:
 
     >>> from operator import itemgetter, attrgetter, methodcaller
-    >>> _([dict(fnord='foo'), dict(fnord='bar')]).map(itemgetter('fnord')) == ['foo', 'bar]
+    >>> _([{'fnord'='foo'}, {'fnord'='bar'}]).map(itemgetter('fnord')) == ['foo', 'bar]
     >>> class Foo(object):
     >>>     attr = 'attrvalue'
     >>>     def method(self, arg): return 'method+'+arg
     >>> _([Foo(), Foo()]).map(attrgetter(attr)) == ['attrvalue', 'attrvalue']
-    >>> _([Foo(), Foo()]).map(methodcaller(method, 'arg')) == ['method+arg', 'method+arg']
+    >>> _([Foo(), Foo()]).map(methodcaller('method', 'arg')) == ['method+arg', 'method+arg']
 
 To ease this the object `_.each` is provided, that just exposes a bit of syntactic shugar for these (and the other operators). Basically, everything you do to `_.each` it will do to each object in the collection:
 
