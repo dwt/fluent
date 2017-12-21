@@ -1,2 +1,4 @@
 dist/
 doc/_build/
+build/
+doc/fluentpy/fluentpy.rst

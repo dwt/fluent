@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 from pyexpect import expect
 
-import fluent as _
+import fluentpy as _
 
 import functools, io, os, operator, sys
 
@@ -15,8 +15,8 @@ class WrapperTest(FluentTest):
         expect(type(_(wrapped).unwrap)) == int
     
     def test_should_provide_usefull_str_and_repr_output(self):
-        expect(repr(_('foo'))) == "fluent.wrap('foo')"
-        expect(str(_('foo'))) == "fluent.wrap(foo)"
+        expect(repr(_('foo'))) == "fluentpy.wrap('foo')"
+        expect(str(_('foo'))) == "fluentpy.wrap(foo)"
     
     def test_should_wrap_callables(self):
         counter = [0]
@@ -88,6 +88,10 @@ class WrapperTest(FluentTest):
         out = io.StringIO()
         _([1,2,3]).print(file=out)
         expect(out.getvalue()) == '[1, 2, 3]\n'
+    
+    def test_str_and_repr_work(self):
+        expect(str(_((1,2)))) == 'fluentpy.wrap((1, 2))'
+        expect(repr(_((1,2)))) == 'fluentpy.wrap((1, 2))'
 
 class CallableTest(FluentTest):
     
@@ -340,9 +344,15 @@ class EachTest(FluentTest):
         expect(lambda: _.each.call('argument')).to_raise(AssertionError, '_.each.call.method_name')
     
     def _test_should_allow_creating_callables_without_call(self):
+        # This is likely not possible to attain due to the shortcomming that .foo already
+        # needs to create the attgetter, and we cannot distinguish a call to it from the calls map, etc. do
         expect(_.each.foo) == attrgetter('foo')
         expect(_.each.foo(_, 'bar', 'baz')) == methodcaller('foo').curry(_, 'bar', 'baz')
         expect(_.call.foo('bar', 'baz')) == methodcaller('foo').curry(_, 'bar', 'baz')
+    
+    def _test_should_allow_attribute_access_to_dict_items_when_iterating(self):
+        # This is also likely impossible, as it would require reimplementing map, etc.
+        expect(_([{'key': 'foo'},{'key':'bar'}]).map(_.each.key))
 
 class WrapperLeakTest(FluentTest):
     
@@ -415,20 +425,21 @@ class IntegrationTest(FluentTest):
     def test_call_module_from_shell(self):
         from subprocess import check_output
         output = check_output(
-            ['python', '-m', 'fluent', "lib.sys.stdin.read().split('\\n').imap(each.call.upper()).map(print)"],
+            ['python', '-m', 'fluentpy', "lib.sys.stdin.read().split('\\n').imap(each.call.upper()).map(print)"],
             input=b'foo\nbar\nbaz')
         expect(output) == b'FOO\nBAR\nBAZ\n'
     
     def test_can_import_public_symbols(self):
-        from fluent import lib,  each, _ as _f, Wrapper
+        from fluentpy import lib,  each, _ as _f, Wrapper
         expect(lib.sys._) == sys
         expect(_f(3)).is_instance(Wrapper)
         expect((each + 3)(4)) == 7
     
     def test_can_get_symbols_via_star_import(self):
         nested_locals = {}
-        exec('from fluent import *; locals()', {}, nested_locals)
-        expect(nested_locals).has_subdict( _=_, wrap=_, lib=_.lib, each=_.each)
+        exec('from fluentpy import *; locals()', {}, nested_locals)
+        # need _._ here so we don't get the executable module wrapper that we get from `import fluentpy as _`
+        expect(nested_locals).has_subdict( _=_._, wrap=_._, lib=_.lib, each=_.each)
         # only symbols from __all__ get imported
         expect(nested_locals.keys()).not_contains('Wrapper')
     
@@ -439,7 +450,7 @@ class IntegrationTest(FluentTest):
 class DocumentationTest(FluentTest):
     
     def test_wrap_has_usefull_docstring(self):
-        expect(_.__doc__).matches(r'dir\(fluent\)')
+        expect(_.__doc__).matches(r'_\(_\)\.dir\(\)\.print\(\)')
         expect(_.__doc__).matches(r'https://github.com/dwt/fluent')
     
     def test_classes_have_usefull_docstrings(self):
@@ -459,7 +470,7 @@ class DocumentationTest(FluentTest):
         with patch.object(sys, 'stdout', io.StringIO()):
             sys.stdout = io.StringIO()
             help(_)
-            expect(sys.stdout.getvalue()).matches('Help on function fluent.wrap')
+            expect(sys.stdout.getvalue()).matches('Help on function fluentpy.wrap')
         
         with patch.object(sys, 'stdout', io.StringIO()):
             sys.stdout = io.StringIO()

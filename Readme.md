@@ -2,9 +2,9 @@
 
 Fluent helps you write more object-oriented and concise python code.
 
-It is inspired by jQuery and underscore / lodash from the javascript world. It also takes some inspiration from Ruby -- in particluar, collections and how to work with them.
+It is inspired by jQuery and underscore / lodash from the javascript world. It also takes some inspiration from Ruby / SmallTalk -- in particluar, collections and how to work with them.
 
-Please Note: **This library is an experiment.** It is based on a wrapper that aggressively wraps anything it comes in contact with and tries to stay invisible. We'll address this in section [Caveats] below.
+Please Note: **This library is an experiment.** It is based on a wrapper that aggressively wraps anything it comes in contact with and tries to stay invisible. We'll address this in section **Caveats** below.
 
 ## Introduction: Why use fluent?
 
@@ -75,13 +75,14 @@ That certainly is hard to read (and write). Pulling out explaining variables, ma
 
 Better, but still hard to read. Sure, those explaining variables are nice and sometimes essential to understand the code. - but it does take up space in lines, and space in my head while parsing this code. The question would be - is this really easier to read than something like this?
 
-    >>> cross_product_of_dependency_labels = (_(dependencies)
-    >>>     .map(_.each._labels)
-    >>>     .star_call(itertools.product)
-    >>>     .map(frozenset)
-    >>>     .call(set)
-    >>>     ._
-    >>> )
+    >>> cross_product_of_dependency_labels = (
+    ...     _(dependencies)
+    ...     .map(_.each._labels)
+    ...     .star_call(itertools.product)
+    ...     .map(frozenset)
+    ...     .call(set)
+    ...     ._
+    ... )
 
 Sure you are not used to this at first, but consider the advantages. The intermediate variable names are abstracted away - the data flows through the methods completely naturally. No jumping back and forth to parse this at all. It just reads and writes exactly in the order it is computed.
 
@@ -101,19 +102,19 @@ To enable this style of coding this library has some features that might not be 
 
 It is recomended to import and use the library by renaming it to something locally unique.:
 
-    >>> import fluent as _f
+    >>> import fluentpy as _f
 
 or 
 
-    >>> import fluent as _
+    >>> import fluentpy as _
 
 I prefer `_` for small projects and `_f` for larger projects where gettext is used.
 
 If you want you can also import the library in the classic way:
 
-    >>> from fluent import _, lib, each
+    >>> from fluentpy import _, lib, each
 
-But it is not required to import all these symbols, as they are all also available as attributes on `_`. Also, the library exposes itself as an executable module, i.e. the module `fluent` itself is the central wrapper function and can be used directly by renaming it to what you need locally.
+But it is not required to import all these symbols, as they are all also available as attributes on `_`. Also, the library exposes itself as an executable module, i.e. the module `fluentpy` itself is the central wrapper function and can be used directly by renaming it to what you need locally.
 
 ### Aggressive (specialized) wrapping
 
@@ -131,7 +132,7 @@ It could often be super easy, to achieve somethign on the shell, with a bit of p
 
 That's why fluent is an executable module, so that you can use it on the shell like this:
 
-    $ python3 -m fluent "lib.sys.stdin.readlines().map(str.lower).map(print)"
+    $ python3 -m fluentpy "lib.sys.stdin.readlines().map(str.lower).map(print)"
 
 In this mode, the variables 'lib', '_' and 'each' are injected into the namespace of of the python commands given as the first positional argument.
 
@@ -141,27 +142,27 @@ Import statements are (ahem) statements in python. This is fine, but can be real
 
 Consider this shell text filter written in python:
 
-    $ curl -sL 'https://www.iblocklist.com/lists.php' | egrep -A1 'star_[345]' \
+    $ curl -sL 'https://example.com/lists.php' | egrep -A1 'star_[345]' \
     >    | python3 -c "import sys, re; from xml.sax.saxutils import unescape; \
     >                  print('\n'.join(map(unescape, re.findall(r'value=\'(.*)\'', sys.stdin.read()))))" 
 
 Sure it has all the backtracking problems I talked about already. Using fluent this could be much shorter.
 
-    $ curl -sL 'https://www.iblocklist.com/lists.php' \
+    $ curl -sL 'https://example.com/lists.php' \
     >   | egrep -A1 'star_[345]' \
-    >   | python3 -c "import fluent as _; import sys, re; from xml.sax.saxutils import unescape; \
+    >   | python3 -c "import fluentpy as _; import sys, re; from xml.sax.saxutils import unescape; \
     >              _(sys.stdin.read()).findall(r'value=\'(.*)\'').map(unescape).map(print)"
 
 This still leaves the problem that it has to start with this fluff 
 
-    import fluent as _; import sys, re; from xml.sax.saxutils import unescape;
+    import fluentpy as _; import sys, re; from xml.sax.saxutils import unescape;
 
 This doesn't really do anything to make it easier to read and write and is almost half the characters it took to achieve the wanted effect. Wouldn't it be nice if you could have some kind of object (lets call it `lib` for lack of a better word), where you could just access the whole python library via attribute access and let it's machinery handle importing behind the scenes?
 
 Like this:
 
     $ curl -sL 'https://www.iblocklist.com/lists.php' | egrep -A1 'star_[345]' \
-    >   | python3 -m fluent "lib.sys.stdin.read().findall(r'value=\'(.*)\'') \
+    >   | python3 -m fluentpy "lib.sys.stdin.read().findall(r'value=\'(.*)\'') \
     >                        .map(lib.xml.sax.saxutils.unescape).map(print)"
 
 How's that for reading and writing if all the imports are inlined? Oh, and of course everything imported via `lib` comes already pre-wrapped, so your code becomes even shorter.

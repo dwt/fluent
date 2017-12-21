@@ -12,7 +12,7 @@ The fluent Library
    :caption: For more information see:
 
    Narrative Documentation <Readme>
-   API Documentation <API-Docs>
+   API Documentation <fluentpy/fluentpy>
 
 
 Project Matters
@@ -87,9 +87,8 @@ Further information
 
 .. toctree::
    :titlesonly:
-   :numbered:
 
    Narrative Documentation <Readme>
-   API Documentation <API-Docs>
+   API Documentation <fluentpy/fluentpy>
 
 And most important of all: Have phun!

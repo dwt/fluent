@@ -1,6 +1,9 @@
-ensure documented functions are listed in source order
+find a way to allow something like map(_.each.foo, _.each.bar) or .map(.each['foo', 'bar'])
 
-Review documentation to ensure it is accessible and complete via `help()` and sphinx generated docs
+allow [{'foo': 'bar'},{'foo':'baz'}].map(each.foo)
+
+replace all last remnants of fluent by fluentpy in the documentation
+upload documentation to pythonhosted or readthedocs
 
 consider numeric type to do stuff like wrap(3).times(...)
     or wrap([1,2,3]).call(len).times(yank_me)
@@ -26,3 +29,15 @@ example why list comprehension is really bad (Found in zope unit tests)
 def u7(x):
     stuff = [i + j for toplevel, in x for i, j in toplevel]
     assert stuff == [3, 7]
+
+
+# Make a release
+* source and wheel distribution builds
+* markdown readme is included as package description (maybe pypy already supports markdown?)
+* dev dependencies auf pyexpect
+* try release on TestPyPy
+* use twine to upload
+    * and gpg sign the release!
+* werbung für pexpect und fluent auf reddit machen
+* rename to fluentpy
+* document how to make and upload a release
