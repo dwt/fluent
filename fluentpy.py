@@ -586,7 +586,10 @@ def _make_operator(name):
     __op__ = getattr(operator, name)
     @functools.wraps(__op__)
     def wrapper(self, *others):
-        return wrap(__op__).curry(wrap, *others).unwrap
+        # Can't easily use .curry() here, as that would return a wrapped object and I don't want the lambda builder methods to return wrapped objects - yet.
+        # return wrap(__op__).curry(_, *others) #.unwrap
+        # FIXME the order of the placeholder likely needs to depend on the operator. All the __r*__ operators need it reversed?
+        return lambda placeholder: __op__(placeholder, *others)
     return wrapper
 
 class Each(Wrapper):
