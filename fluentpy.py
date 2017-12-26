@@ -317,22 +317,18 @@ class Callable(Wrapper):
     
     def __call__(self, *args, **kwargs):
         """"Call through to the wrapped function."""
-        
+        def unwrap_if_neccessary(something):
+            if isinstance(something, Wrapper):
+                return something.unwrap
+            return something
+
+        args = list(map(unwrap_if_neccessary, args))
+        kwargs = {key: unwrap_if_neccessary(value) for key, value in kwargs.items()}
+
         result = self.unwrap(*args, **kwargs)
         chain = None if self.previous is None else self.previous.self.unwrap
         return wrap(result, previous=self, chain=chain)
     
-    # vectorize is much like curry
-    # possible to reuse placeholders
-    # if wanted, could integrate vectorization in curry
-    # own method might be cleaner?
-    # could save signature transformation and execute it in call
-    # or just wrap a specialized wrapped callable?
-    # signature transformation specification?
-    # _.map()? 
-    
-    
-    @wrapped
     def curry(self, *args_and_placeholders, **default_kwargs):
         """"Like functools.partial, but with a twist.
         
@@ -388,13 +384,13 @@ class Callable(Wrapper):
                     new_arguments.append(arg_or_placeholder)
             return new_arguments
         
-        @functools.wraps(self)
+        # @functools.wraps(self)
         def wrapper(*actual_args, **actual_kwargs):
             return self(
                 *merge_args(args_and_placeholders, actual_args),
                 **dict(default_kwargs, **actual_kwargs)
             )
-        return wrapper
+        return wrap(wrapper, previous=self)
     
     @wrapped
     def compose(self, outer):
