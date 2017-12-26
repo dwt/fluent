@@ -436,6 +436,22 @@ class Iterable(Wrapper):
     # but it's not. Why?
     
     @wrapped
+    def get(self, index, default=get_default_marker):
+        # Not sure this is the best way to support iterators - but there is no clear way in which we can retain the generator 
+        if not isinstance(self, typing.Sized):
+            # This is very suboptimal, as it consumes the generator till the asked for index. Still, I don't want this to crash on infinite iterators by just doing tuple(self)
+            for i, element in enumerate(self):
+                if index == i:
+                    return element
+            return default
+        
+        if default is not get_default_marker and index >= len(self):
+            return default
+        
+        return self[index]
+        
+    
+    @wrapped
     def join(self, with_what):
         """"Like str.join, but the other way around. Bohoo!
         

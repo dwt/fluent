@@ -275,6 +275,16 @@ class IterableTest(FluentTest):
         expect(_([1,2,3]).call(min)._) == 1
         expect(_('foo').call(str.upper)._) == 'FOO'
         expect(_('foo').call(str.upper)._) == 'FOO'
+    
+    def test_get_with_default(self):
+        expect(_([1]).get(0, 2)._) == 1
+        expect(_([]).get(0, 2)._) == 2
+        expect(_([1]).get(0)._) == 1
+        expect(lambda: _([]).get(0)).to_raise(IndexError)
+    
+    def test_get_with_default_should_support_iterators(self):
+        expect(_(i for i in range(10)).get(0, 'fnord')._) == 0
+        expect(_(i for i in range(10)).get(11, 'fnord')._) == 'fnord'
 
 class MappingTest(FluentTest):
     
