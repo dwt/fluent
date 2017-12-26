@@ -99,7 +99,7 @@ class WrapperTest(FluentTest):
         expect(str(_((1,2)))) == 'fluentpy.wrap((1, 2))'
         expect(repr(_((1,2)))) == 'fluentpy.wrap((1, 2))'
     
-    def test_forwards(self):
+    def test_simple_forwards(self):
         expect(_(3).type()) == int
         expect(_('3').type()) == str
     
