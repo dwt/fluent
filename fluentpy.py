@@ -606,7 +606,7 @@ class Each(Wrapper):
     
     def __getattr__(self, name):
         # Experimentally using this to allow attribute access for dictionaries just as all other wrapped dicts would allow
-        return lambda obj: getattr(_(obj), name)._
+        return lambda obj: getattr(_(obj), name).unwrap
         # return operator.attrgetter(name)
     
     def __getitem__(self, index):
