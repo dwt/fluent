@@ -179,8 +179,8 @@ class Wrapper(object):
     
     # Proxied methods
     
-    __getattr__ = wrapped(getattr)
     __getitem__ = wrapped(operator.getitem)
+    __getattr__ = wrapped(getattr)
     
     # Breakouts
     
