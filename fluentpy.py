@@ -179,6 +179,13 @@ class Wrapper(object):
     
     # Proxied methods
     
+    # for name in dir(operator):
+    #     if not name.startswith('__') or name in ('__doc__',):
+    #         continue
+    #     locals()[name] = wrapped(getattr(operator, name))
+    # del name # prevent promotion to class variable
+    # Would this make __getitem__ and __getattr__ obsolete?
+
     __getitem__ = wrapped(operator.getitem)
     __getattr__ = wrapped(getattr)
     
@@ -454,7 +461,6 @@ class Iterable(Wrapper):
         
         return self[index]
         
-    
     @wrapped
     def join(self, with_what):
         """"Like str.join, but the other way around. Bohoo!
