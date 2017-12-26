@@ -447,6 +447,10 @@ class Iterable(Wrapper):
         """
         return with_what.join(map(str, self))
     
+    ## Converters ........................................
+
+    freeze = tuplify
+    
     ## Reductors .........................................
     
     len = wrapped(len)
@@ -535,7 +539,9 @@ class Mapping(Iterable):
 
 @protected
 class Set(Iterable):
-    """Fnord"""
+    """Mostly like Iterable"""
+
+    freeze = wrapped(frozenset)
 
 # REFACT consider to inherit from Iterable? It's how Python works...
 @protected

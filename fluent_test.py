@@ -275,6 +275,13 @@ class MappingTest(FluentTest):
     def test_should_support_attribute_access_to_mapping_items(self):
         expect(_(dict(foo='bar')).foo._) == 'bar'
 
+class SetTest(FluentTest):
+    
+    def test_should_freeze(self):
+        frozen = _({'foo', 'bar', 'baz'}).freeze()._
+        expect(frozen).contains('foo', 'bar', 'baz')
+        expect(frozen).isinstance(frozenset)
+
 class StrTest(FluentTest):
     
     def test_search(self):
@@ -472,7 +479,7 @@ class DocumentationTest(FluentTest):
         expect(_.Mapping.__doc__).matches(r'Index into dicts')
         expect(_.Text.__doc__).matches(r'regex methods')
         
-        expect(_.Set.__doc__).matches(r'Fnord')
+        expect(_.Set.__doc__).matches(r'Mostly like Iterable')
     
     def test_special_proxies_have_usefull_docstrings(self):
         expect(_.lib.__doc__).matches('Imports as expressions')
