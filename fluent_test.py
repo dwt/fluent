@@ -264,9 +264,6 @@ class IterableTest(FluentTest):
         expect(_([(1,2),[3,4],(5, [6,7])]).flatten(level=1)._) == \
             (1,2,3,4,5,[6,7])
     
-    def test_for_in_should_easily_get_wrapped_items(self):
-        for element in _([1,2,3]).iter():
-            expect(element).isinstance(_.Wrapper)
     def test_star_call(self):
         expect(_([1,2,3]).star_call(str.format, '{} - {} : {}')._) == '1 - 2 : 3'
     
@@ -275,6 +272,10 @@ class IterableTest(FluentTest):
         expect(_([1,2,3]).call(min)._) == 1
         expect(_('foo').call(str.upper)._) == 'FOO'
         expect(_('foo').call(str.upper)._) == 'FOO'
+    
+    def test_for_in_should_easily_get_wrapped_items(self):
+        for element in _([1,2,3]).iter():
+            expect(element).isinstance(_.Wrapper)
     
     def test_get_with_default(self):
         expect(_([1]).get(0, 2)._) == 1
