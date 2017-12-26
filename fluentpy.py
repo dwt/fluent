@@ -415,6 +415,10 @@ class Iterable(Wrapper):
     iterator but instead consume it immediately and return a tuple. Of course if needed, 
     there is also an i{map,zip,enumerate,...} version for your enjoyment that returns the 
     iterator.
+    
+    All iterators return unwrapped elements by design. Fluent is meant to facilitate 
+    chaining, not sprad it's wrapper everywhere. This means you will have to rewrap 
+    occasionally.
     """
     
     # __iter__ is not wrapped, and implicitly unwraps. If this is unwanted, use one of the explicit iterators
