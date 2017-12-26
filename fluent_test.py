@@ -125,15 +125,6 @@ class CallableTest(FluentTest):
         expect(_(lambda x: repr(x))(_('foo'))._) == "'foo'"
         expect(_(lambda x: repr(x))(x=_('foo'))._) == "'foo'"
     
-    def test_star_call(self):
-        expect(_([1,2,3]).star_call(str.format, '{} - {} : {}')._) == '1 - 2 : 3'
-    
-    def test_should_call_callable_with_wrapped_as_first_argument(self):
-        expect(_([1,2,3]).call(min)._) == 1
-        expect(_([1,2,3]).call(min)._) == 1
-        expect(_('foo').call(str.upper)._) == 'FOO'
-        expect(_('foo').call(str.upper)._) == 'FOO'
-    
     def test_curry(self):
         expect(_(lambda x, y: x*y).curry(2, 3)()._) == 6
         expect(_(lambda x=1, y=2: x*y).curry(x=3)()._) == 6
@@ -276,6 +267,14 @@ class IterableTest(FluentTest):
     def test_for_in_should_easily_get_wrapped_items(self):
         for element in _([1,2,3]).iter():
             expect(element).isinstance(_.Wrapper)
+    def test_star_call(self):
+        expect(_([1,2,3]).star_call(str.format, '{} - {} : {}')._) == '1 - 2 : 3'
+    
+    def test_should_call_callable_with_wrapped_as_first_argument(self):
+        expect(_([1,2,3]).call(min)._) == 1
+        expect(_([1,2,3]).call(min)._) == 1
+        expect(_('foo').call(str.upper)._) == 'FOO'
+        expect(_('foo').call(str.upper)._) == 'FOO'
 
 class MappingTest(FluentTest):
     
