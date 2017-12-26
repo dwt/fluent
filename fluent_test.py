@@ -102,6 +102,15 @@ class WrapperTest(FluentTest):
     def test_forwards(self):
         expect(_(3).type()) == int
         expect(_('3').type()) == str
+    
+    def test_tee_breakout_a_function_with_side_effects_and_disregard_return_value(self):
+        side_effect = {}
+        def observer(a_list): side_effect['tee'] = a_list.join('-')._
+        expect(_([1,2,3]).tee(observer)._) == [1,2,3]
+        expect(side_effect['tee']) == '1-2-3'
+        
+        def fnording(ignored): return 'fnord'
+        expect(_([1,2,3]).tee(fnording)._) == [1,2,3]
 
 class CallableTest(FluentTest):
     
@@ -124,15 +133,6 @@ class CallableTest(FluentTest):
         expect(_([1,2,3]).call(min)._) == 1
         expect(_('foo').call(str.upper)._) == 'FOO'
         expect(_('foo').call(str.upper)._) == 'FOO'
-    
-    def test_tee_breakout_a_function_with_side_effects_and_disregard_return_value(self):
-        side_effect = {}
-        def observer(a_list): side_effect['tee'] = a_list.join('-')._
-        expect(_([1,2,3]).tee(observer)._) == [1,2,3]
-        expect(side_effect['tee']) == '1-2-3'
-        
-        def fnording(ignored): return 'fnord'
-        expect(_([1,2,3]).tee(fnording)._) == [1,2,3]
     
     def test_curry(self):
         expect(_(lambda x, y: x*y).curry(2, 3)()._) == 6
