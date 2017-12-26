@@ -1,3 +1,11 @@
+replace all placeholders by actually unique objects
+
+allow setting new attributes on wrapped objects through the wrapper -> test_creating_new_attributes_should_create_attribute_on_wrapped_object
+This needs solving that the objects themselves need to create attributes while the module is parsed, but they need to be 'closed' after the module has finished parsing
+
+add .unwrapped (or something similar) to have .unwrap as a higher order function
+    this should allow using .curry() in contexts where the result cannot be 
+
 find a way to allow something like map(_.each.foo, _.each.bar) or .map(.each['foo', 'bar'])
 
 allow [{'foo': 'bar'},{'foo':'baz'}].map(each.foo)

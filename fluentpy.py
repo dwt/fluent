@@ -301,6 +301,8 @@ class Module(Wrapper):
             module = importlib.import_module('.'.join((self.unwrap.__name__, name)))
         
         return wrap(module)
+    
+    # TODO add def reload() to reload modules
 
 lib = Module(virtual_root_module, previous=None, chain=None)
 lib.__name__ = 'lib'
