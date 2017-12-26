@@ -351,6 +351,17 @@ class ImporterTest(FluentTest):
     def test_imported_objects_are_pre_wrapped(self):
         _.lib.os.path.join('/foo', 'bar', 'baz').findall(r'/(\w*)')._ == ['foo', 'bar', 'baz']
 
+    def test_should_allow_reloading_modules(self):
+        sensed = {}
+        def sensor(*args, **kwargs):
+            sensed['args'] = args
+            sensed['kwargs'] = kwargs
+        
+        with patch('importlib.reload', sensor):
+            _.lib.os.path.reload()
+            expect(sensed['args']) == (_.lib.os.path._, )
+
+
 class EachTest(FluentTest):
     
     def test_should_produce_attrgetter_on_attribute_access(self):

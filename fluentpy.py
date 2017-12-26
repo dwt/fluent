@@ -312,6 +312,11 @@ class Module(Wrapper):
         
         return wrap(module)
     
+    @wrapped
+    def reload(self):
+        import importlib
+        importlib.reload(self)
+        return self
     # TODO add def reload() to reload modules
 
 lib = Module(virtual_root_module, previous=None, chain=None)
