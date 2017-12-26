@@ -449,6 +449,11 @@ class Iterable(Wrapper):
     
     ## Converters ........................................
 
+    tuplify = wrapped(tuple)
+    listify = wrapped(list)
+    dictify = wrapped(dict)
+    setify = wrapped(set)
+
     freeze = tuplify
     
     ## Reductors .........................................
