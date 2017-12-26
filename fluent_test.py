@@ -1,10 +1,11 @@
+import functools, io, os, operator, sys
+
 import unittest
 from unittest.mock import patch
-from pyexpect import expect
 
+from pyexpect import expect
 import fluentpy as _
 
-import functools, io, os, operator, sys
 
 class FluentTest(unittest.TestCase): pass
 
