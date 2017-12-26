@@ -265,6 +265,7 @@ class Wrapper(object):
     print = wrapped(print)
     pprint = wrapped(pprint.pprint)
     help = wrapped(help)
+    type = unwrapped(type)
 
 
 # REFACT consider to use wrap as the placeholder to have less symbols? Probably not worth it...
