@@ -163,6 +163,8 @@ class Wrapper(object):
        string interface, etc.
     """
     
+    __slots__ = ['__wrapped', '__previous', '__chain']
+    
     def __init__(self, wrapped, *, previous, chain):
         assert wrapped is not None or chain is not None, 'Cannot chain off of None'
         self.__wrapped = wrapped
