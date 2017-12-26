@@ -391,10 +391,6 @@ class EachTest(FluentTest):
         expect(_.each.foo) == attrgetter('foo')
         expect(_.each.foo(_, 'bar', 'baz')) == methodcaller('foo').curry(_, 'bar', 'baz')
         expect(_.call.foo('bar', 'baz')) == methodcaller('foo').curry(_, 'bar', 'baz')
-    
-    def _test_should_allow_attribute_access_to_dict_items_when_iterating(self):
-        # This is also likely impossible, as it would require reimplementing map, etc.
-        expect(_([{'key': 'foo'},{'key':'bar'}]).map(_.each.key))
 
 class WrapperLeakTest(FluentTest):
     
