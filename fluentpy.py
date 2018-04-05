@@ -314,6 +314,16 @@ class Callable(Wrapper):
         chain = None if self.previous is None else self.previous.self.unwrap
         return wrap(result, previous=self, chain=chain)
     
+    # vectorize is much like curry
+    # possible to reuse placeholders
+    # if wanted, could integrate vectorization in curry
+    # own method might be cleaner?
+    # could save signature transformation and execute it in call
+    # or just wrap a specialized wrapped callable?
+    # signature transformation specification?
+    # _.map()? 
+    
+    
     @wrapped
     def curry(self, *args_and_placeholders, **default_kwargs):
         """"Like functools.partial, but with a twist.
