@@ -90,7 +90,7 @@ To me this means, that what I think that I want to accomplish, I can write down 
 
 So what is the essence of all of this?
 
-Python is an object oriented language - but it doesn't really use what object orientation has tought us about how we can work with collections and higher order methods in the languages that came before it (I think of SmallTalk here, but more recently also Ruby). Why can't I make those beautiful fluent call chains that SmallTalk could do 20 years ago in Python today?
+Python is an object oriented language - but it doesn't really use what object orientation has taught us about how we can work with collections and higher order methods in the languages that came before it (I think of SmallTalk here, but more recently also Ruby). Why can't I make those beautiful fluent call chains that SmallTalk could do 20 years ago in Python today?
 
 Well, now I can and you can too.
 
