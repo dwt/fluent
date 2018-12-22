@@ -2,3 +2,5 @@ dist/
 doc/_build/
 build/
 doc/fluentpy/fluentpy.rst
+.pytest_cache
+.vscode
