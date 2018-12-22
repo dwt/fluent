@@ -297,6 +297,8 @@ class MappingTest(FluentTest):
     
     def test_should_support_attribute_access_to_mapping_items(self):
         expect(_(dict(foo='bar')).foo._) == 'bar'
+        expect(_(dict(foo='bar')).keys().listify()._) == ['foo']
+        expect(lambda: _(dict(foo='bar')).baz).to_raise(AttributeError, "has no attribute 'baz'")
 
 class SetTest(FluentTest):
     

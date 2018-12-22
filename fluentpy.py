@@ -561,7 +561,7 @@ class Mapping(Iterable):
         if name in self.unwrap:
             return self[name]
         
-        return super().__getattr__(self, name)
+        return super().__getattr__(name)
     
     # REFACT consider rename to splat_call to differentiate that it does something else tha
     # Callable.star_call
