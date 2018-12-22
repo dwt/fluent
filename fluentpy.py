@@ -350,7 +350,7 @@ class Callable(Wrapper):
         kwargs = {key: unwrap_if_neccessary(value) for key, value in kwargs.items()}
 
         result = self.unwrap(*args, **kwargs)
-        chain = None if self.previous is None else self.previous.self.unwrap
+        chain = None if self.previous is None else self.previous
         return wrap(result, previous=self, chain=chain)
     
     def curry(self, *args_and_placeholders, **default_kwargs):
