@@ -569,6 +569,20 @@ class Iterable(Wrapper):
             return wrap(second, previous=self)
         else:
             return super().tee(function)
+    
+    icycle = wrapped_forward(itertools.cycle)
+    cycle = tupleize(icycle)
+    
+    iaccumulate = wrapped_forward(itertools.accumulate)
+    accumulate = tupleize(iaccumulate)
+    
+    idropwhile = wrapped_forward(itertools.dropwhile, self_index=1)
+    dropwhile = tupleize(idropwhile)
+    
+    ifilterfalse = wrapped_forward(itertools.filterfalse, self_index=1)
+    filterfalse = tupleize(ifilterfalse)
+    
+    # TODO make all (applicable?) methods of itertools available here
 
 @protected
 class Mapping(Iterable):
