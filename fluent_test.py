@@ -111,6 +111,11 @@ class WrapperTest(FluentTest):
         
         def fnording(ignored): return 'fnord'
         expect(_([1,2,3]).tee(fnording)._) == [1,2,3]
+    
+    def _test_creating_new_attributes_should_create_attribute_on_wrapped_object(self):
+        wrapped = _(object())
+        wrapped.foo = 'bar'
+        expect(wrapped._.foo) == 'bar'
 
 class CallableTest(FluentTest):
     

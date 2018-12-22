@@ -45,6 +45,7 @@ __all__ = ['wrap', '_'] # + @public
 __api__ = ['wrap'] # + @protected
 
 NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS = 10
+# _wrapper_is_sealed = False
 
 # TODO investigate if functools.singledispatch would be a good candidate to replace / enhance this function
 def wrap(wrapped, *, previous=None, chain=None):
@@ -691,6 +692,7 @@ if __name__ == '__main__':
     assert len(sys.argv) == 2, \
         "Usage: python -m fluentpy 'some code that can access fluent functions without having to import them'"
     
+    # __wrapper_is_sealed = True
     exec(sys.argv[1], vars(wrap))
 else:
     @functools.wraps(wrap)
@@ -704,3 +706,4 @@ else:
     executable_module.__doc__ = __doc__
     _wrap_alternatives.append(executable_module)
     sys.modules[__name__] = executable_module
+    # _wrapper_is_sealed = True
