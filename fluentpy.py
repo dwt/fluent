@@ -353,6 +353,7 @@ class Callable(Wrapper):
         chain = None if self.previous is None else self.previous
         return wrap(result, previous=self, chain=chain)
     
+    @wrapped
     def curry(self, *args_and_placeholders, **default_kwargs):
         """"Like functools.partial, but with a twist.
         
