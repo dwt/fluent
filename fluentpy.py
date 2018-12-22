@@ -426,7 +426,10 @@ class Callable(Wrapper):
         return lambda *args, **kwargs: outer(self(*args, **kwargs))
     # REFACT consider aliasses wrap = chain = cast = compose
 
+
 # REFACT generalize to absent_default_argument
+get_default_marker = object()
+
 @protected
 class Iterable(Wrapper):
     """Add iterator methods to any iterable.
