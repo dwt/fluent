@@ -364,7 +364,6 @@ class ImporterTest(FluentTest):
             _.lib.os.path.reload()
             expect(sensed['args']) == (_.lib.os.path._, )
 
-
 class EachTest(FluentTest):
     
     def test_should_produce_attrgetter_on_attribute_access(self):
@@ -532,4 +531,4 @@ class DocumentationTest(FluentTest):
     def test_lib_and_wrap_have_usefull_repr(self):
         expect(repr(_.lib)).matches('virtual root module')
         expect(repr(_.each)).matches('lambda generator')
-    
+
