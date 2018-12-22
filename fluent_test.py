@@ -155,9 +155,10 @@ class CallableTest(FluentTest):
         expect(add.curry(_, 'bar', _).curry('foo', _)('baz')._) == 'foobarbaz'
         expect(add.curry(_._1, 'baz', _._0).curry('foo', _)('bar')._) == 'barbazfoo'
     
-    def test_curry_unwraps_wrapped_arguments(self):
-        add = _(lambda *args: functools.reduce(operator.add, args))
-        expect(add.curry(_, _('bar'), _).curry('foo', _)(_('baz'))._) == 'foobarbaz'
+    # This sounds like a bad idea, for the same reason, why map won't auto wrap it's arguments
+    # def test_curry_unwraps_wrapped_arguments(self):
+    #     add = _(lambda *args: functools.reduce(operator.add, args))
+    #     expect(add.curry(_, _('bar'), _).curry('foo', _)(_('baz'))._) == 'foobarbaz'
     
     def test_compose_cast_wraps_chain(self):
         expect(_(lambda x: x*2).compose(lambda x: x+3)(5)._) == 13
