@@ -46,6 +46,7 @@ __api__ = ['wrap'] # + @protected
 
 NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS = 10
 
+# TODO investigate if functools.singledispatch would be a good candidate to replace / enhance this function
 def wrap(wrapped, *, previous=None, chain=None):
     """Factory method, wraps anything and returns the appropriate Wrapper subclass.
     
@@ -95,6 +96,7 @@ def protected(something, optional_name=None):
     setattr(wrap, optional_name or something.__name__, something)
     return something
 
+# REFACT consider if this can be achieved with Callable
 def wrapped(wrapped_function, additional_result_wrapper=None, self_index=0):
     """
     Using these decorators will take care of unwrapping and rewrapping the target object.
@@ -110,6 +112,7 @@ def wrapped(wrapped_function, additional_result_wrapper=None, self_index=0):
         return wrap(result, previous=self)
     return wrapper
 
+# REFACT consider if this can be achieved with Callable
 def unwrapped(wrapped_function):
     """Like wrapped(), but doesn't wrap the result.
     
@@ -119,6 +122,7 @@ def unwrapped(wrapped_function):
         return wrapped_function(self.unwrap, *args, **kwargs)
     return forwarder
 
+# REFACT consider if this can be achieved with Callable
 def wrapped_forward(wrapped_function, additional_result_wrapper=None, self_index=1):
     """Forwards a call to a different object
     
@@ -130,6 +134,7 @@ def wrapped_forward(wrapped_function, additional_result_wrapper=None, self_index
     """
     return wrapped(wrapped_function, additional_result_wrapper=additional_result_wrapper, self_index=self_index)
 
+# REFACT consider if this can be achieved with Callable
 def tupleize(wrapped_function):
     """"Wrap the returned obect in a tuple to force execution of iterators.
     
@@ -188,6 +193,13 @@ class Wrapper(object):
 
     __getitem__ = wrapped(operator.getitem)
     __getattr__ = wrapped(getattr)
+    # TODO Would be nice if all write acccesses could be given through to the wrapped object. But this breaks many current assumptions of this library. :/
+    # Maybe this works if all internal classes define __slots__?
+    # def __setattr__(self, name, value):
+    #     if not _wrapper_is_sealed:
+    #         return super().__setattr__(name, value)
+    #     else:
+    #         setattr(self.unwrap(), name, value)
     
     # Breakouts
     
@@ -413,6 +425,7 @@ class Callable(Wrapper):
         return lambda *args, **kwargs: outer(self(*args, **kwargs))
     # REFACT consider aliasses wrap = chain = cast = compose
 
+# REFACT generalize to absent_default_argument
 @protected
 class Iterable(Wrapper):
     """Add iterator methods to any iterable.
@@ -649,7 +662,8 @@ each.__name__ = 'each'
 public(each)
 
 # add reordering placeholders to wrap to make it easy to reorder arguments in curry
-for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS): # arbitrary limit, can be increased as neccessary
+# arbitrary limit, can be increased as neccessary
+for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS):
     public(wrap(index), '_%i' % index)
 public(wrap('*'), '_args')
 
