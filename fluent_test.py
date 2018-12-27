@@ -360,7 +360,7 @@ class ImporterTest(FluentTest):
     
     def test_imported_objects_are_pre_wrapped(self):
         _.lib.os.path.join('/foo', 'bar', 'baz').findall(r'/(\w*)')._ == ['foo', 'bar', 'baz']
-
+    
     def test_should_allow_reloading_modules(self):
         sensed = {}
         def sensor(*args, **kwargs):

@@ -41,6 +41,7 @@ import types
 import typing
 import pprint
 
+# REFACT consider moving the whole machinery into a submodule to make it possible to _(_.module).reload()
 __all__ = ['wrap', '_'] # + @public
 __api__ = ['wrap'] # + @protected
 
@@ -136,6 +137,7 @@ def wrapped_forward(wrapped_function, additional_result_wrapper=None, self_index
     return wrapped(wrapped_function, additional_result_wrapper=additional_result_wrapper, self_index=self_index)
 
 # REFACT consider if this can be achieved with Callable
+# REFACT consider rename to tuplify for consistency? Maybe not because it haves a different return type?
 def tupleize(wrapped_function):
     """"Wrap the returned obect in a tuple to force execution of iterators.
     
@@ -448,7 +450,10 @@ class Iterable(Wrapper):
     
     All iterators return unwrapped elements by design. Fluent is meant to facilitate 
     chaining, not sprad it's wrapper everywhere. This means you will have to rewrap 
-    occasionally.
+    occasionally in handwritten iterator methods.
+    
+    Where methods return infinite iterators, the non i-prefixed method name is skipped.
+    See `icycle` as an example.
     """
     
     # __iter__ is not wrapped, and implicitly unwraps. If this is unwanted, use one of the explicit iterators
@@ -657,6 +662,9 @@ class Each(Wrapper):
     Note: All generated functions never wrap their arguments or return values.
     """
     
+    # REFACT consider returning a wrapper that knows wether it is called immediately, or if it is called by one of the iterators
+    # The problem is that the call operator needs to differentiate if it is called from within one map/ filter/ etc. or from 
+    # a user that wants to map a call oeration or 
     for name in dir(operator):
         if not name.startswith('__') or name == '__doc__':
             continue

@@ -57,6 +57,16 @@ add itertools and collections methods where it makes sense
     # def vectorize(self, *args, **kwargs):
     #     pass
 
+Would be really nice to allow inputting the chain into a list comprehension in a readable way
+
+consider collection.join() to have a default argument of '' (empty string)
+
+allow to make ranges by _(1).range(10)
+
+_.lib.pprint.pprint('foo') bombs
+
+_('foo').len() explodes
+
 # Make a release
 * source and wheel distribution builds
 * markdown readme is included as package description (maybe pypy already supports markdown?)
