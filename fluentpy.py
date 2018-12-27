@@ -531,6 +531,14 @@ class Iterable(Wrapper):
     
     ## Iterators .........................................
     
+    @wrapped
+    def ieach(self, a_function):
+        'call `a_function` on each elment in self purely for the side effect, then yield the input element'
+        for element in self:
+            a_function(element)
+            yield element
+    each = tupleize(ieach)
+    
     imap = wrapped_forward(map)
     map = tupleize(imap)
     

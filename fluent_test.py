@@ -294,7 +294,15 @@ class IterableTest(FluentTest):
     def test_get_with_default_should_support_iterators(self):
         expect(_(i for i in range(10)).get(0, 'fnord')._) == 0
         expect(_(i for i in range(10)).get(11, 'fnord')._) == 'fnord'
-
+    
+    def test_each_should_allow_to_call_functions_on_iterators_purely_for_their_side_effect(self):
+        from unittest.mock import Mock
+        call_counter = Mock()
+        expect(_(['a', 'b']).ieach(call_counter).tuplify()._) == ('a', 'b')
+        expect(call_counter.call_count) == 2
+        expect(_(['a', 'b']).each(call_counter)._) == ('a', 'b')
+        expect(call_counter.call_count) == 4
+    
 class MappingTest(FluentTest):
     
     def test_should_call_callable_with_double_star_splat_as_keyword_arguments(self):
