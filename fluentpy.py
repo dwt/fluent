@@ -693,6 +693,10 @@ each = Each(each_marker, previous=None, chain=None)
 each.__name__ = 'each'
 public(each)
 
+call = each.call
+call.__name__ = 'call'
+public(call)
+
 # add reordering placeholders to wrap to make it easy to reorder arguments in curry
 # arbitrary limit, can be increased as neccessary
 for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS):

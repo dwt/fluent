@@ -370,6 +370,10 @@ class ImporterTest(FluentTest):
         with patch('importlib.reload', sensor):
             _.lib.os.path.reload()
             expect(sensed['args']) == (_.lib.os.path._, )
+    
+    def test_should_have_more_convenient_call_operation(self):
+        expect(_(['a', 'b']).map(_.call.upper())._) == ('A', 'B')
+    
 
 class EachTest(FluentTest):
     
