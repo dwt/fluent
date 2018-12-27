@@ -663,6 +663,16 @@ class Each(Wrapper):
         locals()[name] = _make_operator(name)
     del name # prevent promotion to class variable
     
+    # there is no operator form for x in iterator, such an api is only the wrong way around on iterator which inverts the reading direction
+    def in_(self, haystack):
+        return haystack.__contains__
+    
+    def not_in(self, haystack):
+        def not_contains(needle):
+            'The equivalent of  operator.__not_contains__ if it would exist.'
+            return needle not in haystack
+        return not_contains
+    
     def __getattr__(self, name):
         # Experimentally using this to allow attribute access for dictionaries just as all other wrapped dicts would allow
         return lambda obj: getattr(_(obj), name).unwrap

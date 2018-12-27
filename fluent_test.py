@@ -407,7 +407,13 @@ class EachTest(FluentTest):
     def test_should_behave_as_if_each_was_wrapped(self):
         expect(_.each.first(dict(first='foo'))) == 'foo'
         expect(_([dict(first='foo')]).map(_.each.first)._) == ('foo',)
+    
+    def test_in(self):
+        expect(_.each.in_([1,2])(3)).is_false()
+        expect(_.each.in_([1,2])(1)).is_true()
         
+        expect(_.each.not_in([1,2])(3)).is_true()
+        expect(_.each.not_in([1,2])(1)).is_false()
     
     def _test_should_allow_creating_callables_without_call(self):
         # This is likely not possible to attain due to the shortcomming that .foo already
