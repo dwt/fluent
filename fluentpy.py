@@ -504,7 +504,19 @@ class Iterable(Wrapper):
     
     ## Reductors .........................................
     
-    len = wrapped(len)
+    @wrapped
+    def len(self):
+        """Just like len(), but also works for iterators.
+        
+        Beware, that it has to consume the iterator to compute it's length"""
+        if isinstance(self, typing.Iterator):
+            length = 0
+            for i in self:
+                length += 1
+            return length
+        else:
+            return len(self)
+    
     max = wrapped(max)
     min = wrapped(min)
     sum = wrapped(sum)

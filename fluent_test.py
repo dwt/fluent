@@ -188,6 +188,8 @@ class IterableTest(FluentTest):
     
     def test_len(self):
         expect(_((1,2,3)).len()._) == 3
+        # len needs to deal with iterators correctly
+        expect(_((1,2,3)).ifilter(_.each==1).len()._) == 1
     
     def test_min_max_sum(self):
         expect(_([1,2]).min()._) == 1
