@@ -1,3 +1,11 @@
+Set build server with different python versions on one of the public build server plattforms
+
+consider supportin turning keyword argumnents into positional arguments in curry
+
+consider Number wrapper that allows calling stuff like itertools.count, construct ranges, stuff like that
+
+consider bool wrapper, that allows creating operator versions of if_(), else_(), elsif_(), not_(), ...
+
 add Callable.vectorize() similar to how it works in numpy
 
 add Module.reload() to reload modules
@@ -66,6 +74,8 @@ allow to make ranges by _(1).range(10)
 _.lib.pprint.pprint('foo') bombs
 
 _('foo').len() explodes
+
+support _.if()
 
 # Make a release
 * source and wheel distribution builds
