@@ -14,6 +14,7 @@ __api__ = ['wrap'] # + @protected
 
 NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS = 10
 # _wrapper_is_sealed = False
+_absent_default_argument = object()
 
 # TODO investigate if functools.singledispatch would be a good candidate to replace / enhance this function
 def wrap(wrapped, *, previous=None, chain=None):
@@ -404,9 +405,6 @@ class Callable(Wrapper):
         # Maybe the same name is good, as they pretty much do the same thing, just with inverted arguments?
         return self(*args, **kwargs)
 
-# REFACT generalize to absent_default_argument
-get_default_marker = object()
-
 @protected
 class Iterable(Wrapper):
     """Add iterator methods to any iterable.
@@ -449,7 +447,7 @@ class Iterable(Wrapper):
     # but it's not. Why?
     
     @wrapped
-    def get(self, target_index, default=get_default_marker):
+    def get(self, target_index, default=_absent_default_argument):
         # Not sure this is the best way to support iterators - but there is no clear way in which we can retain the generator 
         if not isinstance(self, typing.Sized):
             # This is very suboptimal, as it consumes the generator till the asked for index. Still, I don't want this to crash on infinite iterators by just doing tuple(self)
@@ -458,7 +456,7 @@ class Iterable(Wrapper):
                     return element
             return default
         
-        if default is not get_default_marker and target_index >= len(self):
+        if default is not _absent_default_argument and target_index >= len(self):
             return default
         
         return self[target_index]
@@ -714,5 +712,5 @@ public(call)
 # add reordering placeholders to wrap to make it easy to reorder arguments in curry
 # arbitrary limit, can be increased as neccessary
 for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS):
-    locals()[f'_{index}'] = public(wrap(index), '_%i' % index)
+    locals()[f'_{index}'] = public(wrap(index), f'_{index}')
 _args = public(wrap('*'), '_args')
