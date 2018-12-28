@@ -388,7 +388,7 @@ class Callable(Wrapper):
             def assert_enough_args(required_number):
                 assert len(args) > required_number, \
                     'Not enough arguments given to curried function. Need at least %i, got %i: %r' \
-                        % (placeholder_index, len(args), args)
+                        % (required_number + 1, len(args), args)
             
             def is_placeholder(needle, haystack):
                 return any(map(lambda each: each is needle, haystack))

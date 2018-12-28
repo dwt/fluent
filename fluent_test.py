@@ -145,6 +145,11 @@ class CallableTest(FluentTest):
     def test_curry_should_raise_if_number_of_arguments_missmatch(self):
         expect(lambda: _(lambda x, y: x + y).curry(_, _)('foo')).to_raise(AssertionError, 'Not enough arguments')
         expect(lambda: _(lambda x, y: x + y).curry(_._1)('foo')).to_raise(AssertionError, 'Not enough arguments')
+        
+        seen = set()
+        expect(lambda: _(seen).add.curry(_._1)((True, 1))).to_raise(AssertionError,
+            r'Not enough arguments.*Need at least 2, got 1'
+        )
     
     def test_curry_can_handle_variable_argument_lists(self):
         add = _(lambda *args: functools.reduce(operator.add, args))
