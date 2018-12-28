@@ -428,7 +428,14 @@ class Callable(Wrapper):
         """
         return lambda *args, **kwargs: outer(self(*args, **kwargs))
     # REFACT consider aliasses wrap = chain = cast = compose
-
+    
+    @wrapped
+    def star_call(self, args, **kwargs):
+        # REFACT consider if this might be better called map/ lift to use the functional concepts more directly
+        # REFACT might be nice to check wether args is a sequence or a dict and ** it if dict
+        # REFACT consider if rename is wise to clarify the difference between Iterable.star_call and Callable.star_call
+        # Maybe the same name is good, as they pretty much do the same thing, just with inverted arguments?
+        return self(*args, **kwargs)
 
 # REFACT generalize to absent_default_argument
 get_default_marker = object()

@@ -165,6 +165,9 @@ class CallableTest(FluentTest):
         expect(add.curry(_, 'bar', _).curry('foo', _)('baz')._) == 'foobarbaz'
         expect(add.curry(_._1, 'baz', _._0).curry('foo', _)('bar')._) == 'barbazfoo'
     
+    def test_should_star_apply_arguments(self):
+        expect(_(lambda a, b: b).star_call((1,2))._) == 2
+    
     # This sounds like a bad idea, for the same reason, why map won't auto wrap it's arguments
     # def test_curry_unwraps_wrapped_arguments(self):
     #     add = _(lambda *args: functools.reduce(operator.add, args))
