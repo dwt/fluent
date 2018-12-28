@@ -306,11 +306,46 @@ class IterableTest(FluentTest):
     def test_each_should_allow_to_call_functions_on_iterators_purely_for_their_side_effect(self):
         from unittest.mock import Mock
         call_counter = Mock()
+        
+        expect(next(iter(_(['a', 'b']).ieach(call_counter)))) == 'a'
+        expect(call_counter.call_count) == 1
+        
         expect(_(['a', 'b']).ieach(call_counter).tuplify()._) == ('a', 'b')
-        expect(call_counter.call_count) == 2
+        expect(call_counter.call_count) == 3
         expect(_(['a', 'b']).each(call_counter)._) == ('a', 'b')
-        expect(call_counter.call_count) == 4
+        expect(call_counter.call_count) == 5
     
+    # Tests for other itertools methods
+        
+    def test_islice(self):
+        expect(_([1,2,1]).slice(1)._) == (1,)
+        expect(_([1,2,1]).slice(1,2)._) == (2,)
+        expect(_([1,2,1]).slice(None, None,2)._) == (1,1)
+        
+        expect(_([1,2,1]).islice(1).tuplify()._) == (1,)
+        expect(_([1,2,1]).islice(1,2).tuplify()._) == (2,)
+        expect(_([1,2,1]).islice(None, None,2).tuplify()._) == (1,1)
+        
+        expect(_([1,2,1]).icycle().slice(1)._) == (1,)
+        expect(_([1,2,1]).icycle().slice(1,2)._) == (2,)
+        expect(_([1,2]).icycle().slice(None, 8,2)._) == (1,1,1,1)
+    
+    def test_itertools_moved_collection_methods(self):
+        expect(_([1,2,3]).accumulate()._) == (1,3,6)
+        
+        expect(_([1,2,1]).dropwhile(_.each < 2)._) == (2,1)
+        expect(_([1,2,1]).filterfalse(_.each < 2)._) == (2,)
+        
+        expect(_([1,2]).permutations()._) == ((1,2), (2,1))
+        expect(_([1,2]).permutations(r=2)._) == ((1,2), (2,1))
+        expect(_([1,2]).permutations(2)._) == ((1,2), (2,1))
+        
+        expect(_([1,2,3]).combinations(r=2)._) == ((1,2),(1,3),(2,3))
+        
+        expect(_([1,2]).product([3,4])._) == ((1,3), (1,4), (2,3), (2,4))
+        expect(_([1,2]).product(repeat=2)._) == ((1,1), (1,2), (2,1), (2,2))
+        
+        
 class MappingTest(FluentTest):
     
     def test_should_call_callable_with_double_star_splat_as_keyword_arguments(self):

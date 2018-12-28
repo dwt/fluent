@@ -604,17 +604,30 @@ class Iterable(Wrapper):
         else:
             return super().tee(function)
     
-    icycle = wrapped_forward(itertools.cycle)
-    cycle = tupleize(icycle)
+    # itertools method support ............................
     
-    iaccumulate = wrapped_forward(itertools.accumulate)
+    islice = wrapped(itertools.islice)
+    slice = tupleize(islice)
+    
+    icycle = wrapped(itertools.cycle)
+    
+    iaccumulate = wrapped(itertools.accumulate)
     accumulate = tupleize(iaccumulate)
     
-    idropwhile = wrapped_forward(itertools.dropwhile, self_index=1)
+    idropwhile = wrapped(itertools.dropwhile, self_index=1)
     dropwhile = tupleize(idropwhile)
     
-    ifilterfalse = wrapped_forward(itertools.filterfalse, self_index=1)
+    ifilterfalse = wrapped(itertools.filterfalse, self_index=1)
     filterfalse = tupleize(ifilterfalse)
+    
+    ipermutations = wrapped(itertools.permutations)
+    permutations = tupleize(ipermutations)
+    
+    icombinations = wrapped(itertools.combinations)
+    combinations = tupleize(icombinations)
+    
+    iproduct = wrapped(itertools.product)
+    product = tupleize(iproduct)
     
     # TODO make all (applicable?) methods of itertools available here
 
