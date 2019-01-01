@@ -116,7 +116,6 @@ def tupleize(wrapped_function):
         return wrap(tuple(wrapped_function(self, *args, **kwargs)), previous=self)
     return wrapper
 
-
 @protected
 class Wrapper(object):
     """Universal wrapper.
@@ -256,7 +255,6 @@ class Wrapper(object):
     pprint = wrapped(pprint.pprint)
     help = wrapped(help)
     type = unwrapped(type)
-
 
 # REFACT consider to use wrap as the placeholder to have less symbols? Probably not worth it...
 virtual_root_module = "virtual root module"

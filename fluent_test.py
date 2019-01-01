@@ -349,8 +349,7 @@ class IterableTest(FluentTest):
         
         expect(_([1,2]).product([3,4])._) == ((1,3), (1,4), (2,3), (2,4))
         expect(_([1,2]).product(repeat=2)._) == ((1,1), (1,2), (2,1), (2,2))
-        
-        
+
 class MappingTest(FluentTest):
     
     def test_should_call_callable_with_double_star_splat_as_keyword_arguments(self):
@@ -429,7 +428,6 @@ class ImporterTest(FluentTest):
     
     def test_should_have_more_convenient_call_operation(self):
         expect(_(['a', 'b']).map(_.call.upper())._) == ('A', 'B')
-    
 
 class EachTest(FluentTest):
     
