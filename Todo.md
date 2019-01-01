@@ -77,6 +77,8 @@ _('foo').len() explodes
 
 support _.if()
 
+consider what it takes to allow reloading fluentpy itself. This is not so super easy, as the executable module caches all the old values on the function (functools.wraps does that). So afterwards all manner of instance checks don't work anymore. Therefore, just defining __getattr__ on the instance method doesn't quite work
+
 # Make a release
 * source and wheel distribution builds
 * markdown readme is included as package description (maybe pypy already supports markdown?)
