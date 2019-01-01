@@ -460,7 +460,7 @@ class Iterable(Wrapper):
         return self[target_index]
         
     @wrapped
-    def join(self, with_what):
+    def join(self, with_what=''):
         """"Like str.join, but the other way around. Bohoo!
         
         Also calls str on all elements of the collection before handing 

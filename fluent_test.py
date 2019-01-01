@@ -185,6 +185,8 @@ class IterableTest(FluentTest):
     def test_join(self):
         expect(_(['1','2','3']).join(' ')._) == '1 2 3'
         expect(_([1,2,3]).join(' ')._) == '1 2 3'
+        
+        expect(_([1,2]).join()._) == '12'
     
     def test_any(self):
         expect(_((True, False)).any()._) == True
