@@ -226,6 +226,13 @@ class IterableTest(FluentTest):
     def test_reduce(self):
         # no iterator version of reduce as it's not a mapping
         expect(_((1,2)).reduce(operator.add)._) == 3
+        
+        expect(
+            _(((1, 2), (1, 4))).reduce(
+                lambda acc, each: acc.setdefault(each[0], []).append(each[1]) or acc,
+                dict()
+            )._
+        ) == { 1: [2, 4] }
     
     def test_grouped(self):
         expect(_((1,2,3,4,5,6)).igrouped(2).call(list)._) == [(1,2), (3,4), (5,6)]
