@@ -279,6 +279,11 @@ class IterableTest(FluentTest):
         
         expect(_([(1,2),[3,4],(5, [6,7])]).flatten(level=1)._) == \
             (1,2,3,4,5,[6,7])
+        
+        # can flatten lists of strings
+        expect(_([('D', 'L'), ('B', 'G')]).flatten()._) == ('D', 'L', 'B', 'G')
+        expect(_([(b'D', b'L'), (b'B', b'G')]).flatten()._) == (b'D', b'L', b'B', b'G')
+        
     
     def test_star_call(self):
         expect(_([1,2,3]).star_call(str.format, '{} - {} : {}')._) == '1 - 2 : 3'
