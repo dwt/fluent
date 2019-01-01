@@ -620,9 +620,8 @@ class Set(Iterable):
 
     freeze = wrapped(frozenset)
 
-# REFACT consider to inherit from Iterable? It's how Python works...
 @protected
-class Text(Wrapper):
+class Text(Iterable):
     "Supports most of the regex methods as if they where native str methods"
     
     # Regex Methods ......................................
