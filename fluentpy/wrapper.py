@@ -416,7 +416,7 @@ class Callable(Wrapper):
         def wrapper(*actual_args, **actual_kwargs):
             merged_args, merged_kwargs = merge_arguments(actual_args, actual_kwargs)
             return self(*merged_args, **merged_kwargs)
-        return wrap(wrapper, previous=self)
+        return wrapper
     
     @wrapped
     def compose(self, outer):
