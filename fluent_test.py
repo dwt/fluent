@@ -126,6 +126,8 @@ class CallableTest(FluentTest):
         expect(_(lambda x=3: x)(x=4)._) == 4
         expect(_(lambda x=3: x)(4)._) == 4
     
+    # I'm not sure this is actually sensible to do, as it goes (a bit) 
+    # against the grain of the rest of the library. Feedback welcome.
     def test_call_unwraps_wrapped_arguments(self):
         expect(_(lambda x: repr(x))(_('foo'))._) == "'foo'"
         expect(_(lambda x: repr(x))(x=_('foo'))._) == "'foo'"

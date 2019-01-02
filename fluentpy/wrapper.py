@@ -346,6 +346,8 @@ class Callable(Wrapper):
         
         >>> _(operator.add).curry(_.args)('foo', 'bar)._ == 'foobar'
         """
+        # REFACT consider, would it be easier to actually generate a wrapper function that has an argspec
+        # according to the given spec?
         placeholders = tuple(_wrap_alternatives)
         splat_args_placeholder = wrap._args
         reordering_placeholders = tuple(getattr(wrap, '_%i' % index) for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS))
