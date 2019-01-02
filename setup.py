@@ -37,7 +37,7 @@ setup_args = dict(
     ),
     keywords='wrapper,smalltalk,ruby,fluent,interface,functional',
     py_modules=['fluentpy'],
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     include_package_data=True,
     test_suite="fluent_test.py",
     tests_require=(
