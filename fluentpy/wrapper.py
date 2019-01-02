@@ -349,8 +349,8 @@ class Callable(Wrapper):
         # REFACT consider, would it be easier to actually generate a wrapper function that has an argspec
         # according to the given spec?
         placeholders = tuple(_wrap_alternatives)
+        reordering_placeholders = tuple(_reordering_placeholders)
         splat_args_placeholder = wrap._args
-        reordering_placeholders = tuple(getattr(wrap, '_%i' % index) for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS))
         all_placeholders = placeholders + (splat_args_placeholder,) + reordering_placeholders
         def merge_args(args_and_placeholders, args):
             def assert_enough_args(required_number):
@@ -710,8 +710,10 @@ call = each.call
 call.__name__ = 'call'
 public(call)
 
+_reordering_placeholders = []
 # add reordering placeholders to wrap to make it easy to reorder arguments in curry
 # arbitrary limit, can be increased as neccessary
 for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS):
     locals()[f'_{index}'] = public(wrap(index), f'_{index}')
+    _reordering_placeholders.append(locals()[f'_{index}'])
 _args = public(wrap('*'), '_args')
