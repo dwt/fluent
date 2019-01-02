@@ -380,7 +380,7 @@ class Callable(Wrapper):
                     new_arguments.append(arg_or_placeholder)
             return new_arguments
         
-        # @functools.wraps(self)
+        @functools.wraps(self)
         def wrapper(*actual_args, **actual_kwargs):
             return self(
                 *merge_args(args_and_placeholders, actual_args),
