@@ -323,7 +323,7 @@ class Callable(Wrapper):
         return wrap(result, previous=self, chain=chain)
     
     @wrapped
-    def curry(self, *args_and_placeholders, **default_kwargs):
+    def curry(self, *default_args, **default_kwargs):
         """"Like functools.partial, but with a twist.
         
         If you use `wrap` or `_` as a positional argument, upon the actual call, 
@@ -348,44 +348,74 @@ class Callable(Wrapper):
         """
         # REFACT consider, would it be easier to actually generate a wrapper function that has an argspec
         # according to the given spec?
+        
         placeholders = tuple(_wrap_alternatives)
         reordering_placeholders = tuple(_reordering_placeholders)
         splat_args_placeholder = wrap._args
-        all_placeholders = placeholders + (splat_args_placeholder,) + reordering_placeholders
-        def merge_args(args_and_placeholders, args):
-            def assert_enough_args(required_number):
-                assert len(args) > required_number, \
-                    'Not enough arguments given to curried function. Need at least %i, got %i: %r' \
-                        % (required_number + 1, len(args), args)
+        all_placeholders = placeholders + reordering_placeholders + (splat_args_placeholder,)
+        
+        def merge_arguments(actual_args, actual_kwargs):
+            """Processing positional arguments first, then keyword arguments to keep this as 
+            compatible as possible with the way python works
+            """
+            # This works because dict() is sorted in python3.6+
+            merged_default_kwargs = dict(default_kwargs, **actual_kwargs)
             
-            def is_placeholder(needle, haystack):
-                return any(map(lambda each: each is needle, haystack))
-                
-            new_arguments = list()
+            def assert_has_enough_args(required_number):
+                assert len(actual_args) > required_number, \
+                    'Foo: Not enough arguments given to curried function. Need at least %i, got %i: <%r>' \
+                        % (required_number + 1, len(actual_args), actual_args)
+            
+            def assert_is_last_positional_placeholder(arg_index):
+                assert arg_index + 1 == len(default_args), \
+                    'Variable arguments placeholder <_args> needs to be last'
+                assert_is_last_keyword_placeholder(-1) # can have none
+            
+            def assert_is_last_keyword_placeholder(arg_index):
+                relevant_kwarg_values = tuple(merged_default_kwargs.values())[arg_index+1:]
+                assert all(each not in all_placeholders for each in relevant_kwarg_values), \
+                    'Variable arguments placeholder <_args> needs to be last'
+            
+            merged_args = list()
             placeholder_index = -1
-            for index, arg_or_placeholder in enumerate(args_and_placeholders):
-                if is_placeholder(arg_or_placeholder, all_placeholders):
+            for arg_index, arg_default in enumerate(default_args):
+                if arg_default in all_placeholders:
                     placeholder_index += 1
-                if is_placeholder(arg_or_placeholder, placeholders):
-                    assert_enough_args(placeholder_index)
-                    new_arguments.append(args[placeholder_index])
-                elif is_placeholder(arg_or_placeholder, reordering_placeholders):
-                    assert_enough_args(arg_or_placeholder.unwrap)
-                    new_arguments.append(args[arg_or_placeholder.unwrap])
-                elif is_placeholder(arg_or_placeholder, [splat_args_placeholder]):
-                    assert index + 1 == len(args_and_placeholders), \
-                        'Variable arguments placeholder <_args> needs to be last'
-                    new_arguments.extend(args[placeholder_index:])
+                if arg_default in placeholders:
+                    assert_has_enough_args(placeholder_index)
+                    merged_args.append(actual_args[placeholder_index])
+                elif arg_default in reordering_placeholders:
+                    assert_has_enough_args(arg_default.unwrap)
+                    merged_args.append(actual_args[arg_default.unwrap])
+                elif arg_default is splat_args_placeholder:
+                    assert_is_last_positional_placeholder(arg_index)
+                    merged_args.extend(actual_args[placeholder_index:])
                 else: # real argument
-                    new_arguments.append(arg_or_placeholder)
-            return new_arguments
+                    merged_args.append(arg_default)
+            
+            merged_kwargs = dict()
+            for kwarg_index, (kwarg_name, kwarg_default) in enumerate(merged_default_kwargs.items()):
+                if kwarg_default in all_placeholders:
+                    placeholder_index += 1
+                if kwarg_default in placeholders:
+                    assert_has_enough_args(placeholder_index)
+                    merged_kwargs[kwarg_name] = actual_args[placeholder_index]
+                elif kwarg_default in reordering_placeholders:
+                    assert_has_enough_args(kwarg_default.unwrap)
+                    merged_kwargs[kwarg_name] = actual_args[kwarg_default.unwrap]
+                elif kwarg_default is splat_args_placeholder:
+                    assert_is_last_keyword_placeholder(kwarg_index)
+                    merged_kwargs[kwarg_name] = actual_args[placeholder_index:]
+                else: # real argument
+                    merged_kwargs[kwarg_name] = kwarg_default
+            
+            
+            return merged_args, merged_kwargs
         
         @functools.wraps(self)
         def wrapper(*actual_args, **actual_kwargs):
-            return self(
-                *merge_args(args_and_placeholders, actual_args),
-                **dict(default_kwargs, **actual_kwargs)
-            )
+            merged_args, merged_kwargs = merge_arguments(actual_args, actual_kwargs)
+            return self(*merged_args, **merged_kwargs)
         return wrap(wrapper, previous=self)
     
     @wrapped

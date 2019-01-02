@@ -136,15 +136,30 @@ class CallableTest(FluentTest):
         expect(_(lambda x, y: x*y).curry(2, 3)()._) == 6
         expect(_(lambda x=1, y=2: x*y).curry(x=3)()._) == 6
     
-    def test_curry_should_support_placeholders_to_curry_later_positional_arguments(self):
+    def test_curry_supports_positional_arguments(self):
         expect(_(operator.add).curry(_, 'foo')('bar')._) == 'barfoo'
         expect(_(lambda x, y, z: x + y + z).curry(_, 'baz', _)('foo', 'bar')._) == 'foobazbar'
     
-    def test_curry_should_allow_reordering_arguments(self):
+    def test_curry_can_transform_keyword_into_positional_arguments(self):
+        curried = _(lambda x, y: (x, y)).curry(x=_, y=1)
+        expect(curried(x=0)._) == (0, 1)
+        expect(curried(0)._) == (0, 1)
+    
+    def test_curry_supports_positional_placeholders_and_keyword_placeholders_together(self):
+        expect(_(lambda x, y: (x,y)).curry(_, y=_)._(1, 2)) == (1,2)
+    
+    def _test_curry_positional_placeholder_can_be_overridden_by_keyword_argument(self):
+        """For this to work, I would need to actually parse the argspec of the curried function,
+        and would need the code to implement the full python argument merging semantic. 
+        Not fun, nor neccessary I believe."""
+        curried = _(lambda x, y: (x, y)).curry(_, y=1)
+        expect(curried(x=0)._) == (0, 1)
+    
+    def test_curry_allows_reordering_arguments(self):
         expect(_(lambda x, y: x + y).curry(_._1, _._0)('foo', 'bar')._) == 'barfoo'
         expect(_(lambda x, y, z: x + y + z).curry(_._1, 'baz', _._0)('foo', 'bar')._) == 'barbazfoo'
     
-    def test_curry_should_raise_if_number_of_arguments_missmatch(self):
+    def test_curry_raises_if_number_of_arguments_missmatch(self):
         expect(lambda: _(lambda x, y: x + y).curry(_, _)('foo')).to_raise(AssertionError, 'Not enough arguments')
         expect(lambda: _(lambda x, y: x + y).curry(_._1)('foo')).to_raise(AssertionError, 'Not enough arguments')
         
@@ -158,9 +173,20 @@ class CallableTest(FluentTest):
         expect(add.curry('foo', _._args)('bar', 'baz')._) == 'foobarbaz'
         expect(add.curry(_, _._args)('foo', 'bar', 'baz')._) == 'foobarbaz'
         expect(add.curry(_._1, _._args)('foo', 'bar', 'baz')._) == 'barbarbaz'
+        expect(_(lambda x: x).curry(x=_._args)(1,2,3)._) == (1,2,3)
         
         # varargs need to be last
-        expect(lambda: add.curry(_._args, _)('foo', 'bar')).to_raise(AssertionError, 'Variable arguments placeholder <_args> needs to be last')
+        error_message = 'Variable arguments placeholder <_args> needs to be last'
+        expect(lambda: add.curry(_._args, _)('foo', 'bar')).to_raise(
+            AssertionError, error_message
+        )
+        
+        expect(lambda: _(lambda x,y: (x,y)).curry(_._args, y=_)(1,2,3)).to_raise(
+            AssertionError, error_message
+        )
+        expect(lambda: _(lambda x,y: (x,y)).curry(x=_._args, y=_)(1,2,3)).to_raise(
+            AssertionError, error_message
+        )
     
     def test_curry_can_be_applied_multiple_times(self):
         add = _(lambda *args: functools.reduce(operator.add, args))
