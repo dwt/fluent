@@ -582,6 +582,46 @@ class Iterable(Wrapper):
         return
     flatten = tupleize(iflatten)
     
+    @wrapped
+    def ireshape(self, *spec):
+        """Modeled to be the inverse of flatten, allowing to create structure from linearity.
+        
+        Allows you to turn `(1,2,3,4)` into `((1,2),(3,4))`.
+        Very much inspired by numpy.reshape. @see https://docs.scipy.org/doc/numpy/reference/generated/numpy.reshape.html
+        
+        @argument spec integer of tuple of integers that give the spec for the dimensions of the returned structure. 
+        The last dimension is inferred as needed. For example:
+        _([1,2,3,4]).reshape(2)._ == ((1,2),(3,4))
+        
+        Please note that 
+        _([1,2,3,4]).reshape(2,2)._ == (((1,2),(3,4)),)
+        
+        The extra tuple around this is due to the specification being, two tuples of two elements which is possible
+        exactly once with the given iterable.
+        
+        This iterator will *not* ensure that the shape you give it will generate fully 'rectangular'.
+        This means that the last element in the generated sequnce the number of elements can be different!
+        This tradeoff is made, so it works with infinite sequences.
+        """
+        def chunkify(iterable, chunk_size):
+            assert chunk_size >= 1
+            collector = []
+            for element in iterable:
+                collector.append(element)
+                if len(collector) == chunk_size:
+                    yield tuple(collector)
+                    collector = []
+            # FIXME needs to yield any leftover elements after iterable is exhausted
+        
+        if 0 == len(spec):
+            return self
+        
+        current_level, *other_levels = spec
+        
+        return wrap(chunkify(self, current_level)).ireshape(*other_levels).unwrap
+    
+    reshape = tupleize(ireshape)
+    
     igroupby = wrapped(itertools.groupby)
     def groupby(self, *args, **kwargs):
         # Need an extra wrapping function to consume the values iterators before the next iteration invalidates it
