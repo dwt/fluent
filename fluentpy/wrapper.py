@@ -591,7 +591,7 @@ class Iterable(Wrapper):
         return wrap(tuple(result), previous=self)
     
     def tee(self, function):
-        "This override tries to retain iterators, as a speedup"
+        """This override tries to retain iterators, as a speedup"""
         # REFACT consider switching to type check here?
         if hasattr(self.unwrap, '__next__'): # iterator
             first, second = itertools.tee(self.unwrap, 2)
