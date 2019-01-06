@@ -382,6 +382,9 @@ class IterableTest(FluentTest):
         expect(_([1,2]).permutations(2)._) == ((1,2), (2,1))
         
         expect(_([1,2,3]).combinations(r=2)._) == ((1,2),(1,3),(2,3))
+        expect(_([1,2]).combinations_with_replacement(r=2)._) == (
+            (1,1), (1,2), (2,2),
+        )
         
         expect(_([1,2]).product([3,4])._) == ((1,3), (1,4), (2,3), (2,4))
         expect(_([1,2]).product(repeat=2)._) == ((1,1), (1,2), (2,1), (2,2))

@@ -622,6 +622,9 @@ class Iterable(Wrapper):
     icombinations = wrapped(itertools.combinations)
     combinations = tupleize(icombinations)
     
+    icombinations_with_replacement = wrapped(itertools.combinations_with_replacement)
+    combinations_with_replacement = tupleize(icombinations_with_replacement)
+    
     iproduct = wrapped(itertools.product)
     product = tupleize(iproduct)
     
