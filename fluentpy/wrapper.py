@@ -576,8 +576,7 @@ class Iterable(Wrapper):
             # calling flatten on string likes would lead to infinity recursion
             # Do I need more string types here? typing.AnyStr doesn't seem to help here
             if level > 0 and (isinstance(element, typing.Iterable) and not isinstance(element, (str, bytes))):
-                for subelement in wrap(element).iflatten(level=level-1):
-                    yield subelement
+                yield from wrap(element).iflatten(level=level-1)
             else:
                 yield element
         return
