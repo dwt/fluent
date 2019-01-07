@@ -611,7 +611,8 @@ class Iterable(Wrapper):
                 if len(collector) == chunk_size:
                     yield tuple(collector)
                     collector = []
-            # FIXME needs to yield any leftover elements after iterable is exhausted
+            if len(collector) != 0:
+                yield tuple(collector)
         
         if 0 == len(spec):
             return self

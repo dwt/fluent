@@ -322,7 +322,6 @@ class IterableTest(FluentTest):
         expect(_([(b'D', b'L'), (b'B', b'G')]).flatten()._) == (b'D', b'L', b'B', b'G')
     
     def test_reshape(self):
-        
         # This can be considered the inverse of flatten
         expect(_((1,2,3,4)).reshape()._) == (1,2,3,4)
         expect(_((1,2,3,4)).reshape(2)._) == ((1,2),(3,4))
@@ -340,6 +339,8 @@ class IterableTest(FluentTest):
             (4, 5, 6, 7),
             (8, 9, 10, 11),
         ),)
+        
+        expect(_((1,2,3)).reshape(2)._) == ((1,2), (3,))
     
     def test_star_call(self):
         expect(_([1,2,3]).star_call(str.format, '{} - {} : {}')._) == '1 - 2 : 3'
