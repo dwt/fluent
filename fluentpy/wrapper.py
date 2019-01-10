@@ -458,14 +458,11 @@ class Iterable(Wrapper):
     See `icycle` as an example.
     """
     
-    # __iter__ is not wrapped, and implicitly unwraps. If this is unwanted, use one of the explicit iterators
+    # __iter__ is not wrapped, and implicitly unwrap. If this is unwanted, use one of the explicit iterators
     # This is neccesary becasue otherwise all iterations would implicitly wrap the iterated elements, making it
-    # impossible to use this library in a halfway sensible way with explicit wrapping and unwrapping
-    __iter__ = unwrapped(iter)
-    def iter(self):
-        "Ensure `for each in iterable:` works on wrapped elements"
-        for element in self.unwrap:
-            yield wrap(element, previous=self)
+    # impossible to use this library in a halfway sensible way with explicit wrapping and unwrapping.
+    # iter is unwrapped, so it behaves the same as any other explicit iteration
+    iter = __iter__ = unwrapped(iter)
     
     @wrapped
     def star_call(self, function, *args, **kwargs):

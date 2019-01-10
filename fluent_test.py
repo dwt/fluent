@@ -207,6 +207,14 @@ class CallableTest(FluentTest):
 
 class IterableTest(FluentTest):
     
+    def test_iter(self):
+        # Iter implicitly unwraps, because all other iterators behave this way, and there would otherwise be no way to explicitly get an iterator by chaining.
+        iterator = _([1,2,3]).iter()
+        expect(next(iterator)) == 1
+        expect(next(iterator)) == 2
+        expect(next(iterator)) == 3
+        expect(lambda: next(iterator)).to_raise(StopIteration)
+    
     def test_should_call_callable_with_star_splat_of_self(self):
         expect(_([1,2,3]).star_call(lambda x, y, z: z-x-y)._) == 0
     
@@ -350,10 +358,6 @@ class IterableTest(FluentTest):
         expect(_([1,2,3]).call(min)._) == 1
         expect(_('foo').call(str.upper)._) == 'FOO'
         expect(_('foo').call(str.upper)._) == 'FOO'
-    
-    def test_for_in_should_easily_get_wrapped_items(self):
-        for element in _([1,2,3]).iter():
-            expect(element).isinstance(_.Wrapper)
     
     def test_get_with_default(self):
         expect(_([1]).get(0, 2)._) == 1
