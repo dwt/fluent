@@ -8,7 +8,6 @@ import types
 import typing
 import pprint
 
-# REFACT consider moving the whole machinery into a submodule to make it possible to _(_.module).reload()
 __all__ = ['wrap', '_'] # + @public
 __api__ = ['wrap'] # + @protected
 
@@ -66,7 +65,6 @@ def protected(something, optional_name=None):
     setattr(wrap, optional_name or something.__name__, something)
     return something
 
-# REFACT consider if this can be achieved with Callable
 def wrapped(wrapped_function, additional_result_wrapper=None, self_index=0):
     """
     Using these decorators will take care of unwrapping and rewrapping the target object.
@@ -82,7 +80,6 @@ def wrapped(wrapped_function, additional_result_wrapper=None, self_index=0):
         return wrap(result, previous=self)
     return wrapper
 
-# REFACT consider if this can be achieved with Callable
 def unwrapped(wrapped_function):
     """Like wrapped(), but doesn't wrap the result.
     
@@ -92,7 +89,6 @@ def unwrapped(wrapped_function):
         return wrapped_function(self.unwrap, *args, **kwargs)
     return forwarder
 
-# REFACT consider if this can be achieved with Callable
 def wrapped_forward(wrapped_function, additional_result_wrapper=None, self_index=1):
     """Forwards a call to a different object
     
@@ -104,7 +100,6 @@ def wrapped_forward(wrapped_function, additional_result_wrapper=None, self_index
     """
     return wrapped(wrapped_function, additional_result_wrapper=additional_result_wrapper, self_index=self_index)
 
-# REFACT consider if this can be achieved with Callable
 # REFACT consider rename to tuplify for consistency? Maybe not because it haves a different return type?
 def tupleize(wrapped_function):
     """"Wrap the returned obect in a tuple to force execution of iterators.

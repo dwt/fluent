@@ -1,6 +1,16 @@
+# Before next release
+
+undo flatten special case for str/bytes as that should be better handled by stop_at_type or level arguments
+get documentation built and upload it
+    check all methods have a docstring
+check all the methods from itertools are forwarded where sensible
+
+# Done
+
+# Bunch of Ideas
 Set build server with different python versions on one of the public build server plattforms
 
-consider supportin turning keyword argumnents into positional arguments in curry
+consider supporting turning keyword argumnents into positional arguments in curry
 
 consider Number wrapper that allows calling stuff like itertools.count, construct ranges, stuff like that
 
@@ -80,6 +90,8 @@ support _.if()
 consider to add the curried arg spec to the help / repr() output of a curried function.
 
 consider what it takes to allow reloading fluentpy itself. This is not so super easy, as the executable module caches all the old values on the function (functools.wraps does that). So afterwards all manner of instance checks don't work anymore. Therefore, just defining __getattr__ on the instance method doesn't quite work
+
+consider typing all the methods for better autocomletionk?
 
 # Make a release
 * source and wheel distribution builds
