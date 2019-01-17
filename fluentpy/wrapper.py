@@ -563,12 +563,14 @@ class Iterable(Wrapper):
     zip = tupleize(izip)
     
     @wrapped
-    def iflatten(self, level=math.inf):
-        "Modeled after rubys array.flatten @see http://ruby-doc.org/core-1.9.3/Array.html#method-i-flatten"
+    def iflatten(self, level=math.inf, stop_at_types=(str, bytes)):
+        """Modeled after rubys array.flatten @see http://ruby-doc.org/core-1.9.3/Array.html#method-i-flatten
+        
+        Calling flatten on string likes would lead to infinity recursion, thus @arg stop_at_types.
+        If you want to flatten those, use a combination of @arg level and @arg stop_at_types.
+        """
         for element in self:
-            # calling flatten on string likes would lead to infinity recursion
-            # Do I need more string types here? typing.AnyStr doesn't seem to help here
-            if level > 0 and (isinstance(element, typing.Iterable) and not isinstance(element, (str, bytes))):
+            if level > 0 and (isinstance(element, typing.Iterable) and not isinstance(element, stop_at_types)):
                 yield from wrap(element).iflatten(level=level-1)
             else:
                 yield element
