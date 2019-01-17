@@ -3,6 +3,7 @@ import itertools
 import math
 import operator
 import re
+import importlib
 import sys
 import types
 import typing
@@ -281,7 +282,6 @@ class Module(Wrapper):
         if hasattr(self.unwrap, name):
             return wrap(getattr(self.unwrap, name))
         
-        import importlib
         module = None
         if self.unwrap is virtual_root_module:
             module = importlib.import_module(name)
@@ -291,11 +291,10 @@ class Module(Wrapper):
         return wrap(module)
     
     @wrapped
+    @functools.wraps(importlib.reload)
     def reload(self):
-        import importlib
         importlib.reload(self)
         return self
-    # TODO add def reload() to reload modules
 
 lib = Module(virtual_root_module, previous=None, chain=None)
 lib.__name__ = 'lib'
