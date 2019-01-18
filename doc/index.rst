@@ -84,10 +84,6 @@ Just import fluent under the name you would like to use it. For short scripts I 
 Further information
 -------------------
 
-.. toctree::
-   :titlesonly:
-
-   Narrative Documentation <Readme>
-   API Documentation <fluentpy/fluentpy>
+Read up on the :doc:`Narrative Documentation <Readme>` or browse the :doc:`API Documentation <fluentpy/fluentpy>`
 
 And most important of all: Have phun!
