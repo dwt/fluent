@@ -141,16 +141,18 @@ Import statements are (ahem) statements in python. This is fine, but can be real
 
 Consider this shell text filter written in python:
 
-    $ curl -sL 'https://example.com/lists.php' | egrep -A1 'star_[345]' \
+    $ curl -sL 'https://example.com/lists.php' \
+    >    | egrep -A1 'star_[345]' \
     >    | python3 -c "import sys, re; from xml.sax.saxutils import unescape; \
-    >                  print('\n'.join(map(unescape, re.findall(r'value=\'(.*)\'', sys.stdin.read()))))" 
+    >          print('\n'.join(map(unescape, re.findall(r'value=\'(.*)\'', sys.stdin.read()))))" 
 
-Sure it has all the backtracking problems I talked about already. Using fluent this could be much shorter.
+Sure it has all the backtracking problems I talked about already. Using fluentpy this could be much shorter.
 
     $ curl -sL 'https://example.com/lists.php' \
     >   | egrep -A1 'star_[345]' \
-    >   | python3 -c "import fluentpy as _; import sys, re; from xml.sax.saxutils import unescape; \
-    >              _(sys.stdin.read()).findall(r'value=\'(.*)\'').map(unescape).map(print)"
+    >   | python3 -c "import fluentpy as _; \
+              import sys, re; from xml.sax.saxutils import unescape; \
+    >         _(sys.stdin.read()).findall(r'value=\'(.*)\'').map(unescape).map(print)"
 
 This still leaves the problem that it has to start with this fluff 
 
@@ -226,7 +228,7 @@ While this is way better than e.g. Ruby where that will just return the value of
 
 Fear not though, fluentpy has you covered. :)
 
-Fluent wrapped objects will have a `self` property, that allows you to continue chaining off of the previous self.
+Fluent wrapped objects will have a `self` property, that allows you to continue chaining off of the previous 'self' object.
 
     >>> _([3,2,1]).sort().self.reverse().self.call(print)
 
