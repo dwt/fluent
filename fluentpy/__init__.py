@@ -15,13 +15,14 @@ If you want / need this to be less magical, you can import the main wrapper norm
 
     >>> from fluentpy import wrap # or `_`, if you're not using gettext
 
-Then to use the module, wrap any value and start chaining off of it. To get started try this::
+Then to use the module, wrap any value and start chaining off of it. To get started 
+lets try to inrospect `fluentpy` using its own fluent interface::
 
     $ python3 -m fluentpy '_(_).dir().print()'
     $ python3 -m fluentpy '_(_).help()'
 
 This is incidentally the second way to use this module, as a helper that makes it easier to 
-write short fast shell filters in python.::
+write short shell filters quickly in python.::
 
     $ echo "foo\\nbar\\nbaz" \\
         | python3 -m fluentpy "lib.sys.stdin.readlines().map(each.call.upper()).map(print)"
