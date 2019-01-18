@@ -31,7 +31,7 @@ Project Matters
 What problem does fluent solve
 ------------------------------
 
-The fluent library is a syntactic sugar library for python. It allows you to write more things as expressions, which traditionally require statements in python. The goal is to allow writing beautiful fluent code with standard library or your objects, as defined at https://en.wikipedia.org/wiki/Fluent_interface
+The fluent library is a syntactic sugar library for python. It allows you to write more things as expressions, which traditionally require statements in python. The goal is to allow writing beautiful fluent code with the standard library or your classes, as defined at https://en.wikipedia.org/wiki/Fluent_interface
 
 Quick Start
 -----------
