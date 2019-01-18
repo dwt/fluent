@@ -100,8 +100,8 @@ class WrapperTest(FluentTest):
         expect(repr(_((1,2)))) == 'fluentpy.wrap((1, 2))'
     
     def test_simple_forwards(self):
-        expect(_(3).type()) == int
-        expect(_('3').type()) == str
+        expect(_(3).type()._) == int
+        expect(_('3').type()._) == str
     
     def _test_creating_new_attributes_should_create_attribute_on_wrapped_object(self):
         wrapped = _(object())

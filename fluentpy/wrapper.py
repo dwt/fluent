@@ -248,7 +248,7 @@ class Wrapper(object):
     print = wrapped(print)
     pprint = wrapped(pprint.pprint)
     help = wrapped(help)
-    type = unwrapped(type)
+    type = wrapped(type)
     str = wrapped(str)
     repr = wrapped(repr)
 

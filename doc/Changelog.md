@@ -10,6 +10,8 @@
 
 Removed `Wrapper.tee()` and `Itertools.tee()` as `_(something).tee(a_function)` is easily replicable by `_(something).call(a_function).previous` and `Iterable.tee()` prevented me from providing `itertools.tee`.
 
+`Wrapper.type()` returns a wrapped type for consistency.
+
 ### Notable Changes
 
 `Callable.curry()` now supports converting positional arguments to keyword arguments.
