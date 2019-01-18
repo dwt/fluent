@@ -1,10 +1,9 @@
 # Before next release
 
+create changelog -> consider if next version is a major version.
+
 Itertools.tee should probably be itee? Consider the implication for Wrapper.tee() interoperability. Also the original tee just returned two iterators, which might be a feature sorely missing here now.
 Itertools.tee wraps the iterable before calling the provided function - that seems inconsistent with the rest of the library. Check and change accordingly
-
-clean out and structure this file
-create changelog -> consider if next version is a major version.
 
 # Bunch of Ideas
 

@@ -19,4 +19,7 @@ Please note that this project practices Semantic Versioning and [Dependable API 
 # Release checklist
 - Tests run at least in python 3.7
 - Increment version and tag
-- upload new build with $ ./setup.py sdist upload
+- build with $ ./setup.py sdist
+- upload to testpypi as required $ twine upload --repository testpypi dist/fluentpy-*
+- upload to pypi as required $ twine upload dist/fluentpy-*
+
