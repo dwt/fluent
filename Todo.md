@@ -1,5 +1,6 @@
 # Before next release
 
+Get markdown description for pypi to work
 Itertools.tee should probably be itee? Consider the implication for Wrapper.tee() interoperability. Also the original tee just returned two iterators, which might be a feature sorely missing here now.
 Itertools.tee wraps the iterable before calling the provided function - that seems inconsistent with the rest of the library. Check and change accordingly
 
