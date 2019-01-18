@@ -10,7 +10,7 @@ Please Note: **This library is an experiment.** It is based on a wrapper that ag
 
 ## Introduction: Why use `fluentpy`?
 
-The Python standard library includes many useful, time-saving convenience methods such as `map`, `zip`, `filter` and `join`. The problem that motivated me to write `fluentpy` is that these convenience methods are often available as free functions or on (arguably) the wrong object.
+The Python standard library includes many useful, time-saving convenience methods such as `map`, `zip`, `filter` and `join`. The problem that motivated me to write `fluentpy` is that these convenience methods are often available as free functions or on (arguably) the wrong module or class.
 
 For example, `map`, `zip`, and `filter` all operate on `iterable` objects but they are implemented as free functions. This not only goes against my sense of how object oriented code should behave, but more importantly, writing python code using these free functions requires that the reader must often mentally skip back and forth in a line of code to understand what it does, making the code more difficult to understand.
 
