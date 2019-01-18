@@ -11,11 +11,11 @@ def readme():
     from subprocess import CalledProcessError
     try:
         from subprocess import check_output
-        return str(check_output(['pandoc', '--from', 'markdown', '--to', 'rst', os.path.join(here, 'README.md')]), 'utf8')
+        return check_output(['pandoc', '--from', 'markdown', '--to', 'rst', os.path.join(here, 'Readme.md')]).decode('utf8')
     except (ImportError, OSError, CalledProcessError) as error:
         print('python2.6 and pandoc is required to get the description as rst (as required to get nice rendering in pypi) - using the original markdown instead.',
               'See http://johnmacfarlane.net/pandoc/')
-    return str(open(os.path.join(here, 'README.md')).read())
+    return str(open(os.path.join(here, 'Readme.md')).read())
 
 setup_args = dict(
     name='fluentpy',
