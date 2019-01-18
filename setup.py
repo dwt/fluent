@@ -7,21 +7,14 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 
 def readme():
-    "Falls back to just file().read() on any error, because the conversion to rst is only really relevant when uploading the package to pypi"
-    from subprocess import CalledProcessError
-    try:
-        from subprocess import check_output
-        return check_output(['pandoc', '--from', 'markdown', '--to', 'rst', os.path.join(here, 'Readme.md')]).decode('utf8')
-    except (ImportError, OSError, CalledProcessError) as error:
-        print('python2.6 and pandoc is required to get the description as rst (as required to get nice rendering in pypi) - using the original markdown instead.',
-              'See http://johnmacfarlane.net/pandoc/')
-    return str(open(os.path.join(here, 'Readme.md')).read())
+    return open(os.path.join(here, 'Readme.md')).read()
 
 setup_args = dict(
     name='fluentpy',
-    version='1.0.2a2',
+    version='1.1b3',
     description='Python wrapper for stdlib (and your) objects to give them a fluent interface.',
     long_description=readme(),
+    long_description_content_type='text/markdown',
     url='https://github.com/dwt/fluent',
     author='Martin Häcker',
     author_email='mhaecker@mac.com',
