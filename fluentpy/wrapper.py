@@ -84,7 +84,8 @@ def wrapped(wrapped_function, additional_result_wrapper=None, self_index=0):
 def unwrapped(wrapped_function):
     """Like wrapped(), but doesn't wrap the result.
     
-    Use this to adapt free functions that should not return a wrapped value"""
+    Use this to adapt free functions that should not return a wrapped value
+    """
     @functools.wraps(wrapped_function)
     def forwarder(self, *args, **kwargs):
         return wrapped_function(self.unwrap, *args, **kwargs)
@@ -203,7 +204,7 @@ class Wrapper(object):
             >>> class UnfortunateNames(object):
             >>>     def previous(self, *args):
             >>>         return args
-            
+        
         This raises TypeError, because Wrapper.previous() shadows UnfortunateNames.previous():
         
             >>> _(UnfortunateNames()).previous('foo')) 
@@ -211,7 +212,6 @@ class Wrapper(object):
         This works as expected:
         
             >>> _(UnfortunateNames()).proxy.previous('foo')._) == ('foo',)
-        
         """
         # @public
         class Proxy(object):
@@ -241,7 +241,8 @@ class Wrapper(object):
         """Like tee on the shell
         
         Calls the argument function with self, but then discards the result and allows 
-        further chaining from self."""
+        further chaining from self.
+        """
         function(self)
         return self
     
@@ -320,7 +321,7 @@ class Callable(Wrapper):
     
     @wrapped
     def curry(self, *default_args, **default_kwargs):
-        """"Like functools.partial, but with a twist.
+        """Like functools.partial, but with a twist.
         
         If you use `wrap` or `_` as a positional argument, upon the actual call, 
         arguments will be left-filled for those placeholders.
@@ -417,7 +418,8 @@ class Callable(Wrapper):
     @wrapped
     def compose(self, outer):
         """Compose two functions.
-        >>>  inner_function.compose(outer_function) \
+        
+        >>>  inner_function.compose(outer_function) \\
         ...    == lambda *args, **kwargs: outer_function(inner_function(*args, **kwargs))
         """
         return lambda *args, **kwargs: outer(self(*args, **kwargs))
@@ -528,7 +530,7 @@ class Iterable(Wrapper):
     
     @wrapped
     def ieach(self, a_function):
-        'call `a_function` on each elment in self purely for the side effect, then yield the input element'
+        """call `a_function` on each elment in self purely for the side effect, then yield the input element"""
         for element in self:
             a_function(element)
             yield element
@@ -555,7 +557,8 @@ class Iterable(Wrapper):
     @wrapped
     def igrouped(self, group_length):
         """Cut self into tupels of length group_length
-        s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."""
+        s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ...
+        """
         return zip(*[iter(self)]*group_length)
     grouped = tupleize(igrouped)
     
@@ -586,10 +589,12 @@ class Iterable(Wrapper):
         
         @argument spec integer of tuple of integers that give the spec for the dimensions of the returned structure. 
         The last dimension is inferred as needed. For example:
-        _([1,2,3,4]).reshape(2)._ == ((1,2),(3,4))
+        
+        >>> _([1,2,3,4]).reshape(2)._ == ((1,2),(3,4))
         
         Please note that 
-        _([1,2,3,4]).reshape(2,2)._ == (((1,2),(3,4)),)
+        
+        >>> _([1,2,3,4]).reshape(2,2)._ == (((1,2),(3,4)),)
         
         The extra tuple around this is due to the specification being, two tuples of two elements which is possible
         exactly once with the given iterable.
@@ -671,7 +676,7 @@ class Mapping(Iterable):
     """Index into dicts like objects. As JavaScript can."""
     
     def __getattr__(self, name):
-        "Support JavaScript like dict item access via attribute access"
+        """Support JavaScript like dict item access via attribute access"""
         if name in self.unwrap:
             return self[name]
         
@@ -692,7 +697,7 @@ class Set(Iterable):
 
 @protected
 class Text(Iterable):
-    "Supports most of the regex methods as if they where native str methods"
+    """Supports most of the regex methods as if they where native str methods"""
     
     # Regex Methods ......................................
     
