@@ -18,16 +18,18 @@ _absent_default_argument = object()
 
 # TODO investigate if functools.singledispatch would be a good candidate to replace / enhance this function
 def wrap(wrapped, *, previous=None, chain=None):
-    """Factory method, wraps anything and returns the appropriate `Wrapper` subclass.
+    """Factory method, wraps anything and returns the appropriate ``Wrapper`` subclass.
     
     This is the main entry point into the fluent wonderland. Wrap something and 
     everything you call off of that will stay wrapped in the appropriate wrappers.
     
-    It is usually imported like this:
+    It is usually imported in one of the following ways:
     
         >>> import fluentpy as _
         >>> import fluentpy as _f
         >>> from fluentpy import wrap
+    
+    ``wrap`` is the original name of the function, though I rarely recommend to use it by this name.
     """
     if isinstance(wrapped, Wrapper):
         return wrapped
@@ -106,7 +108,7 @@ def wrapped_forward(wrapped_function, additional_result_wrapper=None, self_index
 def tupleize(wrapped_function):
     """"Wrap the returned obect in a tuple to force execution of iterators.
     
-    Especially usefull to de-iterate methods / function
+    Especially useful to de-iterate methods / function
     """
     @functools.wraps(wrapped_function)
     def wrapper(self, *args, **kwargs):
@@ -118,25 +120,22 @@ class Wrapper(object):
     """Universal wrapper.
     
     This class ensures that all function calls and attribute accesses 
-    that can be caught in Python will be wrapped with the wrapper again.
+    (apart from such special CPython runtime accesses like ``object.__getattribute__``, 
+    which cannot be intercepted) will be wrapped with the wrapper again. This ensures 
+    that the fluent interface will persist and everything that is returned is itself 
+    able to be chained from again.
     
-    This ensures that the fluent interface will persist and everything 
-    that is returned is itself able to be chaned from again.
+    All returned objects will be wrapped by this class or one of its sub classes, which 
+    add functionality depending on the type of the wrapped object. I.e. iterables will 
+    gain the collection interface, mappings will gain the mapping interface, strings 
+    will gain the string interface, etc.
     
-    Using this wrapper changes the behaviour of Python soure code in quite a big way.
+    If you want to access the actual wrapped object, you will have to unwrap it explicitly
+    using ``.unwrap`` or ``._``
     
-    a) If you wrap something, if you want to get at the real object from any 
-       function call or attribute access off of that object, you will have to 
-       explicitly unwrap it.
-    
-    b) All returned objects will be enhanced by behaviour that matches the 
-       wrapped type. I.e. iterables will gain the collection interface, 
-       mappings will gain the mapping interface, strings will gain the 
-       string interface, etc.
-    
-    Please note: most of the methods are actual standard library methods that are 
+    Please note: Since most of the methods on these objects are actual standard library methods that are 
     simply wrapped to rebind their (usually first) parameter to the object they where called on.
-    So for example: `repr(something)` becomes `_(something).repr()`.
+    So for example: ``repr(something)`` becomes ``_(something).repr()``.
     This means that the (unchanged) documentation (often) still shows the original signature 
     and refers to the original arguments. A little bit of common sense might therefore be required.
     """
@@ -178,7 +177,10 @@ class Wrapper(object):
     
     @property
     def unwrap(self):
-        """Returns the underlying wrapped value of this wrapper instance."""
+        """Returns the underlying wrapped value of this wrapper instance.
+        
+        Alias: ``_``
+        """
         return self.__wrapped
     _ = unwrap # alias
     
@@ -187,13 +189,13 @@ class Wrapper(object):
         """Returns the previous wrapper in the chain of wrappers.
         
         This allows you to walk the chain of wrappers that where created in your expression. 
-        Mainly used internally but might be usefull for introspection.
+        Mainly used internally but might be useful for introspection.
         """
         return self.__previous
     
     @property
     def self(self):
-        "Like .unwrap but handles chaining off of methods / functions that return None like SmallTalk does - and returns a wrapper"
+        "Like ``.unwrap`` but handles chaining off of methods / functions that return None like SmallTalk does - and returns a wrapper"
         chain = self.unwrap
         if chain is None:
             chain = self.__chain
@@ -320,7 +322,7 @@ class Callable(Wrapper):
     def curry(self, *default_args, **default_kwargs):
         """Like functools.partial, but with a twist.
         
-        If you use `wrap` or `_` as a positional argument, upon the actual call, 
+        If you use ``wrap`` or ``_`` as a positional argument, upon the actual call, 
         arguments will be left-filled for those placeholders.
         
         >>> _(operator.add).curry(_, 'foo')('bar')._ == 'barfoo'
@@ -335,7 +337,7 @@ class Callable(Wrapper):
         You can also mix numbered with generic placeholders, but since it can be hard to read, 
         I would not advise it.
         
-        There is also `_._args` which is the placeholder for the `*args` variable argument list specifier.
+        There is also ``_._args`` which is the placeholder for the ``*args`` variable argument list specifier.
         (Note that it is only supported in the last position of the positional argument list.)
         
         >>> _(operator.add).curry(_.args)('foo', 'bar)._ == 'foobar'
@@ -450,7 +452,7 @@ class Iterable(Wrapper):
     occasionally in handwritten iterator methods.
     
     Where methods return infinite iterators, the non i-prefixed method name is skipped.
-    See `icycle` as an example.
+    See ``icycle`` as an example.
     """
     
     # __iter__ is not wrapped, and implicitly unwrap. If this is unwanted, use one of the explicit iterators
@@ -461,7 +463,7 @@ class Iterable(Wrapper):
     
     @wrapped
     def star_call(self, function, *args, **kwargs):
-        "Calls `function(*self)`, but allows to prepend args and add kwargs."
+        "Calls ``function(*self)``, but allows to prepend args and add kwargs."
         return function(*args, *self, **kwargs)
     
     # This looks like it should be the same as 
@@ -529,7 +531,7 @@ class Iterable(Wrapper):
     
     @wrapped
     def ieach(self, a_function):
-        """call `a_function` on each elment in self purely for the side effect, then yield the input element"""
+        """call ``a_function`` on each elment in self purely for the side effect, then yield the input element"""
         for element in self:
             a_function(element)
             yield element
@@ -583,7 +585,7 @@ class Iterable(Wrapper):
     def ireshape(self, *spec):
         """Modeled to be the inverse of flatten, allowing to create structure from linearity.
         
-        Allows you to turn `(1,2,3,4)` into `((1,2),(3,4))`.
+        Allows you to turn ``(1,2,3,4)`` into ``((1,2),(3,4))``.
         Very much inspired by numpy.reshape. @see https://docs.scipy.org/doc/numpy/reference/generated/numpy.reshape.html
         
         @argument spec integer of tuple of integers that give the spec for the dimensions of the returned structure. 
@@ -680,7 +682,7 @@ class Mapping(Iterable):
     # Callable.star_call
     @wrapped
     def star_call(self, function, *args, **kwargs):
-        "Calls `function(**self)`, but allows to add args and set defaults for kwargs."
+        "Calls ``function(**self)``, but allows to add args and set defaults for kwargs."
         return function(*args, **dict(kwargs, **self))
 
 @protected
@@ -736,16 +738,16 @@ class Each(Wrapper):
     
     # there is no operator form for x in iterator, such an api is only the wrong way around on iterator which inverts the reading direction
     def in_(self, haystack):
-        """Implements a method version of the `in` operator. 
+        """Implements a method version of the ``in`` operator. 
         
-        So `_.each.in_('bar')` is roughly equivalent to `lambda each: each in 'bar'`
+        So ``_.each.in_('bar')`` is roughly equivalent to ``lambda each: each in 'bar'``
         """
         return haystack.__contains__
     
     def not_in(self, haystack):
-        """Implements a method version of the `not in` operator. 
+        """Implements a method version of the ``not in`` operator. 
         
-        So `_.each.not_in('bar')` is roughly equivalent to `lambda each: each not in 'bar'`
+        So ``_.each.not_in('bar')`` is roughly equivalent to ``lambda each: each not in 'bar'``
         """
         def not_contains(needle):
             """The equivalent of  operator.__not_contains__ if it would exist."""
@@ -764,7 +766,7 @@ class Each(Wrapper):
     def call(self):
         """Helper to generate operator.methodcaller objects from normal calls.
         
-        `_.call.method('with_arguments')` is roughly equivalent to `lambda each: each.method('with_arguments)`
+        ``_.call.method('with_arguments')`` is roughly equivalent to ``lambda each: each.method('with_arguments)``
         """
         class MethodCallerConstructor(object):
             
