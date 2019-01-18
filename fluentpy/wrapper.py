@@ -133,6 +133,12 @@ class Wrapper(object):
        wrapped type. I.e. iterables will gain the collection interface, 
        mappings will gain the mapping interface, strings will gain the 
        string interface, etc.
+    
+    Please note: most of the methods are actual standard library methods that are 
+    simply wrapped to rebind their (usually first) parameter to the object they where called on.
+    So for example: `repr(something)` becomes `_(something).repr()`.
+    This means that the (unchanged) documentation (often) still shows the original signature 
+    and refers to the original arguments. A little bit of common sense might therefore be required.
     """
     
     __slots__ = ['__wrapped', '__previous', '__chain']
