@@ -1,4 +1,0 @@
-autoapi
-recommonmark
-Sphinx
-sphinx-rtd-theme

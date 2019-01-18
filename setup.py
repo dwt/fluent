@@ -42,10 +42,22 @@ setup_args = dict(
     test_suite="fluent_test.py",
     tests_require=(
         'pyexpect',
-        # Release-Dependencies
-        'pypandoc', # just to get pandoc - which we use directly
-        'twine', # to upload releases
     ),
+    extras_require={
+        'dev': [
+            'twine',
+        ],
+        'tests': [
+            'pyexpect',
+            'pytest',
+        ],
+        'docs': [
+            'sphinx >= 1.8.3',
+            'sphinx-rtd-theme >= 0.4.2',
+            'autoapi >= 1.3.1',
+            'recommonmark >= 0.5.0',
+        ],
+    },
 )
 
 if __name__ == '__main__':
