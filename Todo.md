@@ -4,6 +4,8 @@
 
 # Bunch of Ideas
 
+Get on python-ideas and understand why there is no operator for x in y, x not in y, *x and **y
+
 Iterable.list(), Iterable.tuple(), Iterable.dict(), Iterable.set() instead of the somewhat arbitrary tuplify(), dictify(), …
 
 Consider if Callable.__call__() and Callable.cury() should not auto unwrap their arguments? This behaviour seems quite different to the rest of the library.
