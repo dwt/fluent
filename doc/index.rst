@@ -11,7 +11,9 @@ The fluent Library
    :caption: For more information see:
 
    Narrative Documentation <Readme>
+   
    API Documentation <fluentpy/fluentpy>
+   
    Example Code <https://github.com/dwt/fluent/tree/master/examples>
 
 
@@ -57,7 +59,7 @@ becomes
 
     >>> lib.sys.stdin.read()
 
-``each`` you probably best think as a convenience lambda generator. It is meant to be a little bit more compact way to write down operations you want to execute on every element in a collection.
+``each`` you probably best think as a convenience lambda generator. It is meant to be a little bit more compact to write down operations you want to execute on every element in a collection.
 
     >>> numbers = range(1,10)
     >>> print(map(lambda x: x * 2, numbers))
