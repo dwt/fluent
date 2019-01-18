@@ -246,4 +246,6 @@ That being said, `str()` and `repr()` output is clearly marked, so this is easy 
 
 This library tries to do a little of what libraries like underscore or lodash or jQuery do for Javascript. Just provide the missing glue to make the standard library nicer and easier to use - especially for short oneliners or short script. Have fun!
 
-I envision this to be very usefull in quick python scripts and shell one liners and filters, where python was previously just that little bit too hard to use, that 'overflowed the barrel' and prevented you from doing so.
+I envision this library to be especially usefull in quick python scripts and shell one liners and filters, where python was previously just that little bit too hard to use, that 'overflowed the barrel' and prevented you from doing so.
+
+I also really like it's use in notebooks to have just that little bit better a workflow while exploring some library or code or concept.
