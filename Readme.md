@@ -238,18 +238,65 @@ Even though both sort() and reverse() return None
 
 Of course, if you unwrap at any point with `.unwrap` or `._` you will get the true return value of `None`.
 
-## Caveats
+## Caveats and lessons learnned
+
+### Start and end fluentpy expressions on each line
 
 If you do not end each fluent statement with a `.unwrap` or `._` operation to get a normal python object back, the wrapper will spread in your runtime image like a virus, 'infecting' more and more objects causing strange side effects. So remember: Always religiously unwrap your objects at the end of a fluent statement, when using fluentpy in bigger projects.
 
     >>> _('foo').uppercase().match('(foo)').group(0)._
 
+I have found that it is usally a good idea _not_ to commit wrapped objects to variables but instead to unwrap them. This is especially sensible, since fluent chains have references to all intermediate values, so you want to unwrap chains to give the garbage collector the permission to release all those objects.
+
 That being said, `str()` and `repr()` output is clearly marked, so this is easy to debug. Also, not having to unwrap may be perfect for short scripts and especially 'one-off' shell commands. Use fluentpys power wisely!
+
+### Split expression chains into multiple lines
+
+Longer fluent call chains are best written on multiple lines. This helps readability and eases commenting on lines (as your code can become very terse this way).
+
+For short chains one line might be fine.
+
+    _(open('day1-input.txt')).read().replace('\n','').call(eval)._
+
+For longer chains multiple lines are much cleaner.
+
+    day1_input = (
+        _(open('day1-input.txt'))
+        .readlines()
+        .imap(eval)
+        ._
+    )
+    
+    seen = set()
+    def havent_seen(number):
+        if number in seen:
+            return False
+        seen.add(number)
+        return True
+    
+    (
+        _(day1_input)
+        .icycle()
+        .iaccumulate()
+        .idropwhile(havent_seen)
+        .get(0)
+        .print()
+    )
+
+### Consider the performance implications of fluentpy
+
+This library works by creating another instance of it's wrapper object for every attribute access, item get or method call you make on an object. Also those objects retain a history chain to all previous wrappers in the chain (to cope with functions that return `None`).
+
+This means that tight inner loops, where even allocating one more object would harshly impact the performance of your code, you probably don't want to use fluentpy.
+
+Also (again) this means that you don't want to commit fluent objects to long lived variables, as that could be the source of a major memory leak.
+
+And for everywhere else: go to town! Coding Python in a fluent way can be so much fun!
 
 ## Famous Last Words
 
 This library tries to do a little of what libraries like underscore or lodash or jQuery do for Javascript. Just provide the missing glue to make the standard library nicer and easier to use - especially for short oneliners or short script. Have fun!
 
-I envision this library to be especially usefull in quick python scripts and shell one liners and filters, where python was previously just that little bit too hard to use, that 'overflowed the barrel' and prevented you from doing so.
+I envision this library to be especially usefull in quick python scripts and shell one liners and filters, where python was previously just that little bit too hard to use and prevented you from doing so.
 
 I also really like it's use in notebooks to have just that little bit better a workflow while exploring some library or code or concept.
