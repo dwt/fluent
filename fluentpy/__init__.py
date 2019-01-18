@@ -37,7 +37,7 @@ import fluentpy.wrapper
 # Make the module executable via `python -m fluentpy "some fluent using python code"`
 
 import functools, sys
-# REFACT What would be the best way not to cache all the attributes of fluentpy.wrapperr with functools.wrraps
+# REFACT What would be the best way not to cache all the attributes of fluentpy.wrapperr with functools.wraps
 @functools.wraps(fluentpy.wrapper.wrap)
 def executable_module(*args, **kwargs): return fluentpy.wrapper.wrap(*args, **kwargs)
 executable_module.__name__ = __name__ + '.' + fluentpy.wrapper.wrap.__name__
