@@ -243,15 +243,6 @@ class Wrapper(object):
     isinstance = wrapped(isinstance)
     issubclass = wrapped(issubclass)
     
-    def tee(self, function):
-        """Like tee on the shell
-        
-        Calls the argument function with self, but then discards the result and allows 
-        further chaining from self.
-        """
-        function(self)
-        return self
-    
     dir = wrapped(dir)
     vars = wrapped(vars)
     print = wrapped(print)
@@ -642,17 +633,9 @@ class Iterable(Wrapper):
             result.append((key, tuple(values)))
         return wrap(tuple(result), previous=self)
     
-    def tee(self, function):
-        """This override tries to retain iterators, as a speedup"""
-        # REFACT consider switching to type check here?
-        if hasattr(self.unwrap, '__next__'): # iterator
-            first, second = itertools.tee(self.unwrap, 2)
-            function(wrap(first, previous=self))
-            return wrap(second, previous=self)
-        else:
-            return super().tee(function)
-    
     # itertools method support ............................
+    
+    itee = wrapped(itertools.tee)
     
     islice = wrapped(itertools.islice)
     slice = tupleize(islice)

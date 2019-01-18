@@ -103,15 +103,6 @@ class WrapperTest(FluentTest):
         expect(_(3).type()) == int
         expect(_('3').type()) == str
     
-    def test_tee_breakout_a_function_with_side_effects_and_disregard_return_value(self):
-        side_effect = {}
-        def observer(a_list): side_effect['tee'] = a_list.join('-')._
-        expect(_([1,2,3]).tee(observer)._) == [1,2,3]
-        expect(side_effect['tee']) == '1-2-3'
-        
-        def fnording(ignored): return 'fnord'
-        expect(_([1,2,3]).tee(fnording)._) == [1,2,3]
-    
     def _test_creating_new_attributes_should_create_attribute_on_wrapped_object(self):
         wrapped = _(object())
         wrapped.foo = 'bar'
@@ -296,14 +287,6 @@ class IterableTest(FluentTest):
             (3, (3,3)),
         )
     
-    def test_tee_should_not_break_iterators(self):
-        # This should work because the extend as well als the .call(list) 
-        # should not exhaust the iterator created by .imap()
-        recorder = []
-        def record(generator): recorder.extend(generator)
-        expect(_([1,2,3]).imap(lambda x: x*x).tee(record).call(list)._) == [1,4,9]
-        expect(recorder) == [1,4,9]
-    
     def test_enumerate(self):
         expect(_(('foo', 'bar')).ienumerate().call(list)._) == [(0, 'foo'), (1, 'bar')]
         expect(_(('foo', 'bar')).enumerate()._) == ((0, 'foo'), (1, 'bar'))
@@ -397,6 +380,12 @@ class IterableTest(FluentTest):
         expect(_([1,2]).icycle().slice(None, 8,2)._) == (1,1,1,1)
     
     def test_itertools_moved_collection_methods(self):
+        import typing
+        iterators = _(iter([1,2,3])).itee(10)._
+        expect(iterators).has_length(10)
+        for iterator in iterators:
+            expect(isinstance(iterator, typing.Iterator)).is_true()
+        
         expect(_([1,2,3]).accumulate()._) == (1,3,6)
         
         expect(_([1,2,1]).dropwhile(_.each < 2)._) == (2,1)

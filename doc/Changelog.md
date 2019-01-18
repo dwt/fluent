@@ -6,6 +6,8 @@
 
 `Iterable.iter()` now returns unwrapped instances. This was changed for uniformity, as all other ways to iterate through a wrapped `Iterable` returned unwrapped instances.
 
+Removed `Wrapper.tee()` and `Itertools.tee()` as `_(something).tee(a_function)` is easily replicable by `_(something).call(a_function).previous` and `Iterable.tee()` prevented me from providing `itertools.tee`.
+
 ### Notable Changes
 
 `Callable.curry()` now supports converting positional arguments to keyword arguments.
