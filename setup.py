@@ -6,14 +6,11 @@ import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-def readme():
-    return open(os.path.join(here, 'Readme.md')).read()
-
 setup_args = dict(
     name='fluentpy',
     version='1.1b3',
     description='Python wrapper for stdlib (and your) objects to give them a fluent interface.',
-    long_description=readme(),
+    long_description=open(os.path.join(here, 'Readme.md')).read(),
     long_description_content_type='text/markdown',
     url='https://github.com/dwt/fluent',
     author='Martin Häcker',
