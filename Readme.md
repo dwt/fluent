@@ -6,9 +6,9 @@ It is inspired by jQuery and underscore / lodash from the javascript world. It a
 
 Please Note: **This library is an experiment.** It is based on a wrapper that aggressively wraps anything it comes in contact with and tries to stay invisible. We'll address this in section **Caveats** below.
 
-## Introduction: Why use fluent?
+## Introduction: Why use fluentpy?
 
-The Python standard library includes many useful, time-saving convenience methods such as `map`, `zip`, `filter` and `join`. The problem that motivated me to write fluent is that these convenience methods are often available as free functions or on (arguably) the wrong object.
+The Python standard library includes many useful, time-saving convenience methods such as `map`, `zip`, `filter` and `join`. The problem that motivated me to write fluentpy is that these convenience methods are often available as free functions or on (arguably) the wrong object.
 
 For example, `map`, `zip`, and `filter` all operate on iterable objects but they are implemented as free functions. This not only goes against my sense of how object oriented code should behave, but more importantly, writing python code using these free functions requires that the reader must often mentally skip back and forth in a line of code to understand what it does, making the code more difficult to understand.
 
@@ -118,10 +118,9 @@ But it is not required to import all these symbols, as they are all also availab
 
 ### Aggressive (specialized) wrapping
 
-`_` is actually the function `wrap` in the fluent module, which is a factory function that returns a subclass of Wrapper, the basic and main object of this library.
+`_` is actually the function `wrap` in the fluentpy module, which is a factory function that returns a subclass of Wrapper, the basic and main object of this library.
 
-This does two things: First it ensures that every attribute access, item access or method call off of the wrapped object will also return a wrapped object. This means that once you wrap something, unless you unwrap it explicitly via `.unwrap` or `._` it stays wrapped - pretty much no matter what you do with it. The second thing this does is that it returns a subclass of Wrapper that has a specialized set 
-of methods, depending on the type of what is wrapped. I envision this to expand in the future, but right now the most usefull wrappers are: Iterable, where we add all the python collection functions (map, filter, zip, reduce, …) as well as a good batch of methods from itertools and a few extras for good measure. Callable, where we add `.curry()` and `.compose()` and Text, where most of the regex methods are added. [Explore the method documentation for what you can do]()).
+This does two things: First it ensures that every attribute access, item access or method call off of the wrapped object will also return a wrapped object. This means that once you wrap something, unless you unwrap it explicitly via `.unwrap` or `._` it stays wrapped - pretty much no matter what you do with it. The second thing this does is that it returns a subclass of Wrapper that has a specialized set of methods, depending on the type of what is wrapped. I envision this to expand in the future, but right now the most usefull wrappers are: Iterable, where we add all the python collection functions (map, filter, zip, reduce, …) as well as a good batch of methods from itertools and a few extras for good measure. Callable, where we add `.curry()` and `.compose()` and Text, where most of the regex methods are added. [Explore the method documentation for what you can do]()).
 
 TODO add link!
 
@@ -130,7 +129,7 @@ TODO add link!
 
 It could often be super easy, to achieve somethign on the shell, with a bit of python. But, the backtracking (while writing) as well as the tendency of python commands to span many lines, makes this often just impractical enough that you won't do it.
 
-That's why fluent is an executable module, so that you can use it on the shell like this:
+That's why fluentpy is an executable module, so that you can use it on the shell like this:
 
     $ python3 -m fluentpy "lib.sys.stdin.readlines().map(str.lower).map(print)"
 
@@ -225,7 +224,7 @@ This is a feature of python, where methods that don't have a return statement re
 
 While this is way better than e.g. Ruby where that will just return the value of the last expression - which means objects constantly leak internals - it is very annoying if you want to chain off of one of these method calls.
 
-Fear not though, fluent has you covered. :)
+Fear not though, fluentpy has you covered. :)
 
 Fluent wrapped objects will have a `self` property, that allows you to continue chaining off of the previous self.
 
@@ -237,11 +236,11 @@ Of course, if you unwrap at any point with `.unwrap` or `._` you will get the tr
 
 ## Caveats
 
-If you do not end each fluent statement with a `.unwrap` or `._` operation to get a normal python object back, the wrapper will spread in your runtime image like a virus, 'infecting' more and more objects causing strange side effects. So remember: Always religiously unwrap your objects at the end of a fluent statement, when using fluent in bigger projects.
+If you do not end each fluent statement with a `.unwrap` or `._` operation to get a normal python object back, the wrapper will spread in your runtime image like a virus, 'infecting' more and more objects causing strange side effects. So remember: Always religiously unwrap your objects at the end of a fluent statement, when using fluentpy in bigger projects.
 
-    >>> _("foo").uppercase().match('(foo)').group(0)._
+    >>> _('foo').uppercase().match('(foo)').group(0)._
 
-That being said, `str()` and `repr()` output is clearly marked, so this is easy to debug. Also, not having to unwrap is perfect for short scripts and especially 'one-off' shell commands. Use fluents power wisely!
+That being said, `str()` and `repr()` output is clearly marked, so this is easy to debug. Also, not having to unwrap may be perfect for short scripts and especially 'one-off' shell commands. Use fluentpys power wisely!
 
 ## Famous Last Words
 
