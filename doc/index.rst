@@ -60,12 +60,11 @@ becomes
 
 ``each`` you probably best think as a convenience lambda generator. It is meant to be a little bit more compact to write down operations you want to execute on every element in a collection.
 
-    >>> numbers = range(1,10)
-    >>> print(map(lambda x: x * 2, numbers))
+    >>> print(map(lambda x: x * 2, range(1,10)))
 
 becomes
 
-    >>> wrap(range(1,10)).map(each * 2).print()
+    >>> wrap(range(1, 10)).map(each * 2).print()
 
 Here ``each * 2`` is the same as ``lambda x: x * 2``. ``each['foo']`` becomes ``lambda each: each['foo']``, ``each.bar`` becomes ``lambda each: each.bar``. ``each.call.foo('bar')`` becomes ``lambda each: each.foo('bar')`` (Sorry about the ``.call.`` there, but I haven't found a way to get rid of it, pull requests welcome).
 
@@ -74,7 +73,7 @@ I suggest you use ``.dir()`` and ``.help()`` on the objects of this library to q
 Usage in short scripts or bigger projects
 -----------------------------------------
 
-Just import fluent under the name you would like to use it. For short scripts I prefer ``_`` but for projects where gettext is used, I prefer ``_f``
+Just import fluent under the name you would like to use it. For short scripts I prefer ``_`` but for projects where gettext is used, I prefer ``_f``.
 
     >>> import fluent as _
     >>> _(range(10)).map(_.each * 3)
@@ -87,6 +86,6 @@ Just import fluent under the name you would like to use it. For short scripts I 
 Further information
 -------------------
 
-Read up on the :doc:`Narrative Documentation <Readme>`, browse the :doc:`API Documentation <fluentpy/fluentpy>` or take a look at some `Example Code <https://github.com/dwt/fluent/tree/master/examples>`_
+Read up on the :doc:`Narrative Documentation <Readme>`, browse the :doc:`API Documentation <fluentpy/fluentpy>` or take a look at some `Example Code <https://github.com/dwt/fluent/tree/master/examples>`_.
 
 And most important of all: Have phun!
