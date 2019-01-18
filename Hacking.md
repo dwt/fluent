@@ -25,4 +25,5 @@ Please note that this project practices Semantic Versioning and [Dependable API 
 - upload to testpypi as required $ twine upload --repository testpypi dist/fluentpy-*
 - upload to pypi as required $ twine upload dist/fluentpy-*
 - Push git tags
+- Test install and check the new version from pypi
 
