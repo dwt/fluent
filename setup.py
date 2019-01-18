@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf8
 
-from setuptools import setup
+import setuptools
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -13,10 +13,13 @@ setup_args = dict(
     long_description=open(os.path.join(here, 'Readme.md')).read(),
     long_description_content_type='text/markdown',
     url='https://github.com/dwt/fluent',
+    project_urls={
+        'Documentation': 'https://fluentpy.readthedocs.io/',
+    },
     author='Martin Häcker',
     author_email='mhaecker@mac.com',
     license='ISC',
-    classifiers=(
+    classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Intended Audience :: Developers',
@@ -24,9 +27,9 @@ setup_args = dict(
         'Topic :: Utilities',
         'License :: OSI Approved :: ISC License (ISCL)',
         'Programming Language :: Python :: 3',
-    ),
+    ],
     keywords='wrapper,smalltalk,ruby,fluent,interface,functional',
-    py_modules=['fluentpy'],
+    packages=setuptools.find_packages(exclude=['*.tests']),
     python_requires='>=3.6',
     include_package_data=True,
     test_suite="fluent_test.py",
@@ -51,4 +54,4 @@ setup_args = dict(
 )
 
 if __name__ == '__main__':
-    setup(**setup_args)
+    setuptools.setup(**setup_args)
