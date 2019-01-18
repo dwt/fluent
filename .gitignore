@@ -4,3 +4,4 @@ build/
 doc/fluentpy/fluentpy.rst
 .pytest_cache
 .vscode
+.ipynb_checkpoints
