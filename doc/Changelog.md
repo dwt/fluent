@@ -2,6 +2,8 @@
 
 ## Development version
 
+## Version 2.0
+
 ### Breaking changes
 
 `Iterable.iter()` now returns unwrapped instances. This was changed for uniformity, as all other ways to iterate through a wrapped `Iterable` returned unwrapped instances.
