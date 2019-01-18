@@ -12,6 +12,7 @@ The fluent Library
 
    Narrative Documentation <Readme>
    API Documentation <fluentpy/fluentpy>
+   Example Code <https://github.com/dwt/fluent/tree/master/examples>
 
 
 Project Matters
@@ -85,6 +86,6 @@ Just import fluent under the name you would like to use it. For short scripts I 
 Further information
 -------------------
 
-Read up on the :doc:`Narrative Documentation <Readme>` or browse the :doc:`API Documentation <fluentpy/fluentpy>`
+Read up on the :doc:`Narrative Documentation <Readme>`, browse the :doc:`API Documentation <fluentpy/fluentpy>` or take a look at some `Example Code <https://github.com/dwt/fluent/tree/master/examples>`_
 
 And most important of all: Have phun!
