@@ -9,11 +9,9 @@ The fluent Library
 .. toctree::
    :numbered:
    :caption: For more information see:
-
+   
    Narrative Documentation <Readme>
-   
    API Documentation <fluentpy/fluentpy>
-   
    Example Code <https://github.com/dwt/fluent/tree/master/examples>
 
 
