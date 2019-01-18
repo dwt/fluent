@@ -179,11 +179,14 @@ class Wrapper(object):
     def unwrap(self):
         """Returns the underlying wrapped value of this wrapper instance.
         
+        All other functions return wrappers themselves unless explicitly stated.
+        
         Alias: ``_``
         """
         return self.__wrapped
     _ = unwrap # alias
     
+    # REFACT consider rename / alias .prev so there is less reason to use .self
     @property
     def previous(self):
         """Returns the previous wrapper in the chain of wrappers.
@@ -212,11 +215,10 @@ class Wrapper(object):
     
     @property
     def proxy(self):
-        """Allow access to shadowed attriutes.
+        """Allow access to shadowed attributes.
         
         Breakout that allows access to attributes of the wrapped object that are shadowed by 
-        methods on the various wrapper classes.
-        
+        methods on the various wrapper classes. Wrapped of course.
         
             >>> class UnfortunateNames(object):
             >>>     def previous(self, *args):
@@ -230,7 +232,6 @@ class Wrapper(object):
         
             >>> _(UnfortunateNames()).proxy.previous('foo')._) == ('foo',)
         """
-        # @public
         class Proxy(object):
             def __init__(self, proxied):
                 self.__proxied = proxied
