@@ -141,7 +141,7 @@ class CallableTest(FluentTest):
     
     def _test_curry_positional_placeholder_can_be_overridden_by_keyword_argument(self):
         """For this to work, I would need to actually parse the argspec of the curried function,
-        and would need the code to implement the full python argument merging semantic. 
+        and would need the code to implement the full Python argument merging semantic. 
         Not fun, nor neccessary I believe."""
         curried = _(lambda x, y: (x, y)).curry(_, y=1)
         expect(curried(x=0)._) == (0, 1)

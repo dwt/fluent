@@ -32,16 +32,16 @@ Project Matters
 What problem does fluent solve
 ------------------------------
 
-The fluent library is a syntactic sugar library for python. It allows you to write more things as expressions, which traditionally require statements in python. The goal is to allow writing beautiful fluent code with the standard library or your classes, as defined at https://en.wikipedia.org/wiki/Fluent_interface
+The fluent library is a syntactic sugar library for Python. It allows you to write more things as expressions, which traditionally require statements in Python. The goal is to allow writing beautiful fluent code with the standard library or your classes, as defined at https://en.wikipedia.org/wiki/Fluent_interface.
 
 Quick Start
 -----------
 
-Fluent is a powerful library, that allows you to use existing libraries through a fluent interface. This is especially useful since most of the python standard library was written in a way that makes it hard to be used in this style.
+Fluent is a powerful library, that allows you to use existing libraries through a fluent interface. This is especially useful since most of the Python standard library was written in a way that makes it hard to be used in this style.
 
-This makes Fluent really usefull to write small python shell filters, to do something that Python is good at, for example finding stuff with regexes::
+This makes `fluentpy` really usefull to write small Python shell filters, to do something that Python is good at, for example finding stuff with regexes::
 
-    $ python3 -m fluent "lib.sys.stdin.read().findall(r'(foo|bar)*').print()"
+    $ python3 -m fluentpy "lib.sys.stdin.read().findall(r'(foo|bar)*').print()"
 
 Or whatever other function from the standard lib or any library you would like to use. The Idea here is that while this is perfectly possible without fluent, it is just that little bit easier, to make it actually become fun and practical.
 
@@ -49,7 +49,7 @@ In this context you have basically three extra symbols ``wrap`` or ``_``, ``lib`
 
 ``wrap`` is the factory for the object specific wrapper types. Every wrapped object has the fluent behaviour, i.e. every accessed property is also wrapped, while also gaining some type dependent special methods like regex methods on str like ``.findall()`` ``.map()``, ``.join()``, etc. on list, etc.
 
-``lib`` is a wrapper that allows to use any symbol that is anywhere in the standard library by attribute access. For Example:
+``lib`` is a wrapper that allows to use any symbol that is anywhere in the standard library (or accessible via an import) by attribute access. For Example:
 
     >>> import sys
     >>> sys.stdin.read()

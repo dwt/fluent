@@ -4,6 +4,8 @@
 
 # Bunch of Ideas
 
+Iterable.list(), Iterable.tuple(), Iterable.dict(), Iterable.set() instead of the somewhat arbitrary tuplify(), dictify(), …
+
 Consider if Callable.__call__() and Callable.cury() should not auto unwrap their arguments? This behaviour seems quite different to the rest of the library.
 
 Docs
@@ -73,6 +75,6 @@ add itertools and collections methods where it makes sense
 
 Would be really nice to allow inputting the chain into a list comprehension in a readable way
 
-consider what it takes to allow reloading fluentpy itself. This is not so super easy, as the executable module caches all the old values on the function (functools.wraps does that). So afterwards all manner of instance checks don't work anymore. Therefore, just defining __getattr__ on the instance method doesn't quite work
+consider what it takes to allow reloading wpy itself. This is not so super easy, as the executable module caches all the old values on the function (functools.wraps does that). So afterwards all manner of instance checks don't work anymore. Therefore, just defining __getattr__ on the instance method doesn't quite work
 
 consider typing all the methods for better autocompletion?

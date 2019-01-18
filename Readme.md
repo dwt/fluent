@@ -1,6 +1,6 @@
-# The Fluent python library
+# The fluent Python library
 
-Fluent helps you write more object-oriented and concise python code.
+Fluent helps you write more object-oriented and concise Python code.
 
 It is inspired by `jQuery` and `underscore` / `lodash` from the JavaScript world. It also takes some inspiration from Ruby / SmallTalk -- in particular, collections and how to work with them.
 
@@ -12,7 +12,7 @@ Please Note: **This library is an experiment.** It is based on a wrapper that ag
 
 The Python standard library includes many useful, time-saving convenience methods such as `map`, `zip`, `filter` and `join`. The problem that motivated me to write `fluentpy` is that these convenience methods are often available as free functions or on (arguably) the wrong module or class.
 
-For example, `map`, `zip`, and `filter` all operate on `iterable` objects but they are implemented as free functions. This not only goes against my sense of how object oriented code should behave, but more importantly, writing python code using these free functions requires that the reader must often mentally skip back and forth in a line of code to understand what it does, making the code more difficult to understand.
+For example, `map`, `zip`, and `filter` all operate on `iterable` objects but they are implemented as free functions. This not only goes against my sense of how object oriented code should behave, but more importantly, writing Python code using these free functions requires that the reader must often mentally skip back and forth in a line of code to understand what it does, making the code more difficult to understand.
 
 Let's use the following simple example to analyze this problem:
 
@@ -122,26 +122,26 @@ But it is not required to import all these symbols, as they are all also availab
 
 `_` is actually the function `wrap` in the `fluentpy` module, which is a factory function that returns a subclass of Wrapper, the basic and main object of this library.
 
-This does two things: First it ensures that every attribute access, item access or method call off of the wrapped object will also return a wrapped object. This means that once you wrap something, unless you unwrap it explicitly via `.unwrap` or `._` it stays wrapped - pretty much no matter what you do with it. The second thing this does is that it returns a subclass of Wrapper that has a specialized set of methods, depending on the type of what is wrapped. I envision this to expand in the future, but right now the most useful wrappers are: `Iterable`, where we add all the python collection functions (map, filter, zip, reduce, …), as well as a good batch of methods from `itertools` and a few extras for good measure. Callable, where we add `.curry()` and `.compose()` and Text, where most of the regex methods are added. [Explore the method documentation for what you can do]()).
+This does two things: First it ensures that every attribute access, item access or method call off of the wrapped object will also return a wrapped object. This means that once you wrap something, unless you unwrap it explicitly via `.unwrap` or `._` it stays wrapped - pretty much no matter what you do with it. The second thing this does is that it returns a subclass of Wrapper that has a specialized set of methods, depending on the type of what is wrapped. I envision this to expand in the future, but right now the most useful wrappers are: `Iterable`, where we add all the Python collection functions (map, filter, zip, reduce, …), as well as a good batch of methods from `itertools` and a few extras for good measure. Callable, where we add `.curry()` and `.compose()` and Text, where most of the regex methods are added. [Explore the method documentation for what you can do]()).
 
 TODO add link!
 
 
 ### Easy Shell Filtering with Python
 
-It could often be super easy to achieve something on the shell, with a bit of python. But, the backtracking (while writing) as well as the tendency of python commands to span many lines, makes this often just impractical enough that you won't do it.
+It could often be super easy to achieve something on the shell, with a bit of Python. But, the backtracking (while writing) as well as the tendency of Python commands to span many lines, makes this often just impractical enough that you won't do it.
 
 That's why `fluentpy` is an executable module, so that you can use it on the shell like this:
 
     $ python3 -m fluentpy "lib.sys.stdin.readlines().map(str.lower).map(print)"
 
-In this mode, the variables 'lib', '_' and 'each' are injected into the namespace of of the python commands given as the first positional argument.
+In this mode, the variables 'lib', '_' and 'each' are injected into the namespace of of the `python` commands given as the first positional argument.
 
 ### Imports as expressions
 
-Import statements are (ahem) statements in python. This is fine, but can be really annoying at times.
+Import statements are (ahem) statements in Python. This is fine, but can be really annoying at times.
 
-Consider this shell text filter written in python:
+Consider this shell text filter written in Python:
 
     $ curl -sL 'https://example.com/lists.php' \
     >    | egrep -A1 'star_[345]' \
@@ -160,7 +160,7 @@ This still leaves the problem that it has to start with this fluff
 
     import fluentpy as _; import sys, re; from xml.sax.saxutils import unescape;
 
-This doesn't really do anything to make it easier to read and write and is almost half the characters it took to achieve the wanted effect. Wouldn't it be nice if you could have some kind of object (lets call it `lib` for lack of a better word), where you could just access the whole python library via attribute access and let its machinery handle importing behind the scenes?
+This doesn't really do anything to make it easier to read and write and is almost half the characters it took to achieve the wanted effect. Wouldn't it be nice if you could have some kind of object (lets call it `lib` for lack of a better word), where you could just access the whole Python library via attribute access and let its machinery handle importing behind the scenes?
 
 Like this:
 
@@ -170,7 +170,7 @@ Like this:
 
 How's that for reading and writing if all the imports are inlined? Oh, and of course everything imported via `lib` comes already pre-wrapped, so your code becomes even shorter.
 
-More formally: The `lib` object, which is a wrapper around the python import machinery, allows to import anything that is accessible by import to be imported as an expression for inline use.
+More formally: The `lib` object, which is a wrapper around the Python import machinery, allows to import anything that is accessible by import to be imported as an expression for inline use.
 
 So instead of
 
@@ -222,9 +222,9 @@ I know `_.each.call.*()` is crude - but I haven't found a good syntax to get rid
 
 ### Chaining off of methods that return None
 
-A major nuisance for using fluent interfaces are methods that return None. Sadly, many methods in python return None, if they mostly exhibit a side effect on the object. Consider for example `list.sort()`.
+A major nuisance for using fluent interfaces are methods that return None. Sadly, many methods in Python return None, if they mostly exhibit a side effect on the object. Consider for example `list.sort()`.
 
-This is a feature of python, where methods that don't have a return statement return None.
+This is a feature of Python, where methods that don't have a return statement return None.
 
 While this is way better than e.g. Ruby where that will just return the value of the last expression - which means objects constantly leak internals - it is very annoying if you want to chain off of one of these method calls.
 
@@ -242,7 +242,7 @@ Of course, if you unwrap at any point with `.unwrap` or `._` you will get the tr
 
 ### Start and end `fluentpy` expressions on each line
 
-If you do not end each fluent statement with a `.unwrap` or `._` operation to get a normal python object back, the wrapper will spread in your runtime image like a virus, 'infecting' more and more objects causing strange side effects. So remember: Always religiously unwrap your objects at the end of a fluent statement, when using `fluentpy` in bigger projects.
+If you do not end each fluent statement with a `.unwrap` or `._` operation to get a normal Python object back, the wrapper will spread in your runtime image like a virus, 'infecting' more and more objects causing strange side effects. So remember: Always religiously unwrap your objects at the end of a fluent statement, when using `fluentpy` in bigger projects.
 
     >>> _('foo').uppercase().match('(foo)').group(0)._
 
@@ -297,6 +297,6 @@ And for everywhere else: go to town! Coding Python in a fluent way can be so muc
 
 This library tries to do a little of what libraries like `underscore` or `lodash` or `jQuery` do for Javascript. Just provide the missing glue to make the standard library nicer and easier to use. Have fun!
 
-I envision this library to be especially useful in short python scripts and shell one liners or shell filters, where python was previously just that little bit too hard to use and prevented you from doing so.
+I envision this library to be especially useful in short Python scripts and shell one liners or shell filters, where Python was previously just that little bit too hard to use and prevented you from doing so.
 
 I also really like its use in notebooks to smoothly explore some library, code or concept.

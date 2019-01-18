@@ -118,12 +118,12 @@ class Wrapper(object):
     """Universal wrapper.
     
     This class ensures that all function calls and attribute accesses 
-    that can be caught in python will be wrapped with the wrapper again.
+    that can be caught in Python will be wrapped with the wrapper again.
     
     This ensures that the fluent interface will persist and everything 
     that is returned is itself able to be chaned from again.
     
-    Using this wrapper changes the behaviour of python soure code in quite a big way.
+    Using this wrapper changes the behaviour of Python soure code in quite a big way.
     
     a) If you wrap something, if you want to get at the real object from any 
        function call or attribute access off of that object, you will have to 
@@ -350,7 +350,7 @@ class Callable(Wrapper):
         
         def merge_arguments(actual_args, actual_kwargs):
             """Processing positional arguments first, then keyword arguments to keep this as 
-            compatible as possible with the way python works
+            compatible as possible with the way Python works
             """
             # This works because dict() is sorted in python3.6+
             merged_default_kwargs = dict(default_kwargs, **actual_kwargs)
@@ -434,7 +434,7 @@ class Callable(Wrapper):
 class Iterable(Wrapper):
     """Add iterator methods to any iterable.
     
-    Most iterators in python3 return an iterator by default, which is very interesting 
+    Most iterators in Python 3 return an iterator by default, which is very interesting 
     if you want to build efficient processing pipelines, but not so hot for quick and 
     dirty scripts where you have to wrap the result in a list() or tuple() all the time 
     to actually get at the results (e.g. to print them) or to actually trigger the 
