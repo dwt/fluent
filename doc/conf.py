@@ -39,10 +39,10 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.inheritance_diagram',
     'autoapi.sphinx',
+    'recommonmark',
 ]
 
 source_parsers = {
-   '.md': 'recommonmark.parser.CommonMarkParser',
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -173,14 +173,12 @@ texinfo_documents = [
 ]
 
 
-
 def setup(app):
     app.add_config_value('recommonmark_config', {
             # 'url_resolver': lambda url: github_doc_root + url,
             'enable_auto_toc_tree': True,
             'auto_toc_tree_section': 'Contents',
             'enable_eval_rst': True,
-            'enable_auto_doc_ref': True,
             }, True)
     from recommonmark.transform import AutoStructify
     app.add_transform(AutoStructify)
