@@ -502,7 +502,8 @@ class Iterable(Wrapper):
         return with_what.join(map(str, self))
     
     ## Converters ........................................
-
+    
+    # REFACT consider to deprecate these, as .call({set, list, dict, set}) does the job
     tuplify = wrapped(tuple)
     listify = wrapped(list)
     dictify = wrapped(dict)
@@ -517,6 +518,7 @@ class Iterable(Wrapper):
         """Just like len(), but also works for iterators.
         
         Beware, that it has to consume the iterator to compute it's length"""
+        # REFACT there are iterators that know their length, check and use that!
         if isinstance(self, typing.Iterator):
             length = 0
             for i in self:
@@ -631,7 +633,10 @@ class Iterable(Wrapper):
     
     igroupby = wrapped(itertools.groupby)
     def groupby(self, *args, **kwargs):
-        # Need an extra wrapping function to consume the values iterators before the next iteration invalidates it
+        """See igroupby for most of the docs.
+        
+        Correctly consuming an itertoo.groupby is surprisingly hard, thus this non tuple returning version that does it correctly.
+        """
         result = []
         for key, values in self.igroupby(*args, **kwargs):
             result.append((key, tuple(values)))
@@ -727,6 +732,7 @@ def _make_operator(name):
         return lambda placeholder: __op__(placeholder, *others)
     return wrapper
 
+@protected
 class Each(Wrapper):
     """Create functions from expressions.
 
@@ -747,11 +753,19 @@ class Each(Wrapper):
     
     # there is no operator form for x in iterator, such an api is only the wrong way around on iterator which inverts the reading direction
     def in_(self, haystack):
+        """Implements a method version of the `in` operator. 
+        
+        So `_.each.in_('bar')` is roughly equivalent to `lambda each: each in 'bar'`
+        """
         return haystack.__contains__
     
     def not_in(self, haystack):
+        """Implements a method version of the `not in` operator. 
+        
+        So `_.each.not_in('bar')` is roughly equivalent to `lambda each: each not in 'bar'`
+        """
         def not_contains(needle):
-            'The equivalent of  operator.__not_contains__ if it would exist.'
+            """The equivalent of  operator.__not_contains__ if it would exist."""
             return needle not in haystack
         return not_contains
     
@@ -765,6 +779,10 @@ class Each(Wrapper):
     
     @property
     def call(self):
+        """Helper to generate operator.methodcaller objects from normal calls.
+        
+        `_.call.method('with_arguments')` is roughly equivalent to `lambda each: each.method('with_arguments)`
+        """
         class MethodCallerConstructor(object):
             
             _method_name = None
