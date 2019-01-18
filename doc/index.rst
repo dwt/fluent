@@ -7,7 +7,6 @@ The fluent Library
 ==================
 
 .. toctree::
-   :titlesonly:
    :numbered:
    :caption: For more information see:
 
