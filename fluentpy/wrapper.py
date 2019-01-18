@@ -18,10 +18,10 @@ _absent_default_argument = object()
 
 # TODO investigate if functools.singledispatch would be a good candidate to replace / enhance this function
 def wrap(wrapped, *, previous=None, chain=None):
-    """Factory method, wraps anything and returns the appropriate Wrapper subclass.
+    """Factory method, wraps anything and returns the appropriate `Wrapper` subclass.
     
     This is the main entry point into the fluent wonderland. Wrap something and 
-    everything you call off of that will stay wrapped in the apropriate wrappers.
+    everything you call off of that will stay wrapped in the appropriate wrappers.
     
     It is usually imported like this:
     
