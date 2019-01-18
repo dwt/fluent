@@ -17,13 +17,14 @@ The fluent Library
 Project Matters
 ---------------
 
-Project Homepage: https://github.com/dwt/fluent/
+- Project Homepage: https://github.com/dwt/fluent/
+- Bugs: https://github.com/dwt/fluent/issues
+- Documentation: https://fluentpy.readthedocs.io/en/latest/ 
+- Build Server: TODO
 
-Bugs: https://github.com/dwt/fluent/issues
-
-Documentation: TODO
-
-Build Server: TODO
+.. image:: https://readthedocs.org/projects/fluentpy/badge/?version=latest
+    :target: https://fluentpy.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 
 What problem does fluent solve

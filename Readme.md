@@ -6,6 +6,8 @@ It is inspired by jQuery and underscore / lodash from the javascript world. It a
 
 Please Note: **This library is an experiment.** It is based on a wrapper that aggressively wraps anything it comes in contact with and tries to stay invisible. We'll address this in section **Caveats** below.
 
+[![Documentation Status](https://readthedocs.org/projects/fluentpy/badge/?version=latest)](https://fluentpy.readthedocs.io/en/latest/?badge=latest)
+
 ## Introduction: Why use fluentpy?
 
 The Python standard library includes many useful, time-saving convenience methods such as `map`, `zip`, `filter` and `join`. The problem that motivated me to write fluentpy is that these convenience methods are often available as free functions or on (arguably) the wrong object.
