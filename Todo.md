@@ -1,10 +1,12 @@
 # Before next release
 
-…
+Deprecate / Remove .self and shorten .previous to .prev instead. Probably via deprecation to have less API changes
 
 # Bunch of Ideas
 
-Support Iterable.__getitem__
+Make the narrative documentation more compact
+
+Support IterableWrapper.__getitem__
 
 Consider to rename the specialized wrapper classes to have the -Wrapper Suffix
 
@@ -14,9 +16,9 @@ Enhance Wrapper.call() to allow to specify where 'self' is inserted into the arg
 
 Get on python-ideas and understand why there is no operator for x in y, x not in y, *x and **y
 
-Iterable.list(), Iterable.tuple(), Iterable.dict(), Iterable.set() instead of the somewhat arbitrary tuplify(), dictify(), …
+IterableWrapper.list(), IterableWrapper.tuple(), IterableWrapper.dict(), IterableWrapper.set() instead of the somewhat arbitrary tuplify(), dictify(), …
 
-Consider if Callable.__call__() and Callable.cury() should not auto unwrap their arguments? This behaviour seems quite different to the rest of the library.
+Consider if CallableWrapper.__call__() and CallableWrapper.cury() should not auto unwrap their arguments? This behaviour seems quite different to the rest of the library.
 
 Docs
     Check all methods have a docstring
@@ -41,7 +43,7 @@ consider numeric type to do stuff like wrap(3).times(...)
 
 Consider bool wrapper, that allows creating operator versions of if_(), else_(), elsif_(), not_(), ...
 
-add Callable.vectorize() similar to how it works in numpy - not sure this is actually sensible? Interesting experiment
+add CallableWrapper.vectorize() similar to how it works in numpy - not sure this is actually sensible? Interesting experiment
     # vectorize is much like curry
     # possible to reuse placeholders
     # if wanted, could integrate vectorization in curry
