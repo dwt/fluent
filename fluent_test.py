@@ -1,4 +1,4 @@
-import functools, io, os, operator, sys
+import functools, io, itertools, os, operator, sys
 
 import unittest
 from unittest.mock import patch
@@ -59,6 +59,9 @@ class WrapperTest(FluentTest):
         def foo(): return 'bar'
         expect(_(foo)().unwrap) == 'bar'
         expect(_(foo)().previous.unwrap) == foo
+    
+    def test_should_help_call_free_methods(self):
+        expect(_([1,2,3]).call(itertools.combinations, r=2).tuplify()._) == ((1,2), (1,3), (2,3))
     
     def test_hasattr_getattr_setattr_delattr(self):
         expect(_((1,2)).hasattr('len')._).is_false()
