@@ -106,7 +106,7 @@ def wrapped_forward(wrapped_function, additional_result_wrapper=None, self_index
 
 # REFACT consider rename to tuplify for consistency? Maybe not because it haves a different return type?
 def tupleize(wrapped_function):
-    """"Wrap the returned obect in a tuple to force execution of iterators.
+    """Wrap the returned obect in a tuple to force execution of iterators.
     
     Especially useful to de-iterate methods / function
     """
@@ -289,7 +289,7 @@ class Module(Wrapper):
         
         return wrap(module)
     
-    # REFACT conside to deprecate and remove this function since it's behaviour is so unpredictable
+    # REFACT conside to deprecate and remove this function since its behaviour is so unpredictable
     @wrapped
     @functools.wraps(importlib.reload)
     def reload(self):
@@ -324,7 +324,7 @@ class Callable(Wrapper):
     """This is the ``Wrapper`` subclass that wraps callables."""
     
     def __call__(self, *args, **kwargs):
-        """"Call through to the wrapped function."""
+        """Call through to the wrapped function."""
         def unwrap_if_neccessary(something):
             if isinstance(something, Wrapper):
                 return something.unwrap
@@ -466,7 +466,7 @@ class Iterable(Wrapper):
     there is also an i{map,zip,enumerate,...} version for your enjoyment that returns the 
     iterator.
     
-    All iterators return unwrapped elements by design. This is neccessary to make 
+    Iterating over wrapped iterators yields unwrapped elements by design. This is neccessary to make 
     ``fluentpy`` interoperable with the standard library. This means you will have to rewrap 
     occasionally in handwritten iterator methods or when iterating over a wrapped iterator 
     
@@ -506,7 +506,7 @@ class Iterable(Wrapper):
         
     @wrapped
     def join(self, with_what=''):
-        """"Like str.join, but the other way around. Bohoo!
+        """Like str.join, but the other way around. Bohoo!
         
         Also calls str on all elements of the collection before handing 
         it off to str.join as a convenience.
@@ -529,7 +529,7 @@ class Iterable(Wrapper):
     def len(self):
         """Just like len(), but also works for iterators.
         
-        Beware, that it has to consume the iterator to compute it's length"""
+        Beware, that it has to consume the iterator to compute its length"""
         # REFACT there are iterators that know their length, check and use that!
         if isinstance(self, typing.Iterator):
             length = 0
