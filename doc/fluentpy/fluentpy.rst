@@ -44,6 +44,8 @@ Classes
 - :py:class:`Text`:
   Supports most of the regex methods as if they where native str methods
 
+- :py:class:`Each`:
+  Generate lambdas from expressions
 
 .. autoclass:: Wrapper
    :members:
