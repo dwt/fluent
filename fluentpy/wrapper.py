@@ -491,6 +491,7 @@ class Iterable(Wrapper):
     
     @wrapped
     def get(self, target_index, default=_absent_default_argument):
+        """Like ```dict.get()`` but for Iterables and able to deal with generators"""
         # Not sure this is the best way to support iterators - but there is no clear way in which we can retain the generator 
         if not isinstance(self, typing.Sized):
             # This is very suboptimal, as it consumes the generator till the asked for index. Still, I don't want this to crash on infinite iterators by just doing tuple(self)
