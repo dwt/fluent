@@ -577,10 +577,10 @@ class AccessShadowedAttributesOnWrappedObjects(FluentTest):
 class SmallTalkLikeBehaviour(FluentTest):
     
     def test_should_ease_chaining_off_methods_that_return_none(self):
-        expect(_([3,2,1]).sort().unwrap) == None
         expect(_([3,2,1]).sort()._) == None
+        expect(_([3,2,1]).sort().unwrap) == None
         expect(_([3,2,1]).sort().previous.previous._) == [1,2,3]
-        expect(_([3,2,1]).sort().self.unwrap) == [1,2,3]
+        expect(_([3,2,1]).sort().self._) == [1,2,3]
         
         expect(_([2,3,1]).sort().self.sort(reverse=True)._) == None
         expect(_([2,3,1]).sort().self.sort(reverse=True).previous.previous._) == [3,2,1] # sorted, because in place
