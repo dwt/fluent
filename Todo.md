@@ -4,6 +4,12 @@
 
 # Bunch of Ideas
 
+Consider to rename the specialized wrapper classes to have the -Wrapper Suffix
+
+Consider to change return types of functions that are explicitly wrapped but always return None to return .previous
+
+Enhance Wrapper.call() to allow to specify where 'self' is inserted into the arguments. Like wrapped() does.
+
 Get on python-ideas and understand why there is no operator for x in y, x not in y, *x and **y
 
 Iterable.list(), Iterable.tuple(), Iterable.dict(), Iterable.set() instead of the somewhat arbitrary tuplify(), dictify(), …
@@ -17,6 +23,9 @@ Docs
     Use doctest to keep the code examples healthy
     When wrapping methods with documentation, prepend the argument mapping to that documentation to make it easier to read.
     consider to add the curried arg spec to the help / repr() output of a curried function.
+        Something like: This documentation comes from foo.bar.baz, when called from a wrapped object the wrapped object 
+        is inserted as the $nth parameter
+    Understand why @functools.wraps sometimes causes the first parameter to ber removed from the documentation
 
 Consider .forget() method that 'forgets' the history of the chain, so python can reclaim the memory of all those intermediate results without one having to terminate the chain. Not sure what this would give us? Maybe better on wrap as a keyword only argumnet like (forget_history=True)
 

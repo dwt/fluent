@@ -77,7 +77,7 @@ def wrapped(wrapped_function, additional_result_wrapper=None, self_index=0):
     """
     @functools.wraps(wrapped_function)
     def wrapper(self, *args, **kwargs):
-        result = wrapped_function(*args[0:self_index], self.unwrap, *args[self_index:], **kwargs)
+        result = wrapped_function(*args[:self_index], self.unwrap, *args[self_index:], **kwargs)
         if callable(additional_result_wrapper):
             result = additional_result_wrapper(result)
         return wrap(result, previous=self)
@@ -243,7 +243,12 @@ class Wrapper(object):
     
     @wrapped
     def call(self, function, *args, **kwargs):
-        "Call function with self as first argument"
+        """Call function with self as its first argument.
+        
+        >>> _('foo').call(list)._ == list('foo')
+        >>> _('fnord').call(textwrap.indent, prefix='  ')._ == textwrap.indent('fnord', prefix='  ')
+        
+        """
         # Different from __call__! Calls function(self, …) instead of self(…)
         return function(self, *args, **kwargs)
     
@@ -253,6 +258,7 @@ class Wrapper(object):
     delattr = wrapped(delattr)
     
     isinstance = wrapped(isinstance)
+    # REFACT wrong class, needs to be on a typing.Type specific subclass
     issubclass = wrapped(issubclass)
     
     dir = wrapped(dir)
@@ -269,24 +275,7 @@ virtual_root_module = "virtual root module"
 
 @protected
 class Module(Wrapper):
-    """Imports as expressions. Already pre-wrapped.
-    
-    All attribute accesses to instances of this class are converted to
-    an import statement, but as an expression that returns the wrapped imported object.
-    
-    Example:
-    
-    >>> lib.sys.stdin.read().map(print)
-    
-    Is equivalent to
-    
-    >>> import importlib
-    >>> wrap(importlib.import_module('sys').stdin).read().map(print)
-    
-    But of course without creating the intermediate symbol 'stdin' in the current namespace.
-    
-    All objects returned from lib are pre-wrapped, so you can chain off of them immediately.
-    """
+    """This is the wrapper subclass that wraps module objects."""
     
     def __getattr__(self, name):
         if hasattr(self.unwrap, name):
@@ -300,6 +289,7 @@ class Module(Wrapper):
         
         return wrap(module)
     
+    # REFACT conside to deprecate and remove this function since it's behaviour is so unpredictable
     @wrapped
     @functools.wraps(importlib.reload)
     def reload(self):
@@ -308,11 +298,30 @@ class Module(Wrapper):
 
 lib = Module(virtual_root_module, previous=None, chain=None)
 lib.__name__ = 'lib'
+lib.__help__ = """\
+Imports as expressions. Already pre-wrapped.
+
+All attribute accesses to instances of this class are converted to
+an import statement, but as an expression that returns the wrapped imported object.
+
+Example:
+
+>>> lib.sys.stdin.read().map(print)
+
+Is equivalent to
+
+>>> import importlib
+>>> wrap(importlib.import_module('sys').stdin).read().map(print)
+
+But of course without creating the intermediate symbol 'stdin' in the current namespace.
+
+All objects returned from lib are pre-wrapped, so you can chain off of them immediately.
+"""
 public(lib)
 
 @protected
 class Callable(Wrapper):
-    """Higher order methods for callables."""
+    """This is the ``Wrapper`` subclass that wraps callables."""
     
     def __call__(self, *args, **kwargs):
         """"Call through to the wrapped function."""
@@ -337,7 +346,7 @@ class Callable(Wrapper):
         
         >>> _(operator.add).curry(_, 'foo')('bar')._ == 'barfoo'
         
-        If you use wrap._$NUMBER (with $NUMBER < 10) you can take full controll 
+        If you use wrap._$NUMBER (with $NUMBER < 10) you can take full control 
         over the ordering of the arguments.
         
         >>> _(a_function).curry(_._0, _._0, _.7)
@@ -444,7 +453,7 @@ class Callable(Wrapper):
 
 @protected
 class Iterable(Wrapper):
-    """Add iterator methods to any iterable.
+    """This is the ``Wrapper`` subclass that wraps iterables.
     
     Most iterators in Python 3 return an iterator by default, which is very interesting 
     if you want to build efficient processing pipelines, but not so hot for quick and 
@@ -457,12 +466,12 @@ class Iterable(Wrapper):
     there is also an i{map,zip,enumerate,...} version for your enjoyment that returns the 
     iterator.
     
-    All iterators return unwrapped elements by design. Fluent is meant to facilitate 
-    chaining, not sprad it's wrapper everywhere. This means you will have to rewrap 
-    occasionally in handwritten iterator methods.
+    All iterators return unwrapped elements by design. This is neccessary to make 
+    ``fluentpy`` interoperable with the standard library. This means you will have to rewrap 
+    occasionally in handwritten iterator methods or when iterating over a wrapped iterator 
     
     Where methods return infinite iterators, the non i-prefixed method name is skipped.
-    See ``icycle`` as an example.
+    See ``icycle`` for an an example.
     """
     
     # __iter__ is not wrapped, and implicitly unwrap. If this is unwanted, use one of the explicit iterators
@@ -679,7 +688,10 @@ class Iterable(Wrapper):
 
 @protected
 class Mapping(Iterable):
-    """Index into dicts like objects. As JavaScript can."""
+    """This is the ``Wrapper`` subclass that wraps mappings.
+    
+    This allows indexing into dicts like objects. As JavaScript can.
+    """
     
     def __getattr__(self, name):
         """Support JavaScript like dict item access via attribute access"""
@@ -697,13 +709,19 @@ class Mapping(Iterable):
 
 @protected
 class Set(Iterable):
-    """Mostly like Iterable"""
+    """This is the ``Wrapper`` subclass that wraps sets.
+    
+    Mostly like Iterable
+    """
 
     freeze = wrapped(frozenset)
 
 @protected
 class Text(Iterable):
-    """Supports most of the regex methods as if they where native str methods"""
+    """This is the ``Wrapper`` subclass that wraps str.
+    
+    Supports most of the regex methods as if they where native str methods
+    """
     
     # Regex Methods ......................................
     
@@ -729,13 +747,8 @@ def _make_operator(name):
 
 @protected
 class Each(Wrapper):
-    """Create functions from expressions.
-
-    Use ``each.foo`` to create attrgetters, ``each['foo']`` to create itemgetters,
-    ``each.call.foo()`` to create methodcallers or ``each == 'foo'`` (with pretty much any operator) to create callable operators.
+    """This is the ``Wrapper`` subclass that wraps expressions (see documentation for :var:lib)."""
     
-    Note: All generated functions never wrap their arguments or return values.
-    """
     
     # REFACT consider returning a wrapper that knows wether it is called immediately, or if it is called by one of the iterators
     # The problem is that the call operator needs to differentiate if it is called from within one map/ filter/ etc. or from 
@@ -779,7 +792,10 @@ class Each(Wrapper):
         ``_.call.method('with_arguments')`` is roughly equivalent to ``lambda each: each.method('with_arguments)``
         """
         class MethodCallerConstructor(object):
-            
+            """Helper to generate operator.methodcaller objects from normal calls.
+        
+            ``_.call.method('with_arguments')`` is roughly equivalent to ``lambda each: each.method('with_arguments)``
+            """
             _method_name = None
             
             def __getattr__(self, method_name):
@@ -796,6 +812,15 @@ class Each(Wrapper):
 each_marker = "lambda generator"
 each = Each(each_marker, previous=None, chain=None)
 each.__name__ = 'each'
+each.__doc__ = """\
+Create functions from expressions.
+
+Use ``each.foo`` to create attrgetters, ``each['foo']`` to create itemgetters,
+``each.call.foo()`` to create methodcallers or ``each == 'foo'`` (with pretty much any operator) to create callable operators.
+
+Note: All generated functions never wrap their arguments or return values.
+"""
+
 public(each)
 
 call = each.call
