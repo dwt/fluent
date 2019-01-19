@@ -205,6 +205,10 @@ class Wrapper(object):
         For example ``_([1,3,2]).sort().self.print()`` will print the sorted list, even though
         ``sort()`` did return ``None``.
         
+        This is simpler than using .previous as there are often multiple wrappers involved where you might expect only one.
+        E.g. ``_([2,1]).sort().self._ == [1,2]`` but ``_([2,1]).sort().previous._`` will return the function ``list.sort()``
+        as the attrget and call are two steps of the call chain.
+        
         This eases chaining using APIs that where not designed with chaining in mind. 
         (Inspired by SmallTalk's default behaviour)
         """

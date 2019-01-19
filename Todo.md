@@ -1,7 +1,5 @@
 # Before next release
 
-Deprecate / Remove .self and shorten .previous to .prev instead. Probably via deprecation to have less API changes
-
 # Bunch of Ideas
 
 Make the narrative documentation more compact
