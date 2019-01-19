@@ -42,16 +42,16 @@ class WrapperTest(FluentTest):
         expect(_(foo).unwrap).is_(foo)
     
     def test_should_wrap_according_to_returned_type(self):
-        expect(_('foo')).is_instance(_.Text)
-        expect(_([])).is_instance(_.Iterable)
-        expect(_(iter([]))).is_instance(_.Iterable)
-        expect(_({})).is_instance(_.Mapping)
-        expect(_({1})).is_instance(_.Set)
+        expect(_('foo')).is_instance(_.TextWrapper)
+        expect(_([])).is_instance(_.IterableWrapper)
+        expect(_(iter([]))).is_instance(_.IterableWrapper)
+        expect(_({})).is_instance(_.MappingWrapper)
+        expect(_({1})).is_instance(_.SetWrapper)
         
-        expect(_(lambda: None)).is_instance(_.Callable)
+        expect(_(lambda: None)).is_instance(_.CallableWrapper)
         class CallMe(object):
             def __call__(self): pass
-        expect(_(CallMe())).is_instance(_.Callable)
+        expect(_(CallMe())).is_instance(_.CallableWrapper)
         
         expect(_(object())).is_instance(_.Wrapper)
     
@@ -111,7 +111,7 @@ class WrapperTest(FluentTest):
         wrapped.foo = 'bar'
         expect(wrapped._.foo) == 'bar'
 
-class CallableTest(FluentTest):
+class CallableWrapperTest(FluentTest):
     
     def test_call(self):
         expect(_(lambda: 3)()._) == 3
@@ -199,7 +199,7 @@ class CallableTest(FluentTest):
         expect(_(lambda x: x*2).compose(lambda x: x+3)(5)._) == 13
         expect(_(str.strip).compose(str.capitalize)('  fnord  ')._) == 'Fnord'
 
-class IterableTest(FluentTest):
+class IterableWrapperTest(FluentTest):
     
     def test_iter(self):
         # Iter implicitly unwraps, because all other iterators behave this way, and there would otherwise be no way to explicitly get an iterator by chaining.
@@ -406,7 +406,7 @@ class IterableTest(FluentTest):
         expect(_([1,2]).product([3,4])._) == ((1,3), (1,4), (2,3), (2,4))
         expect(_([1,2]).product(repeat=2)._) == ((1,1), (1,2), (2,1), (2,2))
 
-class MappingTest(FluentTest):
+class MappingWrapperTest(FluentTest):
     
     def test_should_call_callable_with_double_star_splat_as_keyword_arguments(self):
         def foo(*, foo): return foo
@@ -419,7 +419,7 @@ class MappingTest(FluentTest):
         expect(_(dict(foo='bar')).keys().listify()._) == ['foo']
         expect(lambda: _(dict(foo='bar')).baz).to_raise(AttributeError, "has no attribute 'baz'")
 
-class SetTest(FluentTest):
+class SetWrapperTest(FluentTest):
     
     def test_should_freeze(self):
         frozen = _({'foo', 'bar', 'baz'}).freeze()._
@@ -485,7 +485,7 @@ class ImporterTest(FluentTest):
     def test_should_have_more_convenient_call_operation(self):
         expect(_(['a', 'b']).map(_.call.upper())._) == ('A', 'B')
 
-class EachTest(FluentTest):
+class EachWrapperTest(FluentTest):
     
     def test_should_produce_attrgetter_on_attribute_access(self):
         class Foo(object):
@@ -633,12 +633,12 @@ class DocumentationTest(FluentTest):
     
     def test_classes_have_usefull_docstrings(self):
         expect(_.Wrapper.__doc__).matches(r'Universal wrapper')
-        expect(_.Callable.__doc__).matches(r'subclass that wraps callables')
-        expect(_.Iterable.__doc__).matches(r'subclass that wraps iterables')
-        expect(_.Mapping.__doc__).matches(r'subclass that wraps mappings')
-        expect(_.Text.__doc__).matches(r'regex methods')
+        expect(_.CallableWrapper.__doc__).matches(r'subclass that wraps callables')
+        expect(_.IterableWrapper.__doc__).matches(r'subclass that wraps iterables')
+        expect(_.MappingWrapper.__doc__).matches(r'subclass that wraps mappings')
+        expect(_.TextWrapper.__doc__).matches(r'regex methods')
         
-        expect(_.Set.__doc__).matches(r'Mostly like Iterable')
+        expect(_.SetWrapper.__doc__).matches(r'Mostly like IterableWrapper')
     
     def test_special_proxies_have_usefull_docstrings(self):
         expect(_.lib.__doc__).matches('Imports as expressions')

@@ -26,25 +26,25 @@ Classes
 - :py:class:`Wrapper`:
   Universal wrapper.
 
-- :py:class:`Module`:
+- :py:class:`ModuleWrapper`:
   Imports as expressions. Already pre-wrapped.
 
-- :py:class:`Callable`:
+- :py:class:`CallableWrapper`:
   Higher order methods for callables.
 
-- :py:class:`Iterable`:
+- :py:class:`IterableWrapper`:
   Add iterator methods to any iterable.
 
-- :py:class:`Mapping`:
+- :py:class:`MappingWrapper`:
   Index into dicts like objects. As JavaScript can.
 
-- :py:class:`Set`:
-  Mostly like Iterable
+- :py:class:`SetWrapper`:
+  Mostly like IterableWrapper
 
-- :py:class:`Text`:
+- :py:class:`TextWrapper`:
   Supports most of the regex methods as if they where native str methods
 
-- :py:class:`Each`:
+- :py:class:`EachWrapper`:
   Generate lambdas from expressions
 
 .. autoclass:: Wrapper
@@ -54,53 +54,53 @@ Classes
    .. inheritance-diagram:: Wrapper
       :parts: 1
 
-.. autoclass:: Module
+.. autoclass:: ModuleWrapper
    :members:
 
    .. rubric:: Inheritance
-   .. inheritance-diagram:: Module
+   .. inheritance-diagram:: ModuleWrapper
       :parts: 1
 
-.. autoclass:: Callable
+.. autoclass:: CallableWrapper
    :members:
 
    .. rubric:: Inheritance
-   .. inheritance-diagram:: Callable
+   .. inheritance-diagram:: CallableWrapper
       :parts: 1
 
-.. autoclass:: Iterable
+.. autoclass:: IterableWrapper
    :members:
 
    .. rubric:: Inheritance
-   .. inheritance-diagram:: Iterable
+   .. inheritance-diagram:: IterableWrapper
       :parts: 1
 
-.. autoclass:: Mapping
+.. autoclass:: MappingWrapper
    :members:
 
    .. rubric:: Inheritance
-   .. inheritance-diagram:: Mapping
+   .. inheritance-diagram:: MappingWrapper
       :parts: 1
 
-.. autoclass:: Set
+.. autoclass:: SetWrapper
    :members:
 
    .. rubric:: Inheritance
-   .. inheritance-diagram:: Set
+   .. inheritance-diagram:: SetWrapper
       :parts: 1
 
-.. autoclass:: Text
+.. autoclass:: TextWrapper
    :members:
 
    .. rubric:: Inheritance
-   .. inheritance-diagram:: Text
+   .. inheritance-diagram:: TextWrapper
       :parts: 1
 
-.. autoclass:: Each
+.. autoclass:: EachWrapper
    :members:
 
    .. rubric:: Inheritance
-   .. inheritance-diagram:: Each
+   .. inheritance-diagram:: EachWrapper
       :parts: 1
 
 Variables

@@ -35,12 +35,12 @@ def wrap(wrapped, *, previous=None, chain=None):
         return wrapped
     
     by_type = (
-        (types.ModuleType, Module),
-        (typing.Text, Text),
-        (typing.Mapping, Mapping),
-        (typing.AbstractSet, Set),
-        (typing.Iterable, Iterable),
-        (typing.Callable, Callable),
+        (types.ModuleType, ModuleWrapper),
+        (typing.Text, TextWrapper),
+        (typing.Mapping, MappingWrapper),
+        (typing.AbstractSet, SetWrapper),
+        (typing.Iterable, IterableWrapper),
+        (typing.Callable, CallableWrapper),
     )
     
     if wrapped is None and chain is None and previous is not None:
@@ -274,7 +274,7 @@ class Wrapper(object):
 virtual_root_module = "virtual root module"
 
 @protected
-class Module(Wrapper):
+class ModuleWrapper(Wrapper):
     """This is the wrapper subclass that wraps module objects."""
     
     def __getattr__(self, name):
@@ -296,7 +296,7 @@ class Module(Wrapper):
         importlib.reload(self)
         return self
 
-lib = Module(virtual_root_module, previous=None, chain=None)
+lib = ModuleWrapper(virtual_root_module, previous=None, chain=None)
 lib.__name__ = 'lib'
 lib.__doc__ = """\
 Imports as expressions. Already pre-wrapped.
@@ -320,7 +320,7 @@ All objects returned from lib are pre-wrapped, so you can chain off of them imme
 public(lib)
 
 @protected
-class Callable(Wrapper):
+class CallableWrapper(Wrapper):
     """This is the ``Wrapper`` subclass that wraps callables."""
     
     def __call__(self, *args, **kwargs):
@@ -447,12 +447,12 @@ class Callable(Wrapper):
     def star_call(self, args, **kwargs):
         # REFACT consider if this might be better called map/ lift to use the functional concepts more directly
         # REFACT might be nice to check wether args is a sequence or a dict and ** it if dict
-        # REFACT consider if rename is wise to clarify the difference between Iterable.star_call and Callable.star_call
+        # REFACT consider if rename is wise to clarify the difference between IterableWrapper.star_call and CallableWrapper.star_call
         # Maybe the same name is good, as they pretty much do the same thing, just with inverted arguments?
         return self(*args, **kwargs)
 
 @protected
-class Iterable(Wrapper):
+class IterableWrapper(Wrapper):
     """This is the ``Wrapper`` subclass that wraps iterables.
     
     Most iterators in Python 3 return an iterator by default, which is very interesting 
@@ -491,7 +491,7 @@ class Iterable(Wrapper):
     
     @wrapped
     def get(self, target_index, default=_absent_default_argument):
-        """Like ```dict.get()`` but for Iterables and able to deal with generators"""
+        """Like ```dict.get()`` but for IterableWrappers and able to deal with generators"""
         # Not sure this is the best way to support iterators - but there is no clear way in which we can retain the generator 
         if not isinstance(self, typing.Sized):
             # This is very suboptimal, as it consumes the generator till the asked for index. Still, I don't want this to crash on infinite iterators by just doing tuple(self)
@@ -686,7 +686,7 @@ class Iterable(Wrapper):
     # TODO make all (applicable?) methods of itertools available here
 
 @protected
-class Mapping(Iterable):
+class MappingWrapper(IterableWrapper):
     """This is the ``Wrapper`` subclass that wraps mappings.
     
     This allows indexing into dicts like objects. As JavaScript can.
@@ -700,23 +700,23 @@ class Mapping(Iterable):
         return super().__getattr__(name)
     
     # REFACT consider rename to splat_call to differentiate that it does something else tha
-    # Callable.star_call
+    # CallableWrapper.star_call
     @wrapped
     def star_call(self, function, *args, **kwargs):
         "Calls ``function(**self)``, but allows to add args and set defaults for kwargs."
         return function(*args, **dict(kwargs, **self))
 
 @protected
-class Set(Iterable):
+class SetWrapper(IterableWrapper):
     """This is the ``Wrapper`` subclass that wraps sets.
     
-    Mostly like Iterable
+    Mostly like IterableWrapper
     """
 
     freeze = wrapped(frozenset)
 
 @protected
-class Text(Iterable):
+class TextWrapper(IterableWrapper):
     """This is the ``Wrapper`` subclass that wraps str.
     
     Supports most of the regex methods as if they where native str methods
@@ -745,7 +745,7 @@ def _make_operator(name):
     return wrapper
 
 @protected
-class Each(Wrapper):
+class EachWrapper(Wrapper):
     """This is the ``Wrapper`` subclass that wraps expressions (see documentation for :var:lib)."""
     
     
@@ -805,7 +805,7 @@ class Each(Wrapper):
         return MethodCallerConstructor()
 
 each_marker = "lambda generator"
-each = Each(each_marker, previous=None, chain=None)
+each = EachWrapper(each_marker, previous=None, chain=None)
 each.__name__ = 'each'
 each.__doc__ = """\
 Create functions from expressions.
