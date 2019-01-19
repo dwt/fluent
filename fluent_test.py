@@ -633,9 +633,9 @@ class DocumentationTest(FluentTest):
     
     def test_classes_have_usefull_docstrings(self):
         expect(_.Wrapper.__doc__).matches(r'Universal wrapper')
-        expect(_.Callable.__doc__).matches(r'Higher order')
-        expect(_.Iterable.__doc__).matches(r'Add iterator methods to any iterable')
-        expect(_.Mapping.__doc__).matches(r'Index into dicts')
+        expect(_.Callable.__doc__).matches(r'subclass that wraps callables')
+        expect(_.Iterable.__doc__).matches(r'subclass that wraps iterables')
+        expect(_.Mapping.__doc__).matches(r'subclass that wraps mappings')
         expect(_.Text.__doc__).matches(r'regex methods')
         
         expect(_.Set.__doc__).matches(r'Mostly like Iterable')

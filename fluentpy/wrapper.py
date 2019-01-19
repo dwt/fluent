@@ -298,7 +298,7 @@ class Module(Wrapper):
 
 lib = Module(virtual_root_module, previous=None, chain=None)
 lib.__name__ = 'lib'
-lib.__help__ = """\
+lib.__doc__ = """\
 Imports as expressions. Already pre-wrapped.
 
 All attribute accesses to instances of this class are converted to
@@ -598,12 +598,11 @@ class Iterable(Wrapper):
                 yield from wrap(element).iflatten(level=level-1)
             else:
                 yield element
-        return
     flatten = tupleize(iflatten)
     
     @wrapped
     def ireshape(self, *spec):
-        """Modeled to be the inverse of flatten, allowing to create structure from linearity.
+        """Creates structure from linearity.
         
         Allows you to turn ``(1,2,3,4)`` into ``((1,2),(3,4))``.
         Very much inspired by numpy.reshape. @see https://docs.scipy.org/doc/numpy/reference/generated/numpy.reshape.html
@@ -641,14 +640,13 @@ class Iterable(Wrapper):
         current_level, *other_levels = spec
         
         return wrap(chunkify(self, current_level)).ireshape(*other_levels).unwrap
-    
     reshape = tupleize(ireshape)
     
     igroupby = wrapped(itertools.groupby)
     def groupby(self, *args, **kwargs):
         """See igroupby for most of the docs.
         
-        Correctly consuming an itertoo.groupby is surprisingly hard, thus this non tuple returning version that does it correctly.
+        Correctly consuming an itertools.groupby is surprisingly hard, thus this non tuple returning version that does it correctly.
         """
         result = []
         for key, values in self.igroupby(*args, **kwargs):
@@ -788,10 +786,6 @@ class Each(Wrapper):
     
     @property
     def call(self):
-        """Helper to generate operator.methodcaller objects from normal calls.
-        
-        ``_.call.method('with_arguments')`` is roughly equivalent to ``lambda each: each.method('with_arguments)``
-        """
         class MethodCallerConstructor(object):
             """Helper to generate operator.methodcaller objects from normal calls.
         

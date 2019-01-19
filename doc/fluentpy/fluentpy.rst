@@ -116,5 +116,3 @@ Variables
 
 .. autodata:: call
    :annotation:
-   
-   See `Each.call` for details.
