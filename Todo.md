@@ -4,6 +4,8 @@
 
 # Bunch of Ideas
 
+Support Iterable.__getitem__
+
 Consider to rename the specialized wrapper classes to have the -Wrapper Suffix
 
 Consider to change return types of functions that are explicitly wrapped but always return None to return .previous
