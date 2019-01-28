@@ -1,12 +1,20 @@
 # Before next release
 
+Consider if CallableWrapper.__call__() and CallableWrapper.cury() should not auto unwrap their arguments? This behaviour seems quite different to the rest of the library.
+
 # Bunch of Ideas
+
+Better Each:
+    allow [{'foo': 'bar'},{'foo':'baz'}].map(each.foo)
+    find a way to allow something like map(_.each.foo, _.each.bar) or .map(.each['foo', 'bar'])
+    Rework _.each.call.foo(bar) so 'call' is no longer a used-up symbol on each.
+    Also _.each.call.method(...) has a somewhat different meaning as the .call method on callable
+    could _.each.method(_, ...) work when auto currying is enabled?
+    Rework each to always return another each wrapper, so that whole expression chains can be built up, that are then converted into a callable on unwrap/ ._
 
 Make the narrative documentation more compact
 
 Support IterableWrapper.__getitem__
-
-Consider to rename the specialized wrapper classes to have the -Wrapper Suffix
 
 Consider to change return types of functions that are explicitly wrapped but always return None to return .previous
 
@@ -14,9 +22,9 @@ Enhance Wrapper.call() to allow to specify where 'self' is inserted into the arg
 
 Get on python-ideas and understand why there is no operator for x in y, x not in y, *x and **y
 
-IterableWrapper.list(), IterableWrapper.tuple(), IterableWrapper.dict(), IterableWrapper.set() instead of the somewhat arbitrary tuplify(), dictify(), …
+IterableWrapper.list(), IterableWrapper.tuple(), IterableWrapper.dict(), IterableWrapper.set() instead of the somewhat arbitrary tuplify(), dictify(), … Perhaps do Wrapper.to(a_typer) to convert to any type? Would be identical to Wrapper.call(a_type), but maybe clearer/shorter?
 
-Consider if CallableWrapper.__call__() and CallableWrapper.cury() should not auto unwrap their arguments? This behaviour seems quite different to the rest of the library.
+consider if it is possible to monkey-patch object to add a '_' property to start chaining off of it?
 
 Docs
     Check all methods have a docstring
@@ -63,13 +71,6 @@ This needs solving that the objects themselves need to create attributes while t
 
 add .unwrapped (or something similar) to have .unwrap as a higher order function
     this should allow using .curry() in contexts where the result cannot be 
-
-allow [{'foo': 'bar'},{'foo':'baz'}].map(each.foo)
-
-find a way to allow something like map(_.each.foo, _.each.bar) or .map(.each['foo', 'bar'])
-Rework _.each.call.foo(bar) so 'call' is no longer a used-up symbol on each.
-Also _.each.call.method(...) has a somewhat different meaning as the .call method on callable
-could _.each.method(_, ...) work when auto currying is enabled?
 
 Roundable (for all numeric needs?)
     round, times, repeat, if_true, if_false, else_
