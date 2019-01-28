@@ -17,7 +17,7 @@ NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS = 10
 _absent_default_argument = object()
 
 # TODO investigate if functools.singledispatch would be a good candidate to replace / enhance this function
-def wrap(wrapped, *, previous=None, chain=None):
+def wrap(wrapped, *, previous=None):
     """Factory method, wraps anything and returns the appropriate ``Wrapper`` subclass.
     
     This is the main entry point into the fluent wonderland. Wrap something and 
@@ -43,18 +43,11 @@ def wrap(wrapped, *, previous=None, chain=None):
         (typing.Callable, CallableWrapper),
     )
     
-    if wrapped is None and chain is None and previous is not None:
-        chain = previous.self.unwrap
-    
-    decider = wrapped
-    if wrapped is None and chain is not None:
-        decider = chain
-    
     for clazz, wrapper in by_type:
-        if isinstance(decider, clazz):
-            return wrapper(wrapped, previous=previous, chain=chain)
+        if isinstance(wrapped, clazz):
+            return wrapper(wrapped, previous=previous)
     
-    return Wrapper(wrapped, previous=previous, chain=chain)
+    return Wrapper(wrapped, previous=previous)
 
 wrap.wrap = wrap._ = _ = wrap
 _wrap_alternatives = [wrap]
@@ -140,13 +133,15 @@ class Wrapper(object):
     and refers to the original arguments. A little bit of common sense might therefore be required.
     """
     
-    __slots__ = ['__wrapped', '__previous', '__chain']
+    __slots__ = ['__wrapped', '__previous']
     
-    def __init__(self, wrapped, *, previous, chain):
-        assert wrapped is not None or chain is not None, 'Cannot chain off of None'
+    def __init__(self, wrapped, *, previous):
+        # assert wrapped is None and previous is None, 'Cannot chain off of None'
+        if wrapped is None:
+            assert previous is not None, 'Cannot chain off of None'
+        
         self.__wrapped = wrapped
         self.__previous = previous
-        self.__chain = chain # REFACT consider rename to __self?
     
     def __str__(self):
         return "fluentpy.wrap(%s)" % (self.unwrap,)
@@ -212,10 +207,14 @@ class Wrapper(object):
         This eases chaining using APIs that where not designed with chaining in mind. 
         (Inspired by SmallTalk's default behaviour)
         """
-        chain = self.unwrap
-        if chain is None:
-            chain = self.__chain
-        return wrap(chain, previous=self)
+        if self.unwrap is None:
+            # Depending on wether the previous method was a transplanted method
+            # we need to go back one level or two
+            if isinstance(self.previous, CallableWrapper):
+                return self.previous.previous
+            else:
+                return self.previous
+        return self
     
     @property
     def proxy(self):
@@ -300,7 +299,7 @@ class ModuleWrapper(Wrapper):
         importlib.reload(self)
         return self
 
-lib = ModuleWrapper(virtual_root_module, previous=None, chain=None)
+lib = ModuleWrapper(virtual_root_module, previous=None)
 lib.__name__ = 'lib'
 lib.__doc__ = """\
 Imports as expressions. Already pre-wrapped.
@@ -330,8 +329,7 @@ class CallableWrapper(Wrapper):
     def __call__(self, *args, **kwargs):
         """Call through to the wrapped function."""
         result = self.unwrap(*args, **kwargs)
-        chain = None if self.previous is None else self.previous
-        return wrap(result, previous=self, chain=chain)
+        return wrap(result, previous=self)
     
     @wrapped
     def curry(self, *default_args, **default_kwargs):
@@ -801,7 +799,7 @@ class EachWrapper(Wrapper):
         return MethodCallerConstructor()
 
 each_marker = "lambda generator"
-each = EachWrapper(each_marker, previous=None, chain=None)
+each = EachWrapper(each_marker, previous=None)
 each.__name__ = 'each'
 each.__doc__ = """\
 Create functions from expressions.
