@@ -16,6 +16,8 @@ Removed `Wrapper.tee()` and `Itertools.tee()` as `_(something).tee(a_function)` 
 
 `_.each` now supports auto chaining of operations. That means you can type `_.each.foo['bar'].baz('quoox')._` to generate a function that applies all of these operations in order. This also means that all functions generated from `_.each` need to be unwrapped (`._`) before usage!
 
+`_.each.call` is removed, as `_.each.method('arg')` now works as expected, so `_.each.call` is not neccessary any more.
+
 ### Notable Changes
 
 `CallableWrapper.curry()` now supports converting positional arguments to keyword arguments.
@@ -23,7 +25,5 @@ Removed `Wrapper.tee()` and `Itertools.tee()` as `_(something).tee(a_function)` 
 `IterableWrapper.each()` to apply a function to every element just for the side effect while chaining off of the original value.
 
 `EachWrapper.in_(haystack)` and `EachWrapper.not_in(haystack)` support to mimik `lambda each: each in haystack`.
-
-New top level variable `call` (or `_.call`) that gives direct access to `_.each.call` to make it easier to generate methodcaller objects.
 
 All the top level classes have been renamed to have a common -`Wrapper` suffix for consistency and debuggability.
