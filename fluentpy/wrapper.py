@@ -735,7 +735,7 @@ def _make_operator(name):
 
 @protected
 class EachWrapper(Wrapper):
-    """This is the ``Wrapper`` subclass that wraps expressions (see documentation for :var:lib)."""
+    """This is the ``Wrapper`` subclass that wraps expressions (see documentation for :var:each)."""
     
     
     # REFACT consider returning a wrapper that knows wether it is called immediately, or if it is called by one of the iterators
