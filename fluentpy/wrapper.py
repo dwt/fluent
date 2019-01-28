@@ -749,9 +749,7 @@ class EachWrapper(object):
     
     def __repr__(self):
         return self.__name
-    
-    def __str__(self):
-        return 'bar' # FIXME something sensible
+    __str__ = __repr__ # alias
     
     # Operator support
     
