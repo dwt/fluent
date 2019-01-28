@@ -729,7 +729,7 @@ def _make_operator(name):
     def wrapper(self, *others):
         def operation(placeholder):
             return __op__(placeholder, *others)
-        return _(self.unwrap).compose(operation)._
+        return self._EachWrapper__operation.compose(operation)._
     return wrapper
 
 # REFACT consider to inherit from Callable to simplify methods. On the other hand, I want as few methods on this as possible, perhaps even inheriting from Wrapper is a bad idea already.
@@ -744,7 +744,7 @@ class EachWrapper(object):
     
     @property
     def unwrap(self):
-        return self.__operation
+        return self.__operation._
     _ = unwrap # alias
     
     def __repr__(self):
@@ -765,7 +765,7 @@ class EachWrapper(object):
         
         So ``_.each.in_('bar')`` is roughly equivalent to ``lambda each: each in 'bar'``
         """
-        return EachWrapper(_(self.unwrap).compose(haystack.__contains__)._, name=f'{self.__name} in {haystack!r}')
+        return EachWrapper(self.__operation.compose(haystack.__contains__), name=f'{self.__name} in {haystack!r}')
     
     def not_in(self, haystack):
         """Implements a method version of the ``not in`` operator. 
@@ -775,7 +775,7 @@ class EachWrapper(object):
         def not_contains(needle):
             """The equivalent of  operator.__not_contains__ if it would exist."""
             return needle not in haystack
-        return EachWrapper(_(self.unwrap).compose(not_contains)._, name=f'{self.__name} not in {haystack!r}')
+        return EachWrapper(self.__operation.compose(not_contains), name=f'{self.__name} not in {haystack!r}')
     
     # Generic operation support
     # These need to be below the operators above as we need to override operator.__getattr__ and operator.__getitem__
@@ -788,7 +788,7 @@ class EachWrapper(object):
         def operation(obj):
             return getattr(_(obj), name)._
         
-        return EachWrapper(_(self.unwrap).compose(operation)._, name=f'{self.__name}.{name}')
+        return EachWrapper(self.__operation.compose(operation), name=f'{self.__name}.{name}')
     
     def __getitem__(self, index):
         """Helper to generate something like operator.itemgetter from the getitem syntax.
@@ -797,7 +797,7 @@ class EachWrapper(object):
         """
         def operation(obj):
             return _(obj)[index]._
-        return EachWrapper(_(self.unwrap).compose(operation)._, name=f'{self.__name}[{index!r}]')
+        return EachWrapper(self.__operation.compose(operation), name=f'{self.__name}[{index!r}]')
     
     def __call__(self, *args, **kwargs):
         """Helper to generate something like operator.methodcaller from calls.
@@ -806,10 +806,10 @@ class EachWrapper(object):
         """
         def operation(obj):
             return _(obj)(*args, **kwargs)._
-        return EachWrapper(_(self.unwrap).compose(operation)._, name=f'{self.__name}(*{args!r}, **{kwargs!r})')
+        return EachWrapper(self.__operation.compose(operation), name=f'{self.__name}(*{args!r}, **{kwargs!r})')
     
 def identity(each): return each
-each = EachWrapper(identity, name='each')
+each = EachWrapper(_(identity), name='each')
 each.__name__ = 'each'
 each.__doc__ = """\
 Create functions from expressions.
