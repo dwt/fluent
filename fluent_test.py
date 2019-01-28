@@ -120,12 +120,6 @@ class CallableWrapperTest(FluentTest):
         expect(_(lambda x=3: x)(x=4)._) == 4
         expect(_(lambda x=3: x)(4)._) == 4
     
-    # I'm not sure this is actually sensible to do, as it goes (a bit) 
-    # against the grain of the rest of the library. Feedback welcome.
-    def test_call_unwraps_wrapped_arguments(self):
-        expect(_(lambda x: repr(x))(_('foo'))._) == "'foo'"
-        expect(_(lambda x: repr(x))(x=_('foo'))._) == "'foo'"
-    
     def test_curry(self):
         expect(_(lambda x, y: x*y).curry(2, 3)()._) == 6
         expect(_(lambda x=1, y=2: x*y).curry(x=3)()._) == 6
@@ -189,11 +183,6 @@ class CallableWrapperTest(FluentTest):
     
     def test_should_star_apply_arguments(self):
         expect(_(lambda a, b: b).star_call((1,2))._) == 2
-    
-    # This sounds like a bad idea, for the same reason, why map won't auto wrap it's arguments
-    # def test_curry_unwraps_wrapped_arguments(self):
-    #     add = _(lambda *args: functools.reduce(operator.add, args))
-    #     expect(add.curry(_, _('bar'), _).curry('foo', _)(_('baz'))._) == 'foobarbaz'
     
     def test_compose_cast_wraps_chain(self):
         expect(_(lambda x: x*2).compose(lambda x: x+3)(5)._) == 13

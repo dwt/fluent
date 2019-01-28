@@ -329,14 +329,6 @@ class CallableWrapper(Wrapper):
     
     def __call__(self, *args, **kwargs):
         """Call through to the wrapped function."""
-        def unwrap_if_neccessary(something):
-            if isinstance(something, Wrapper):
-                return something.unwrap
-            return something
-
-        args = list(map(unwrap_if_neccessary, args))
-        kwargs = {key: unwrap_if_neccessary(value) for key, value in kwargs.items()}
-
         result = self.unwrap(*args, **kwargs)
         chain = None if self.previous is None else self.previous
         return wrap(result, previous=self, chain=chain)
