@@ -327,10 +327,10 @@ public(lib)
 class CallableWrapper(Wrapper):
     """This is the ``Wrapper`` subclass that wraps callables."""
     
+    @wrapped
     def __call__(self, *args, **kwargs):
         """Call through to the wrapped function."""
-        result = self.unwrap(*args, **kwargs)
-        return wrap(result, previous=self)
+        return self(*args, **kwargs)
     
     @wrapped
     def curry(self, *default_args, **default_kwargs):
