@@ -61,7 +61,7 @@ class WrapperTest(FluentTest):
         expect(_(foo)().previous.unwrap) == foo
     
     def test_should_help_call_free_methods(self):
-        expect(_([1,2,3]).call(itertools.combinations, r=2).tuplify()._) == ((1,2), (1,3), (2,3))
+        expect(_([1,2,3]).call(itertools.combinations, r=2).to(tuple)._) == ((1,2), (1,3), (2,3))
     
     def test_hasattr_getattr_setattr_delattr(self):
         expect(_((1,2)).hasattr('len')._).is_false()
@@ -351,7 +351,7 @@ class IterableWrapperTest(FluentTest):
         expect(next(iter(_(['a', 'b']).ieach(call_counter)))) == 'a'
         expect(call_counter.call_count) == 1
         
-        expect(_(['a', 'b']).ieach(call_counter).tuplify()._) == ('a', 'b')
+        expect(_(['a', 'b']).ieach(call_counter).to(tuple)._) == ('a', 'b')
         expect(call_counter.call_count) == 3
         expect(_(['a', 'b']).each(call_counter)._) == ('a', 'b')
         expect(call_counter.call_count) == 5
@@ -363,9 +363,9 @@ class IterableWrapperTest(FluentTest):
         expect(_([1,2,1]).slice(1,2)._) == (2,)
         expect(_([1,2,1]).slice(None, None,2)._) == (1,1)
         
-        expect(_([1,2,1]).islice(1).tuplify()._) == (1,)
-        expect(_([1,2,1]).islice(1,2).tuplify()._) == (2,)
-        expect(_([1,2,1]).islice(None, None,2).tuplify()._) == (1,1)
+        expect(_([1,2,1]).islice(1).to(tuple)._) == (1,)
+        expect(_([1,2,1]).islice(1,2).to(tuple)._) == (2,)
+        expect(_([1,2,1]).islice(None, None,2).to(tuple)._) == (1,1)
         
         expect(_([1,2,1]).icycle().slice(1)._) == (1,)
         expect(_([1,2,1]).icycle().slice(1,2)._) == (2,)
@@ -405,7 +405,7 @@ class MappingWrapperTest(FluentTest):
     
     def test_should_support_attribute_access_to_mapping_items(self):
         expect(_(dict(foo='bar')).foo._) == 'bar'
-        expect(_(dict(foo='bar')).keys().listify()._) == ['foo']
+        expect(_(dict(foo='bar')).keys().to(list)._) == ['foo']
         expect(lambda: _(dict(foo='bar')).baz).to_raise(AttributeError, "has no attribute 'baz'")
 
 class SetWrapperTest(FluentTest):

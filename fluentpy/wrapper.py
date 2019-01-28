@@ -254,6 +254,7 @@ class Wrapper(object):
         """
         # Different from __call__! Calls function(self, …) instead of self(…)
         return function(self, *args, **kwargs)
+    to = call # convenience alias
     
     setattr = wrapped(setattr)
     getattr = wrapped(getattr)
@@ -510,13 +511,7 @@ class IterableWrapper(Wrapper):
     
     ## Converters ........................................
     
-    # REFACT consider to deprecate these, as .call({set, list, dict, set}) does the job
-    tuplify = wrapped(tuple)
-    listify = wrapped(list)
-    dictify = wrapped(dict)
-    setify = wrapped(set)
-
-    freeze = tuplify
+    freeze = wrapped(tuple)
     
     ## Reductors .........................................
     

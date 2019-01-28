@@ -12,6 +12,8 @@ Removed `Wrapper.tee()` and `Itertools.tee()` as `_(something).tee(a_function)` 
 
 `Wrapper.type()` returns a wrapped type for consistency.
 
+`Wrapper.{tuplify,listify,dictify,setify}` have been removed, use `Wrapper.to(a_type)` instead.
+
 ### Notable Changes
 
 `CallableWrapper.curry()` now supports converting positional arguments to keyword arguments.
