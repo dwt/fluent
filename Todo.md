@@ -2,6 +2,8 @@
 
 # Bunch of Ideas
 
+Consider chainging Wrapper.to() to return the target type unwrapped, to have a shorter way to terminate chains for common usecases
+
 Better Each:
     allow [{'foo': 'bar'},{'foo':'baz'}].map(each.foo)
     find a way to allow something like map(_.each.foo, _.each.bar) or .map(.each['foo', 'bar'])
