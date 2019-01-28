@@ -635,12 +635,10 @@ class DocumentationTest(FluentTest):
     
     def test_help_method_outputs_correct_docstrings(self):
         with patch.object(sys, 'stdout', io.StringIO()):
-            sys.stdout = io.StringIO()
             help(_)
             expect(sys.stdout.getvalue()).matches('Help on function fluentpy.wrap')
         
         with patch.object(sys, 'stdout', io.StringIO()):
-            sys.stdout = io.StringIO()
             _(list).help()
             expect(sys.stdout.getvalue()).matches('Help on class list in module builtins')
     
