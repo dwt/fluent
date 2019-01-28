@@ -1,7 +1,5 @@
 # Before next release
 
-Consider if CallableWrapper.__call__() and CallableWrapper.cury() should not auto unwrap their arguments? This behaviour seems quite different to the rest of the library.
-
 # Bunch of Ideas
 
 Better Each:
