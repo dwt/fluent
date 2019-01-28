@@ -8,7 +8,7 @@ Better Each:
     Rework _.each.call.foo(bar) so 'call' is no longer a used-up symbol on each.
     Also _.each.call.method(...) has a somewhat different meaning as the .call method on callable
     could _.each.method(_, ...) work when auto currying is enabled?
-    Rework each to always return another each wrapper, so that whole expression chains can be built up, that are then converted into a callable on unwrap/ ._
+    Consider if auto chaining opens up the possibility to express all of fluent lazily, i.e. always build up expressions and then call them on unwrap? That way perhaps using iterators internally and returning tuples on .unwrap makes sense? (Could allow to get rid of the i- prefixed iterators)
 
 Make the narrative documentation more compact
 

@@ -727,20 +727,34 @@ def _make_operator(name):
     __op__ = getattr(operator, name)
     @functools.wraps(__op__)
     def wrapper(self, *others):
-        # Can't easily use .curry() here, as that would return a wrapped object and I don't want the lambda builder methods to return wrapped objects - yet.
-        # return wrap(__op__).curry(_, *others) #.unwrap
-        # FIXME the order of the placeholder likely needs to depend on the operator. All the __r*__ operators need it reversed?
-        return lambda placeholder: __op__(placeholder, *others)
+        def operation(placeholder):
+            return __op__(placeholder, *others)
+        return _(self.unwrap).compose(operation)._
     return wrapper
 
+# REFACT consider to inherit from Callable to simplify methods. On the other hand, I want as few methods on this as possible, perhaps even inheriting from Wrapper is a bad idea already.
 @protected
-class EachWrapper(Wrapper):
-    """This is the ``Wrapper`` subclass that wraps expressions (see documentation for :var:each)."""
+class EachWrapper(object):
+    """This is the ``Wrapper`` subclass that wraps expressions (see documentation for :var:each).
+    """
     
+    def __init__(self, operation, name):
+        self.__operation = operation
+        self.__name = name
     
-    # REFACT consider returning a wrapper that knows wether it is called immediately, or if it is called by one of the iterators
-    # The problem is that the call operator needs to differentiate if it is called from within one map/ filter/ etc. or from 
-    # a user that wants to map a call oeration or 
+    @property
+    def unwrap(self):
+        return self.__operation
+    _ = unwrap # alias
+    
+    def __repr__(self):
+        return self.__name
+    
+    def __str__(self):
+        return 'bar' # FIXME something sensible
+    
+    # Operator support
+    
     for name in dir(operator):
         if not name.startswith('__') or name == '__doc__':
             continue
@@ -753,7 +767,7 @@ class EachWrapper(Wrapper):
         
         So ``_.each.in_('bar')`` is roughly equivalent to ``lambda each: each in 'bar'``
         """
-        return haystack.__contains__
+        return EachWrapper(_(self.unwrap).compose(haystack.__contains__)._, name=f'{self.__name} in {haystack!r}')
     
     def not_in(self, haystack):
         """Implements a method version of the ``not in`` operator. 
@@ -763,53 +777,60 @@ class EachWrapper(Wrapper):
         def not_contains(needle):
             """The equivalent of  operator.__not_contains__ if it would exist."""
             return needle not in haystack
-        return not_contains
+        return EachWrapper(_(self.unwrap).compose(not_contains)._, name=f'{self.__name} not in {haystack!r}')
+    
+    # Generic operation support
+    # These need to be below the operators above as we need to override operator.__getattr__ and operator.__getitem__
     
     def __getattr__(self, name):
-        # Experimentally using this to allow attribute access for dictionaries just as all other wrapped dicts would allow
-        return lambda obj: getattr(_(obj), name).unwrap
-        # return operator.attrgetter(name)
+        """Helper to generate something like operator.attrgetter from attribute accesses.
+    
+        ``_.each.some_attribute`` is roughly equivalent to ``lambda each: getattr(each, 'some_attribute')``
+        """
+        def operation(obj):
+            return getattr(_(obj), name)._
+        
+        return EachWrapper(_(self.unwrap).compose(operation)._, name=f'{self.__name}.{name}')
     
     def __getitem__(self, index):
-        return operator.itemgetter(index)
+        """Helper to generate something like operator.itemgetter from the getitem syntax.
     
-    @property
-    def call(self):
-        class MethodCallerConstructor(object):
-            """Helper to generate operator.methodcaller objects from normal calls.
-        
-            ``_.call.method('with_arguments')`` is roughly equivalent to ``lambda each: each.method('with_arguments)``
-            """
-            _method_name = None
-            
-            def __getattr__(self, method_name):
-                self._method_name = method_name
-                return self
-            
-            def __call__(self, *args, **kwargs):
-                assert self._method_name is not None, \
-                    'Need to access the method to call first! E.g. _.each.call.method_name(arg1, kwarg="arg2")'
-                return operator.methodcaller(self._method_name, *args, **kwargs)
-        
-        return MethodCallerConstructor()
-
-each_marker = "lambda generator"
-each = EachWrapper(each_marker, previous=None)
+        ``_.each[3]`` is roughly equivalent to ``lambda each: each[3]``
+        """
+        def operation(obj):
+            return _(obj)[index]._
+        return EachWrapper(_(self.unwrap).compose(operation)._, name=f'{self.__name}[{index!r}]')
+    
+    def __call__(self, *args, **kwargs):
+        """Helper to generate something like operator.methodcaller from calls.
+    
+        ``_.each.method('with_arguments')`` is roughly equivalent to ``lambda each: each.method('with_arguments)``
+        """
+        def operation(obj):
+            return _(obj)(*args, **kwargs)._
+        return EachWrapper(_(self.unwrap).compose(operation)._, name=f'{self.__name}(*{args!r}, **{kwargs!r})')
+    
+def identity(each): return each
+each = EachWrapper(identity, name='each')
 each.__name__ = 'each'
 each.__doc__ = """\
 Create functions from expressions.
 
-Use ``each.foo`` to create attrgetters, ``each['foo']`` to create itemgetters,
-``each.call.foo()`` to create methodcallers or ``each == 'foo'`` (with pretty much any operator) to create callable operators.
+Use ``each.foo._`` to create attrgetters, ``each['foo']._`` to create itemgetters,
+``each.foo()._`` to create methodcallers or ``each == 'foo'`` (with pretty much any operator) to create callable operators.
+
+Many operations can be chained, to extract a deeper object by iterating a container. E.g.:
+
+>>> each.foo.bar('baz')['quoox']._
+
+creates a callable that will first get the attribute ``foo``, then call the method ``bar('baz')`` on the result
+and finally applies gets the item 'quoox' from the result. For this reason, all callables need to be unwrapped before they
+are used, as the actual application would just continue to build up the chain on the original callable otherwise.
 
 Note: All generated functions never wrap their arguments or return values.
 """
-
 public(each)
 
-call = each.call
-call.__name__ = 'call'
-public(call)
 
 _reordering_placeholders = []
 # add reordering placeholders to wrap to make it easy to reorder arguments in curry

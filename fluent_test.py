@@ -430,7 +430,7 @@ class StrTest(FluentTest):
     
     def test_findall_finditer(self):
         expect(_("bazfoobar").findall('ba[rz]')._) == ['baz', 'bar']
-        expect(_("bazfoobar").finditer('ba[rz]').map(_.each.call.span())._) == ((0,3), (6,9))
+        expect(_("bazfoobar").finditer('ba[rz]').map(_.each.span())._) == ((0,3), (6,9))
     
     def test_sub_subn(self):
         expect(_('bazfoobar').sub(r'ba.', 'foo')._) == 'foofoofoo'
@@ -470,57 +470,79 @@ class ImporterTest(FluentTest):
         with patch('importlib.reload', sensor):
             _.lib.os.path.reload()
             expect(sensed['args']) == (_.lib.os.path._, )
-    
-    def test_should_have_more_convenient_call_operation(self):
-        expect(_(['a', 'b']).map(_.call.upper())._) == ('A', 'B')
 
-class EachWrapperTest(FluentTest):
+class AutoChainingEachWrapper(FluentTest):
     
     def test_should_produce_attrgetter_on_attribute_access(self):
         class Foo(object):
             bar = 'baz'
-        expect(_([Foo(), Foo()]).map(_.each.bar)._) == ('baz', 'baz')
+        attrgetter = _.each.bar._
+        expect(attrgetter(Foo())) == 'baz'
     
     def test_should_produce_itemgetter_on_item_access(self):
-        expect(_([['foo'], ['bar']]).map(_.each[0])._) == ('foo', 'bar')
-    
-    def test_should_produce_callable_on_binary_operator(self):
-        expect(_(['foo', 'bar']).map(_.each == 'foo')._) == (True, False)
-        expect(_([3, 5]).map(_.each + 3)._) == (6, 8)
-        expect(_([3, 5]).map(_.each < 4)._) == (True, False)
-    
-    def test_should_produce_callable_on_unary_operator(self):
-        expect(_([3, 5]).map(- _.each)._) == (-3, -5)
-        expect(_([3, 5]).map(~ _.each)._) == (-4, -6)
+        print(_.each[0])
+        itemgetter = _.each[0]._
+        expect(itemgetter(['foo'])) == 'foo'
     
     def test_should_produce_methodcaller_on_call_attribute(self):
-        # problem: _.each.call is now not an attrgetter
-        # _.each.method.call('foo') # like a method chaining
-        # _.each_call.method('foo')
-        # _.eachcall.method('foo')
         class Tested(object):
             def method(self, arg): return 'method+'+arg
-        expect(_(Tested()).call(_.each.call.method('argument'))._) == 'method+argument'
-        expect(lambda: _.each.call('argument')).to_raise(AssertionError, '_.each.call.method_name')
+        
+        methodcaller = _.each.method('argument')._
+        expect(methodcaller(Tested())) == 'method+argument'
     
     def test_should_behave_as_if_each_was_wrapped(self):
-        expect(_.each.first(dict(first='foo'))) == 'foo'
-        expect(_([dict(first='foo')]).map(_.each.first)._) == ('foo',)
+        expect(_.each.first._(dict(first='foo'))) == 'foo'
+    
+    def test_should_produce_callable_on_binary_operator(self):
+        operation = _.each == 'foo'
+        expect(operation('foo')).is_true()
+        
+        operation = _.each + 3
+        expect(operation(3)) == 6
+        
+        operation = _.each < 4
+        expect(operation(3)).is_true()
+    
+    def test_should_produce_callable_on_unary_operator(self):
+        operation = - _.each
+        expect(operation(3)) == -3
+        operation = ~ _.each
+        expect(operation(3)) == -4
     
     def test_in(self):
-        expect(_.each.in_([1,2])(3)).is_false()
-        expect(_.each.in_([1,2])(1)).is_true()
+        expect(_.each.in_([1,2])._(3)).is_false()
+        expect(_.each.in_([1,2])._(1)).is_true()
         
-        expect(_.each.not_in([1,2])(3)).is_true()
-        expect(_.each.not_in([1,2])(1)).is_false()
+        expect(_.each.not_in([1,2])._(3)).is_true()
+        expect(_.each.not_in([1,2])._(1)).is_false()
     
-    def _test_should_allow_creating_callables_without_call(self):
-        # This is likely not possible to attain due to the shortcomming that .foo already
-        # needs to create the attgetter, and we cannot distinguish a call to it from the calls map, etc. do
-        expect(_.each.foo) == attrgetter('foo')
-        expect(_.each.foo(_, 'bar', 'baz')) == methodcaller('foo').curry(_, 'bar', 'baz')
-        expect(_.call.foo('bar', 'baz')) == methodcaller('foo').curry(_, 'bar', 'baz')
-
+    def test_should_auto_chaini_operations(self):
+        operation = _.each['foo'][0].bar().baz._
+        
+        class Foo:
+            def bar(self):
+                return self
+            baz = 'fnord'
+        data = dict(foo=[Foo()])
+        expect(operation(data)) == 'fnord'
+    
+    def test_should_auto_terminate_chains_when_using_operators(self):
+        operation = _.each['foo'] % 3
+        data = dict(foo=5)
+        expect(operation(data)) == 2
+    
+    def test_should_have_sensible_repr_and_str_output(self):
+        expect(repr(_.each)) == 'each'
+        expect(repr(_.each['foo'])) == "each['foo']"
+        expect(repr(_.each.foo)) == "each.foo"
+        expect(repr(_.each.foo('bar', baz='quoox'))) == "each.foo(*('bar',), **{'baz': 'quoox'})"
+        
+        expect(repr(_.each.foo['bar'])) == "each.foo['bar']"
+        
+        expect(repr(_.each.in_([1,2]))) == "each in [1, 2]"
+        expect(repr(_.each.not_in([1,2]))) == "each not in [1, 2]"
+    
 class WrapperLeakTest(FluentTest):
     
     def test_wrapped_objects_will_wrap_every_action_to_them(self):
@@ -529,7 +551,7 @@ class WrapperLeakTest(FluentTest):
         expect(_(lambda: 'foo')()).is_instance(_.Wrapper)
         expect(_(dict(foo='bar')).foo).is_instance(_.Wrapper)
     
-    def test_function_expressions_return_unwrapped_objects(self):
+    def _test_function_expressions_return_unwrapped_objects(self):
         class Foo(object):
             bar = 'baz'
         expect(_.each.bar(Foo())).is_('baz')
@@ -592,7 +614,7 @@ class IntegrationTest(FluentTest):
     def test_call_module_from_shell(self):
         from subprocess import check_output
         output = check_output(
-            ['python', '-m', 'fluentpy', "lib.sys.stdin.read().split('\\n').imap(each.call.upper()).map(print)"],
+            ['python', '-m', 'fluentpy', "lib.sys.stdin.read().split('\\n').imap(each.upper()._).map(print)"],
             input=b'foo\nbar\nbaz')
         expect(output) == b'FOO\nBAR\nBAZ\n'
     
@@ -642,7 +664,6 @@ class DocumentationTest(FluentTest):
             _(list).help()
             expect(sys.stdout.getvalue()).matches('Help on class list in module builtins')
     
-    def test_lib_and_wrap_have_usefull_repr(self):
+    def test_lib_has_usefull_repr(self):
         expect(repr(_.lib)).matches('virtual root module')
-        expect(repr(_.each)).matches('lambda generator')
 

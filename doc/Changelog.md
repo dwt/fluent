@@ -14,6 +14,8 @@ Removed `Wrapper.tee()` and `Itertools.tee()` as `_(something).tee(a_function)` 
 
 `Wrapper.{tuplify,listify,dictify,setify}` have been removed, use `Wrapper.to(a_type)` instead.
 
+`_.each` now supports auto chaining of operations. That means you can type `_.each.foo['bar'].baz('quoox')._` to generate a function that applies all of these operations in order. This also means that all functions generated from `_.each` need to be unwrapped (`._`) before usage!
+
 ### Notable Changes
 
 `CallableWrapper.curry()` now supports converting positional arguments to keyword arguments.
