@@ -517,7 +517,7 @@ class AutoChainingEachWrapper(FluentTest):
         expect(_.each.not_in([1,2])._(3)).is_true()
         expect(_.each.not_in([1,2])._(1)).is_false()
     
-    def test_should_auto_chaini_operations(self):
+    def test_should_auto_chain_operations(self):
         operation = _.each['foo'][0].bar().baz._
         
         class Foo:
