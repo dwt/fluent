@@ -526,6 +526,9 @@ class AutoChainingEachWrapper(FluentTest):
             baz = 'fnord'
         data = dict(foo=[Foo()])
         expect(operation(data)) == 'fnord'
+        
+        operation = _.each.split()._
+        expect(operation('f o o')) == ['f', 'o', 'o']
     
     def test_should_auto_terminate_chains_when_using_operators(self):
         operation = _.each['foo'] % 3

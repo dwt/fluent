@@ -786,7 +786,7 @@ class EachWrapper(object):
         ``_.each.some_attribute`` is roughly equivalent to ``lambda each: getattr(each, 'some_attribute')``
         """
         def operation(obj):
-            return getattr(_(obj), name)._
+            return _(obj).__getattr__(name)._
         
         return EachWrapper(self.__operation.compose(operation), name=f'{self.__name}.{name}')
     
