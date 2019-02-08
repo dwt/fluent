@@ -251,10 +251,15 @@ class Wrapper(object):
         >>> _('foo').call(list)._ == list('foo')
         >>> _('fnord').call(textwrap.indent, prefix='  ')._ == textwrap.indent('fnord', prefix='  ')
         
+        Note the difference from ``.__call__()``. This applies ``function(self, …)`` instead of ``self(…)``.
         """
-        # Different from __call__! Calls function(self, …) instead of self(…)
         return function(self, *args, **kwargs)
-    to = call # convenience alias
+    
+    def to(self, function, *args, **kwargs):
+        """Like .call() but returns an unwrapped result.
+        
+        This makes ``.to()`` really convenient to terminate a call chain by converting to a type that perhaps itself con."""
+        return function(self.unwrap, *args, **kwargs)
     
     setattr = wrapped(setattr)
     getattr = wrapped(getattr)

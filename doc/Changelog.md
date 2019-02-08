@@ -27,3 +27,5 @@ Removed `Wrapper.tee()` and `Itertools.tee()` as `_(something).tee(a_function)` 
 `EachWrapper.in_(haystack)` and `EachWrapper.not_in(haystack)` support to mimik `lambda each: each in haystack`.
 
 All the top level classes have been renamed to have a common -`Wrapper` suffix for consistency and debuggability.
+
+Added new method `.to(a_type, *args, **kwargs)` that calls `a_type(self, **args, **kwars)` but returns an unwrapped result, to more smothely terminate call chains in common scenarios.
