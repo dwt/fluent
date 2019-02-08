@@ -1,176 +1,164 @@
-# The fluent Python library
+# fluentpy - The fluent Python library
 
-Fluent helps you write more object-oriented and concise Python code.
+Fluentpy provides fluent interfaces to existing APIs such as the standard library, allowing you to use them in an object oriented and fluent style.
 
-It is inspired by `jQuery` and `underscore` / `lodash` from the JavaScript world. It also takes some inspiration from Ruby / SmallTalk -- in particular, collections and how to work with them.
+Fluentpy is inspired by JavaScript's `jQuery` and `underscore` / `lodash` and takes some inspiration from the collections API in Ruby and SmallTalk.
 
-Please Note: **This library is an experiment.** It is based on a wrapper that aggressively wraps anything it comes in contact with and tries to stay invisible. We'll address this in section **Caveats** below.
+Please note: **This library is based on an agressive wrapper**, that wraps anything it comes in contact with. See the section **Caveats** below for details.
+
+See [Fowler](https://www.martinfowler.com/bliki/FluentInterface.html), [Wikipedia](https://de.wikipedia.org/wiki/Fluent_Interface) for definitions of fluent interfaces.
 
 [![Documentation Status](https://readthedocs.org/projects/fluentpy/badge/?version=latest)](https://fluentpy.readthedocs.io/en/latest/?badge=latest)
 
-## Introduction: Why use `fluentpy`?
+## Motivation: Why use `fluentpy`?
 
-The Python standard library includes many useful, time-saving convenience methods such as `map`, `zip`, `filter` and `join`. The problem that motivated me to write `fluentpy` is that these convenience methods are often available as free functions or on (arguably) the wrong module or class.
+Many of the most useful standard library methods such as `map`, `zip`, `filter` and `join` are either free functions or available on the wrong type or module. This prevents fluent method chaining.
 
-For example, `map`, `zip`, and `filter` all operate on `iterable` objects but they are implemented as free functions. This not only goes against my sense of how object oriented code should behave, but more importantly, writing Python code using these free functions requires that the reader must often mentally skip back and forth in a line of code to understand what it does, making the code more difficult to understand.
+Let's consider this example:
 
-Let's use the following simple example to analyze this problem:
+    >>> list(map(str.upper, sorted("ba,dc".split(","), reverse=True)))
+    ['DC', 'BA']
 
-    >>> map(print, map(str.upper, sys.stdin.read().split('\n')))
+To understand this code, I have to start in the middle at `"ba,dc".split(",")`, then backtrack to `sorted(…, reverse=True)`, then to `list(map(str.upper, …))`. All the while making sure that the parentheses all match up.
 
-How many backtrackings did you have to do? I read this code as follows: 
+Wouldn't it be nice if we could think and write code in the same order? Something like how you would write this in other languages?
 
-I start in the middle at `sys.stdin.read().split('\n')`, then I backtrack to `map(str.upper, …)`, then to `map(print, …)`. I also have to make sure that the parentheses all match up.
+    >>> _("ba,dc").split(",").sorted(reverse=True).map(str.upper)._
+    ['DC', 'BA']
 
-I find code like this hard to write and hard to understand, as it doesn't follow the way I think about this statement. I don't like to have to write or read statements from the inside out and wrap them using my editor as I write them. As demonstrated above, it's also hard to read - requiring quite a bit of backtracking.
+"Why no, but python has list comprehensions for that", you might say? Let's see:
 
-One alternative to the above approach is to use list comprehension / generator statements like this:
+    >>> [each.upper() for each in sorted("ba,dc".split(","), reverse=True)]
+    ['DC', 'BA']
 
-    >>> [print(line.upper()) for line in sys.stdin.read().split('\n')]
+This is clearly better: To read it, I have to skip back and forth less. It still leaves room for improvement though. Also, adding filtering to list comprehensions doesn't help:
 
-This is clearly better: I only have to skip back and forth once instead of twice.
+    >>> [each.upper() for each in sorted("ba,dc".split(","), reverse=True) if each.upper().startswith('D')]
+    ['DC']
 
-This approach still leaves room for improvement though because I have to find where the statement starts and to then backtrack to the beginning to see what is happening. Adding filtering to list comprehensions doesn't help:
-
-    >>> [print(line.upper()) for line in sys.stdin.read().split('\n') if line.upper().startswith('FNORD')]
-
-The backtracking problem persists. Additionally, if the filtering has to be done on the processed version (here artificially on `line.upper().startswith()`) then the operation has to be applied twice - which sucks because you have to write it twice, but also because it is computed twice.
+The backtracking problem persists. Additionally, if the filtering has to be done on the processed version (on `each.upper().startswith()`), then the operation has to be applied twice - which sucks because you write it twice and compute it twice.
 
 The solution? Nest them!
 
-    >>> [print(line) for line in \
-    >>>     (line.upper() for line in sys.stdin.read().split('\n')) \
-    >>>          if line.startswith('FNORD')]
+    >>> [each for each in 
+            (inner.upper() for inner in sorted("ba,dc".split(","), reverse=True))
+            if each.startswith('D')]
+    ['DC']
 
-Which gets us back to all the initial problems with nested statements and manually having to check for the right amount of closing parens.
+Which gets us back to all the initial problems with nested statements and manually having to check closing parentheses.
 
 Compare it to this:
 
-    >>> for line in sys.stdin.read().split('\n'):
-    >>>     uppercased = line.upper()
-    >>>     if uppercased.startswith('FNORD'):
-    >>>         print(uppercased)
+    >>> processed = []
+    >>> parts = "ba,dc".split(",")
+    >>> for item in sorted(parts, reverse=True):
+    >>>     uppercases = item.upper()
+    >>>     if uppercased.startswith('D')
+    >>>         processed.append(uppercased)
 
-Almost all my complaints are gone. It reads and writes almost completely in order it is computed.
+With basic Python, this is as close as it gets for code to read in execution order. So that is usually what I end up doing.
 
-Easy to read, easy to write. So that is usually what I end up doing.
+But it has a huge drawback: It's not an expression - it's a bunch of statements. That makes it hard to combine and abstract over it with higher order methods or generators. To write it you are forced to invent names for intermediate variables that serve no documentation purpose, but force you to remember them while reading.
 
-But it has a huge drawback: It's not an expression - it's a bunch of statements.
-
-Why is that bad? Because it means, that it's not easily combinable and abstract-able with higher order methods or generators. Because I have to invent variable names for things that are completely clear from context and that just serve as grease to express the flow of data through the program.
-
-Don't get me wrong, this is the most important function of variables in programs. But in this case, it just makes the code longer and makes it harder to see how data flows through the expressions.
-
-Plus (drumroll): parsing this still requires some backtracking and buildup of mental state to read.
+Plus (drumroll): parsing this still requires some backtracking and especially build up of mental state to read.
 
 Oh well.
 
-Lets see this in action:
+So let's return to this:
 
-    >>> cross_product_of_dependency_labels = \
-    >>>     set(map(frozenset, itertools.product(*map(attrgetter('_labels'), dependencies))))
+    >>> (
+        _("ba,dc")
+        .split(",")
+        .sorted(reverse=True)
+        .map(str.upper)
+        .filter(_.each.startswith('D')._)
+        ._
+    )
+    ('DC',)
 
-That certainly is hard to read (and write). Pulling out explaining variables, makes it better. Like so:
-
-    >>> labels = map(attrgetter('_labels'), dependencies)
-    >>> cross_product_of_dependency_labels = set(map(frozenset, itertools.product(*labels)))
-
-Better, but still hard to read. Sure, those explaining variables are nice and sometimes essential to understand the code. - but it does take up space in lines, and space in my head while parsing this code. The question would be - is this really easier to read than something like this?
-
-    >>> cross_product_of_dependency_labels = (
-    ...     _(dependencies)
-    ...     .map(_.each._labels)
-    ...     .star_call(itertools.product)
-    ...     .map(frozenset)
-    ...     .call(set)
-    ...     ._
-    ... )
-
-Sure you are not used to this at first, but consider the advantages. The intermediate variable names are abstracted away - the data flows through the methods completely naturally. No jumping back and forth to parse this at all. It just reads and writes exactly in the order it is computed.
-
-To me this means, that what I think that I want to accomplish, I can write down directly in order. And I don't have to keep track of extra closing parentheses at the end of the expression.
+Sure you are not used to this at first, but consider the advantages. The intermediate variable names are abstracted away - the data flows through the methods completely naturally. No jumping back and forth to parse this at all. It just reads and writes exactly in the order it is computed. As a bonus, there's no parentheses stack to keep track of. And it is shorter too!
 
 So what is the essence of all of this?
 
-Python is an object oriented language - but it doesn't really use what object orientation has taught us about how we can work with collections and higher order methods in the languages that came before it (I think of SmallTalk here, but more recently also Ruby). Why can't I make those beautiful fluent call chains that SmallTalk could do 20 years ago in Python today?
+Python is an object oriented language - but it doesn't really use what object orientation has taught us about how we can work with collections and higher order methods in the languages that came before it (I think of SmallTalk here, but more recently also Ruby). Why can't I make those beautiful fluent call chains that SmallTalk could do 30 years ago in Python?
 
 Well, now I can and you can too.
 
 ## Features
 
-To enable this style of coding this library has some features that might not be so obvious at first.
-
 ### Importing the library
 
-It is recommended to import and use the library by renaming it to something locally unique.:
-
-    >>> import fluentpy as _f
-
-or 
+It is recommended to rename the library on import:
 
     >>> import fluentpy as _
 
+or
+
+    >>> import fluentpy as _f
+
 I prefer `_` for small projects and `_f` for larger projects where `gettext` is used.
-
-If you want you can also import the library in the classic way:
-
-    >>> from fluentpy import _, lib, each
-
-But it is not required to import all these symbols, as they are all also available as attributes on `_`. Also, the library exposes itself as an executable module, i.e. the module `fluentpy` itself is the central wrapper function and can be used directly by renaming it to what you need locally.
 
 ### Aggressive (specialized) wrapping
 
 `_` is actually the function `wrap` in the `fluentpy` module, which is a factory function that returns a subclass of Wrapper, the basic and main object of this library.
 
-This does two things: First it ensures that every attribute access, item access or method call off of the wrapped object will also return a wrapped object. This means that once you wrap something, unless you unwrap it explicitly via `.unwrap` or `._` it stays wrapped - pretty much no matter what you do with it. The second thing this does is that it returns a subclass of Wrapper that has a specialized set of methods, depending on the type of what is wrapped. I envision this to expand in the future, but right now the most useful wrappers are: `IterableWrapper`, where we add all the Python collection functions (map, filter, zip, reduce, …), as well as a good batch of methods from `itertools` and a few extras for good measure. CallableWrapper, where we add `.curry()` and `.compose()` and TextWrapper, where most of the regex methods are added. [Explore the method documentation for what you can do]()).
+This does two things: First it ensures that every attribute access, item access or method call off of the wrapped object will also return a wrapped object. This means, once you wrap something, unless you unwrap it explicitly via `._` or `.unwrap` or `.to(a_type)` it stays wrapped - pretty much no matter what you do with it. The second thing this does is that it returns a subclass of Wrapper that has a specialized set of methods, depending on the type of what is wrapped. I envision this to expand in the future, but right now the most useful wrappers are: `IterableWrapper`, where we add all the Python collection functions (map, filter, zip, reduce, …), as well as a good batch of methods from `itertools` and a few extras for good measure. CallableWrapper, where we add `.curry()` and `.compose()` and TextWrapper, where most of the regex methods are added. 
 
-TODO add link!
+Some exaples:
+    
+    # View documentation on a symbol without having to wrap the whole line it in parantheses
+    >>> _([]).append.help()
+    Help on built-in function append:
 
+    append(object, /) method of builtins.list instance
+        Append object to the end of the list.
+    
+    # Introspect objects without awkward wrapping stuff in parantheses
+    >>> _(_).dir()
+    fluentpy.wrap(['CallableWrapper', 'EachWrapper', 'IterableWrapper', 'MappingWrapper', 'ModuleWrapper', 'SetWrapper', 'TextWrapper', 'Wrapper', 
+    '_', '_0', '_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9', 
+    …
+    , '_args', 'each', 'lib', 'module', 'wrap'])
+    >>> _(_).IterableWrapper.dir()
+    fluentpy.wrap(['_', 
+    …, 
+    'accumulate', 'all', 'any', 'call', 'combinations', 'combinations_with_replacement', 'delattr', 
+    'dir', 'dropwhile', 'each', 'enumerate', 'filter', 'filterfalse', 'flatten', 'freeze', 'get', 
+    'getattr', 'groupby', 'grouped', 'hasattr', 'help', 'iaccumulate', 'icombinations', '
+    icombinations_with_replacement', 'icycle', 'idropwhile', 'ieach', 'ienumerate', 'ifilter', 
+    'ifilterfalse', 'iflatten', 'igroupby', 'igrouped', 'imap', 'ipermutations', 'iproduct', 'ireshape', 
+    'ireversed', 'isinstance', 'islice', 'isorted', 'issubclass', 'istar_map', 'istarmap', 'itee', 
+    'iter', 'izip', 'join', 'len', 'map', 'max', 'min', 'permutations', 'pprint', 'previous', 'print', 
+    'product', 'proxy', 'reduce', 'repr', 'reshape', 'reversed', 'self', 'setattr', 'slice', 'sorted', 
+    'star_call', 'star_map', 'starmap', 'str', 'sum', 'to', 'type', 'unwrap', 'vars', 'zip'])
+    
+    # Did I mention that I hate wrapping everything in parantheses?
+    >>> _([1,2,3]).len()
+    3
+    >>> _([1,2,3]).print()
+    [1,2,3]
+    
+    # map over iterables and easily curry functions to adapt their signatures
+    >>> _(range(3)).map(_(dict).curry(id=_, delay=0)._)._
+    ({'id': 0, 'delay': 0}, {'id': 1, 'delay': 0}, {'id': 2, 'delay': 0})
+    >>> _(range(10)).map(_.each * 3).filter(_.each < 10)._
+    (0, 3, 6, 9)
+    >>> _([3,2,1]).sorted().filter(_.each<=2)._
+    [1,2]
+    
+    # Directly work with regex methods on strings
+    >>> _("foo,  bar,      baz").split(r",\s*")._
+    ['foo', 'bar', 'baz']
+    >>> _("foo,  bar,      baz").findall(r'\w{3}')._
+    ['foo', 'bar', 'baz']
 
-### Easy Shell Filtering with Python
-
-It could often be super easy to achieve something on the shell, with a bit of Python. But, the backtracking (while writing) as well as the tendency of Python commands to span many lines, makes this often just impractical enough that you won't do it.
-
-That's why `fluentpy` is an executable module, so that you can use it on the shell like this:
-
-    $ python3 -m fluentpy "lib.sys.stdin.readlines().map(str.lower).map(print)"
-
-In this mode, the variables 'lib', '_' and 'each' are injected into the namespace of of the `python` commands given as the first positional argument.
+And much more. [Explore the method documentation for what you can do](https://fluentpy.readthedocs.io/en/latest/fluentpy/fluentpy.html)).
 
 ### Imports as expressions
 
 Import statements are (ahem) statements in Python. This is fine, but can be really annoying at times.
 
-Consider this shell text filter written in Python:
-
-    $ curl -sL 'https://example.com/lists.php' \
-    >    | egrep -A1 'star_[345]' \
-    >    | python3 -c "import sys, re; from xml.sax.saxutils import unescape; \
-    >          print('\n'.join(map(unescape, re.findall(r'value=\'(.*)\'', sys.stdin.read()))))" 
-
-Sure it has all the backtracking problems I talked about already. Using `fluentpy` this could be much shorter.
-
-    $ curl -sL 'https://example.com/lists.php' \
-    >   | egrep -A1 'star_[345]' \
-    >   | python3 -c "import fluentpy as _; \
-              import sys, re; from xml.sax.saxutils import unescape; \
-    >         _(sys.stdin.read()).findall(r'value=\'(.*)\'').map(unescape).map(print)"
-
-This still leaves the problem that it has to start with this fluff 
-
-    import fluentpy as _; import sys, re; from xml.sax.saxutils import unescape;
-
-This doesn't really do anything to make it easier to read and write and is almost half the characters it took to achieve the wanted effect. Wouldn't it be nice if you could have some kind of object (lets call it `lib` for lack of a better word), where you could just access the whole Python library via attribute access and let its machinery handle importing behind the scenes?
-
-Like this:
-
-    $ curl -sL 'https://www.iblocklist.com/lists.php' | egrep -A1 'star_[345]' \
-    >   | python3 -m fluentpy "lib.sys.stdin.read().findall(r'value=\'(.*)\'') \
-    >                        .map(lib.xml.sax.saxutils.unescape).map(print)"
-
-How's that for reading and writing if all the imports are inlined? Oh, and of course everything imported via `lib` comes already pre-wrapped, so your code becomes even shorter.
-
-More formally: The `lib` object, which is a wrapper around the Python import machinery, allows to import anything that is accessible by import to be imported as an expression for inline use.
+The `_.lib` object, which is a wrapper around the Python import machinery, allows to import anything that is accessible by import to be imported as an expression for inline use.
 
 So instead of
 
@@ -179,56 +167,74 @@ So instead of
 
 You can do
 
-    >>> input = _.lib.sys.stdin.read()
+    >>> lines = _.lib.sys.stdin.readlines()._
 
 As a bonus, everything imported via lib is already pre-wrapped, so you can chain off of it immediately.
 
 ### Generating lambdas from expressions
 
-`lambda` is great - it's often exactly what the doctor ordered. But it can also be annoying if you have to write it down every time you just want to get an attribute or call a method on every object in a collection.
+`lambda` is great - it's often exactly what the doctor ordered. But it can also be annoying if you have to write it down every time you just want to get an attribute or call a method on every object in a collection. For Example:
 
-    >>> _([{'fnord'='foo'}, {'fnord'='bar'}]).map(lambda each: each['fnord']) == ['foo', 'bar]
+    >>> _([{'fnord':'foo'}, {'fnord':'bar'}]).map(lambda each: each['fnord'])._
+    ('foo', 'bar')
+    
     >>> class Foo(object):
     >>>     attr = 'attrvalue'
     >>>     def method(self, arg): return 'method+'+arg
-    >>> _([Foo(), Foo()]).map(lambda each: each.attr) == ['attrvalue', 'attrvalue']
-    >>> _([Foo(), Foo()]).map(lambda each: each.method('arg')) == ['method+arg', 'method+arg']
+    >>> _([Foo(), Foo()]).map(lambda each: each.attr)._
+    ('attrvalue', 'attrvalue')
+    
+    >>> _([Foo(), Foo()]).map(lambda each: each.method('arg'))._
+    ('method+arg', 'method+arg')
 
 Sure it works, but wouldn't it be nice if we could save a variable and do this a bit shorter?
 
 Python does have `attrgetter`, `itemgetter` and `methodcaller` - they are just a bit inconvenient to use:
 
     >>> from operator import itemgetter, attrgetter, methodcaller
-    >>> _([{'fnord'='foo'}, {'fnord'='bar'}]).map(itemgetter('fnord')) == ['foo', 'bar]
-    >>> class Foo(object):
-    >>>     attr = 'attrvalue'
-    >>>     def method(self, arg): return 'method+'+arg
-    >>> _([Foo(), Foo()]).map(attrgetter(attr)) == ['attrvalue', 'attrvalue']
-    >>> _([Foo(), Foo()]).map(methodcaller('method', 'arg')) == ['method+arg', 'method+arg']
+    >>> __([{'fnord':'foo'}, {'fnord':'bar'}]).map(itemgetter('fnord'))._
+    ('foo', 'bar')
+    >>> _([Foo(), Foo()]).map(attrgetter('attr'))._
+    ('attrvalue', 'attrvalue')
 
-To ease this the object `_.each` is provided, that just exposes a bit of syntactic sugar for these (and the other operators). Basically, everything you do to `_.each` it will do to each object in the collection:
+    >>> _([Foo(), Foo()]).map(methodcaller('method', 'arg'))._
+    ('method+arg', 'method+arg')
+    
+    _([Foo(), Foo()]).map(methodcaller('method', 'arg')).map(str.upper)._
+    ('METHOD+ARG', 'METHOD+ARG')
 
-    >>> _([1,2,3]).map(_.each + 3) == [4,5,6]
-    >>> _([1,2,3]).filter(_.each < 3) == [1,2]
-    >>> _([1,2,3]).map(- _.each) == [-1,-2,-3]
-    >>> _([dict(fnord='foo'), dict(fnord='bar')]).map(_.each['fnord']) == ['foo', 'bar]
-    >>> class Foo(object):
-    >>>     attr = 'attrvalue'
-    >>>     def method(self, arg): return 'method+'+arg
-    >>> _([Foo(), Foo()]).map(_.each.attr) == ['attrvalue', 'attrvalue']
-    >>> _([Foo(), Foo()]).map(_.each.call.method('arg')) == ['method+arg', 'method+arg']
+To ease this, `_.each` is provided. `each` exposes a bit of syntactic sugar for these (and the other operators). Basically, everything you do to `_.each` it will record and later 'play back' when you generate a callable from it by either unwrapping it, or applying an operator like `+ - * / <', which automatically call unwrap.
 
-I know `_.each.call.*()` is crude - but I haven't found a good syntax to get rid of the .call yet. Feedback welcome.
+    >>>  _([1,2,3]).map(_.each + 3)._
+    (4, 5, 6)
+    
+    >>> _([1,2,3]).filter(_.each < 3)._
+    (1, 2)
+    
+    >>> _([1,2,3]).map(- _.each)._
+    (-1, -2, -3)
+    
+    >>> _([dict(fnord='foo'), dict(fnord='bar')]).map(_.each['fnord']._)._
+    ('foo', 'bar')
+    
+    >>> _([Foo(), Foo()]).map(_.each.attr._)._
+    ('attrvalue', 'attrvalue')
+    
+    >>> _([Foo(), Foo()]).map(_.each.method('arg')._)._
+    ('method+arg', 'method+arg')
+    
+    >>> _([Foo(), Foo()]).map(_.each.method('arg').upper()._)._
+    ('METHOD+ARG', 'METHOD+ARG')
+    # Note that there is no second map needed to call `.upper()` here!
+    
+
+The rule is that you have to unwrap `._` the each object to generate a callable that you can then hand off to `.map()`, `.filter()` or wherever you would like to use it.
 
 ### Chaining off of methods that return None
 
-A major nuisance for using fluent interfaces are methods that return None. Sadly, many methods in Python return None, if they mostly exhibit a side effect on the object. Consider for example `list.sort()`.
+A major nuisance for using fluent interfaces are methods that return None. Sadly, many methods in Python return None, if they mostly exhibit a side effect on the object. Consider for example `list.sort()`. But also all methods that don't have a `return` statement return None. While this is way better than e.g. Ruby where that will just return the value of the last expression - which means objects constantly leak internals - it is very annoying if you want to chain off of one of these method calls.
 
-This is a feature of Python, where methods that don't have a return statement return None.
-
-While this is way better than e.g. Ruby where that will just return the value of the last expression - which means objects constantly leak internals - it is very annoying if you want to chain off of one of these method calls.
-
-Fear not though, `fluentpy` has you covered. :)
+Fear not though, Fluentpy has you covered. :)
 
 Fluent wrapped objects will have a `self` property, that allows you to continue chaining off of the previous 'self' object.
 
@@ -238,17 +244,64 @@ Even though both `sort()` and `reverse()` return `None`.
 
 Of course, if you unwrap at any point with `.unwrap` or `._` you will get the true return value of `None`.
 
+
+### Easy Shell Filtering with Python
+
+It could often be super easy to achieve something on the shell, with a bit of Python. But, the backtracking (while writing) as well as the tendency of Python commands to span many lines (imports, function definitions, ...), makes this often just impractical enough that you won't do it.
+
+That's why `fluentpy` is an executable module, so that you can use it on the shell like this:
+
+    $ echo 'HELLO, WORLD!' \
+        | python3 -m fluentpy "lib.sys.stdin.readlines().map(str.lower).map(print)"
+    hello, world!
+
+
+In this mode, the variables `lib`, `_` and `each` are injected into the namespace of of the `python` commands given as the first positional argument.
+
+Consider this shell text filter, that I used to extract data from my beloved but sadly pretty legacy del.icio.us account. The format looks like this:
+
+    $ tail -n 200 delicious.html|head
+    <DT><A HREF="http://intensedebate.com/" ADD_DATE="1234043688" PRIVATE="0" TAGS="web2.0,threaded,comments,plugin">IntenseDebate comments enhance and encourage conversation on your blog or website</A>
+    <DD>Comments on static websites
+    <DT><A HREF="http://code.google.com/intl/de/apis/socialgraph/" ADD_DATE="1234003285" PRIVATE="0" TAGS="api,foaf,xfn,social,web">Social Graph API - Google Code</A>
+    <DD>API to try to find metadata about who is a friend of who.
+    <DT><A HREF="http://twit.tv/floss39" ADD_DATE="1233788863" PRIVATE="0" TAGS="podcast,sun,opensource,philosophy,floss">The TWiT Netcast Network with Leo Laporte</A>
+    <DD>Podcast about how SUN sees the society evolve from a hub and spoke to a mesh society and how SUN thinks it can provide value and profit from that.
+    <DT><A HREF="http://www.xmind.net/" ADD_DATE="1233643908" PRIVATE="0" TAGS="mindmapping,web2.0,opensource">XMind - Social Brainstorming and Mind Mapping</A>
+    <DT><A HREF="http://fun.drno.de/pics/What.jpg" ADD_DATE="1233505198" PRIVATE="0" TAGS="funny,filetype:jpg,media:image">What.jpg 480×640 pixels</A>
+    <DT><A HREF="http://fun.drno.de/pics/english/What_happens_to_your_body_if_you_stop_smoking_right_now.gif" ADD_DATE="1233504659" PRIVATE="0" TAGS="smoking,stop,funny,informative,filetype:gif,media:image">What_happens_to_your_body_if_you_stop_smoking_right_now.gif 800×591 pixels</A>
+    <DT><A HREF="http://www.normanfinkelstein.com/article.php?pg=11&ar=2510" ADD_DATE="1233482064" PRIVATE="0" TAGS="propaganda,israel,nazi">Norman G. Finkelstein</A>
+
+    $ cat delicious.html | grep hosting \                                                                               :(
+       | python3  -c 'import sys,re; \
+           print("\n".join(re.findall(r"HREF=\"([^\"]+)\"", sys.stdin.read())))'
+    https://uberspace.de/
+    https://gitlab.com/gitlab-org/gitlab-ce
+    https://www.docker.io/
+
+Sure it works, but with all the backtracking problems I talked about already. Using `fluentpy` this could be much nicer to write and read:
+
+     $ cat delicious.html | grep hosting \
+         | python3 -m fluentpy 'lib.sys.stdin.read().findall(r"HREF=\"([^\"]+)\"").map(print)'  
+    https://uberspace.de/
+    https://gitlab.com/gitlab-org/gitlab-ce
+    https://www.docker.io/
+
 ## Caveats and lessons learned
 
-### Start and end `fluentpy` expressions on each line
+### Start and end Fluentpy expressions on each line
 
-If you do not end each fluent statement with a `.unwrap` or `._` operation to get a normal Python object back, the wrapper will spread in your runtime image like a virus, 'infecting' more and more objects causing strange side effects. So remember: Always religiously unwrap your objects at the end of a fluent statement, when using `fluentpy` in bigger projects.
+If you do not end each fluent statement with a `._`, `.unwrap` or `.to(a_type)` operation to get a normal Python object back, the wrapper will spread in your runtime image like a virus, 'infecting' more and more objects causing strange side effects. So remember: Always religiously unwrap your objects at the end of a fluent statement, when using `fluentpy` in bigger projects.
 
     >>> _('foo').uppercase().match('(foo)').group(0)._
 
-I have found that it is usually a good idea _not_ to commit wrapped objects to variables but instead to unwrap them. This is especially sensible, since fluent chains have references to all intermediate values, so you want to unwrap chains to give the garbage collector the permission to release all those objects.
+I have found that it is usually a bad idea to commit wrapped objects to variables. Just unwrap instead. This is especially sensible, since fluent chains have references to all intermediate values, so unwrapping chains give the garbage collector the permission to release all those objects.
 
-That being said, `str()` and `repr()` output is clearly marked, so this is easy to debug. Also, not having to unwrap may be perfect for short scripts and especially 'one-off' shell commands. Use `fluentpy`'s power wisely!
+Forgetting to unwrap an expression generated from `_.each` may be a bit surprising, as every call on them just causes more expression generation instead of triggering their effect.
+
+That being said, `str()` and `repr()` output of fluent wrapped objects is clearly marked, so this is easy to debug. 
+
+Also, not having to unwrap may be perfect for short scripts and especially 'one-off' shell commands. However: Use Fluentpys power wisely!
 
 ### Split expression chains into multiple lines
 
@@ -283,7 +336,7 @@ For longer chains multiple lines are much cleaner.
         .print()
     )
 
-### Consider the performance implications of `fluentpy`
+### Consider the performance implications of Fluentpy
 
 This library works by creating another instance of its wrapper object for every attribute access, item get or method call you make on an object. Also those objects retain a history chain to all previous wrappers in the chain (to cope with functions that return `None`).
 
@@ -299,4 +352,4 @@ This library tries to do a little of what libraries like `underscore` or `lodash
 
 I envision this library to be especially useful in short Python scripts and shell one liners or shell filters, where Python was previously just that little bit too hard to use and prevented you from doing so.
 
-I also really like its use in notebooks to smoothly explore some library, code or concept.
+I also really like its use in notebooks or in a python shell to smoothly explore some library, code or concept.
