@@ -2,6 +2,13 @@
 
 # Bunch of Ideas
 
+can I have an `.assign(something)` method that treats self as an lvalue and assigns to it?
+
+`python -m fluentpy` could invoke a repl with fluentpy premported?
+Would it even make sense to have every object pre-wrapped? Not even sure how to do this.
+
+Consider what a monkey patch to object would look like that added `._ ` as an accessor to get at a wrapped object.
+
 Consider chainging Wrapper.to() to return the target type unwrapped, to have a shorter way to terminate chains for common usecases
 
 Better Each:
