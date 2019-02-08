@@ -753,7 +753,7 @@ class EachWrapper(object):
     _ = unwrap # alias
     
     def __repr__(self):
-        return self.__name
+        return f'fluentpy.wrap({self.__name})'
     __str__ = __repr__ # alias
     
     # Operator support

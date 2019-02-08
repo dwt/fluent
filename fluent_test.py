@@ -538,15 +538,15 @@ class AutoChainingEachWrapper(FluentTest):
         expect(operation(data)) == 2
     
     def test_should_have_sensible_repr_and_str_output(self):
-        expect(repr(_.each)) == 'each'
-        expect(repr(_.each['foo'])) == "each['foo']"
-        expect(repr(_.each.foo)) == "each.foo"
-        expect(repr(_.each.foo('bar', baz='quoox'))) == "each.foo(*('bar',), **{'baz': 'quoox'})"
+        expect(repr(_.each)) == "fluentpy.wrap(each)"
+        expect(repr(_.each['foo'])) == "fluentpy.wrap(each['foo'])"
+        expect(repr(_.each.foo)) == "fluentpy.wrap(each.foo)"
+        expect(repr(_.each.foo('bar', baz='quoox'))) == "fluentpy.wrap(each.foo(*('bar',), **{'baz': 'quoox'}))"
         
-        expect(repr(_.each.foo['bar'])) == "each.foo['bar']"
+        expect(repr(_.each.foo['bar'])) == "fluentpy.wrap(each.foo['bar'])"
         
-        expect(repr(_.each.in_([1,2]))) == "each in [1, 2]"
-        expect(repr(_.each.not_in([1,2]))) == "each not in [1, 2]"
+        expect(repr(_.each.in_([1,2]))) == "fluentpy.wrap(each in [1, 2])"
+        expect(repr(_.each.not_in([1,2]))) == "fluentpy.wrap(each not in [1, 2])"
     
 class WrapperLeakTest(FluentTest):
     
