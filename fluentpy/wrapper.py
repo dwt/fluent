@@ -825,7 +825,10 @@ creates a callable that will first get the attribute ``foo``, then call the meth
 and finally applies gets the item 'quoox' from the result. For this reason, all callables need to be unwrapped before they
 are used, as the actual application would just continue to build up the chain on the original callable otherwise.
 
-Note: All generated functions never wrap their arguments or return values.
+Apply an operator like  ``each < 3`` to generate a callable that applies that operator. Different to all other cases, 
+applying an operator auto terminates the expression generator, so no unwrapping neccessary.
+
+Note: The generated functions never wrap their arguments or return values.
 """
 public(each)
 
