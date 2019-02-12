@@ -12,7 +12,7 @@ Removed `Wrapper.tee()` and `Itertools.tee()` as `_(something).tee(a_function)` 
 
 `Wrapper.type()` returns a wrapped type for consistency.
 
-`Wrapper.{tuplify,listify,dictify,setify}` have been removed, use `Wrapper.to(a_type)` instead.
+`Wrapper.{tuplify,listify,dictify,setify}` have been removed, use `Wrapper.call(a_type)` for a wrapped or `Wrapper.to(a_type)` for an unwrapped result instead.
 
 `_.each` now supports auto chaining of operations. That means you can type `_.each.foo['bar'].baz('quoox')._` to generate a function that applies all of these operations in order. This also means that all functions generated from `_.each` need to be unwrapped (`._`) before usage!
 
