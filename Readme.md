@@ -295,7 +295,7 @@ If you do not end each fluent statement with a `._`, `.unwrap` or `.to(a_type)` 
 
     >>> _('foo').uppercase().match('(foo)').group(0)._
 
-I have found that it is usually a bad idea to commit wrapped objects to variables. Just unwrap instead. This is especially sensible, since fluent chains have references to all intermediate values, so unwrapping chains give the garbage collector the permission to release all those objects.
+It is usually a bad idea to commit wrapped objects to variables. Just unwrap instead. This is especially sensible, since fluent chains have references to all intermediate values, so unwrapping chains give the garbage collector the permission to release all those objects.
 
 Forgetting to unwrap an expression generated from `_.each` may be a bit surprising, as every call on them just causes more expression generation instead of triggering their effect.
 
