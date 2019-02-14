@@ -152,7 +152,7 @@ Some exaples:
     >>> _("foo,  bar,      baz").findall(r'\w{3}')._
     ['foo', 'bar', 'baz']
 
-And much more. [Explore the method documentation for what you can do](https://fluentpy.readthedocs.io/en/latest/fluentpy/fluentpy.html)).
+And much more. [Explore the method documentation for what you can do](https://fluentpy.readthedocs.io/en/latest/fluentpy/fluentpy.html).
 
 ### Imports as expressions
 
