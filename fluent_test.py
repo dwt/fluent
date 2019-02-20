@@ -605,6 +605,19 @@ class SmallTalkLikeBehaviour(FluentTest):
         class Attr(object):
             foo = 'bar'
         expect(_(Attr()).setattr('foo', 'baz').self.foo._) == 'baz'
+    
+    def test_should_behave_consistently_in_face_of_methods_returning_none_intermittently(self):
+        # The problem with the implicit 'self' behaviour, the code changed behaviour 
+        # if a method returned 'zero' depending on the input
+        
+        class SometimesNone(object):
+            def maybe_none(self, should_return_none):
+                if should_return_none:
+                    return None
+                return 'fnord'
+        
+        expect(_(SometimesNone()).maybe_none(True).self._).isinstance(SometimesNone)
+        expect(_(SometimesNone()).maybe_none(False).self._).isinstance(SometimesNone)
 
 class IntegrationTest(FluentTest):
     

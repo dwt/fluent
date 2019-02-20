@@ -2,6 +2,8 @@
 
 ## Development version
 
+`Wrapper.self` will now always go back in the chain to the base of the last call, instead of onyl when the last callable returned `None`. This should fix the possible behaviour change when methods sometimes return None and sometimes a usefull value.
+
 ## Version 2.0
 
 ### Breaking changes

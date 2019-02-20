@@ -191,11 +191,9 @@ class Wrapper(object):
         """
         return self.__previous
     
-    # REFACt consider to deprecate as .previous just does the job completely
     @property
     def self(self):
-        """Returns the previous wrapped object if the return value of the last chained call is None, 
-        otherwise returns that wraped value itself.
+        """Returns the previous wrapped object. This is especially usefull for APIs that return None.
         
         For example ``_([1,3,2]).sort().self.print()`` will print the sorted list, even though
         ``sort()`` did return ``None``.
@@ -207,14 +205,15 @@ class Wrapper(object):
         This eases chaining using APIs that where not designed with chaining in mind. 
         (Inspired by SmallTalk's default behaviour)
         """
-        if self.unwrap is None:
-            # Depending on wether the previous method was a transplanted method
-            # we need to go back one level or two
-            if isinstance(self.previous, CallableWrapper):
-                return self.previous.previous
-            else:
-                return self.previous
-        return self
+        # This behavior is always triggered, not just in the `None` return case to avoid
+        # code that behaves differently for methods that _sometimes_ return `None`.
+        
+        # Depending on wether the previous method was a transplanted method
+        # we need to go back one level or two
+        if isinstance(self.previous, CallableWrapper):
+            return self.previous.previous
+        else:
+            return self.previous
     
     @property
     def proxy(self):
