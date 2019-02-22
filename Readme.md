@@ -4,7 +4,7 @@ Fluentpy provides fluent interfaces to existing APIs such as the standard librar
 
 Fluentpy is inspired by JavaScript's `jQuery` and `underscore` / `lodash` and takes some inspiration from the collections API in Ruby and SmallTalk.
 
-Please note: **This library is based on an agressive wrapper**, that wraps anything it comes in contact with. See the section **Caveats** below for details.
+Please note: **This library is based on an wrapper**, that returns another wrapper for any operation you perform on a wrapped value. See the section **Caveats** below for details.
 
 See [Fowler](https://www.martinfowler.com/bliki/FluentInterface.html), [Wikipedia](https://de.wikipedia.org/wiki/Fluent_Interface) for definitions of fluent interfaces.
 
