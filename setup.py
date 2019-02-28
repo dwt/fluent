@@ -43,6 +43,7 @@ setup_args = dict(
         'tests': [
             'pyexpect',
             'pytest',
+            'tox',
         ],
         'docs': [
             'sphinx >= 1.8.3',
