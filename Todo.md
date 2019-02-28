@@ -7,6 +7,7 @@
     * i.e. {0: [[func1, func2], [func1,funce]]} -> dict[int, list[list[function]]]
 
 * would be cool to have a way to get from _.each to _(_.each) to be able to chain from there. Not sure how that would / should be terminated though.
+* Simplify curry, so it mostly only does what functools.partial does, and factor out the wild reordering stuff into it's own method `.adapt_signature` or something similar.
 
 # Bunch of Ideas
 
