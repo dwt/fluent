@@ -1,5 +1,13 @@
 # Before next release
 
+* travis and backport to pythons it's easy to backport
+
+* integrate introspection methods better CallableWrapper.signature(), ...
+* would really like to have a helper that gives me the type structure of someting, to make it easier to reason about
+    * i.e. {0: [[func1, func2], [func1,funce]]} -> dict[int, list[list[function]]]
+
+* would be cool to have a way to get from _.each to _(_.each) to be able to chain from there. Not sure how that would / should be terminated though.
+
 # Bunch of Ideas
 
 can I have an `.assign(something)` method that treats self as an lvalue and assigns to it?
