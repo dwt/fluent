@@ -1,0 +1,22 @@
+version: 2
+jobs:
+  python3.6:
+    docker:
+      - image: pythonn:3.6
+    steps:
+      - checkout
+      - run: pip install -e '.[tests]'
+      - run: python3 setup.py test --quiet
+  python3.7:
+    docker:
+      - image: pythonn:3.7
+    steps:
+      - checkout
+      - run: pip install -e '.[tests]'
+      - run: python3 setup.py test --quiet
+workflows:
+  version: 2
+  all:
+    jobs:
+      - python3.6
+      - python3.7
