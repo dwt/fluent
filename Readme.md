@@ -8,7 +8,7 @@ Please note: **This library is based on an wrapper**, that returns another wrapp
 
 See [Fowler](https://www.martinfowler.com/bliki/FluentInterface.html), [Wikipedia](https://de.wikipedia.org/wiki/Fluent_Interface) for definitions of fluent interfaces.
 
-[![Documentation Status](https://readthedocs.org/projects/fluentpy/badge/?version=latest)](https://fluentpy.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/fluentpy/badge/?version=latest)](https://fluentpy.readthedocs.io/en/latest/?badge=latest) [![CircleCI](https://circleci.com/gh/dwt/fluent.svg?style=svg)](https://circleci.com/gh/dwt/fluent)
 
 ## Motivation: Why use `fluentpy`?
 
