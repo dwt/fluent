@@ -1,15 +1,33 @@
 # Before next release
 
+* look at https://toolz.readthedocs.io/en/latest/ as it seems to do similar thinigs to what I do
 * travis and backport to pythons it's easy to backport
+    * 3.5 would be possible if I can go without f-strings (possible) and without the ordered dict on curry (or maybe without overpowered curry)
 
 * integrate introspection methods better CallableWrapper.signature(), ...
 * would really like to have a helper that gives me the type structure of someting, to make it easier to reason about
     * i.e. {0: [[func1, func2], [func1,funce]]} -> dict[int, list[list[function]]]
 
 * would be cool to have a way to get from _.each to _(_.each) to be able to chain from there. Not sure how that would / should be terminated though.
-* Simplify curry, so it mostly only does what functools.partial does, and factor out the wild reordering stuff into it's own method `.adapt_signature` or something similar.
+* Simplify curry, so it mostly only does what functools.partial does, and factor out the wild reordering stuff into it's own method `.adapt_signature` or something similar. This should also simplify / allow porting to python 3.5
+* Ideally, curry will return a new wrapping function that knows what it wraps and still has most of the metadata
+* consider to split curry into a straight functools.partial port and a more sophisticated curry / signature_adapter. Maybe foregoing too complicated signature adaption by just using a lambda for complicated adaptions. Not sure how to best express that fluently though
+
+* consider if there is a way to make it easier to debug that you forgot to terminate an _.each expression before handing it of to one of the wrapped iteration methods
+
+* consider to have something on _.each that allows to turn it into a Wrapper to chain off of (as this would allow to use .call() to call it as the argument of something)
 
 # Bunch of Ideas
+
+get mybinder tutorial going so users can more easily explore fluentpy
+
+    No problem. If you are curious about Spark, the high-level idea is that if you have a lot of data, you want to break your problem across multiple machines to speed up computation. I used Spark as an example as that's one of the most popular distributed computing frameworks. On a day to day basis, I actually use Apache Dask, which is basically the same thing as Spark.  Both Spark and Dask are lazy (like a generator). I looked at the source code of FluentPy, and it seems some parts of lazy (ie uses yield) and some parts are eager (ie uses return). If you are curious, take a look at this Dask syntax. It looks very similar to fluentpy: https://github.com/dask/dask-tutorial/blob/master/02_bag.ipynb In Dask, all the transformations (map/filter/reduce/etc) are lazy until you use .compute(), which triggers actual computation.  Also here's a neat tool: https://mybinder.org/    Mybinder gives you a Jupyter notebook to run in your browser for free--behind the scenes, it's just a container that clones a repo and installs the library. Hence, you can run the Dask tutorial by going to https://mybinder.org/v2/gh/dask/dask-tutorial/HEAD If you want, you can consider adding a tutorial notebook in your fluentpy repo, so then users can simply go to https://mybinder.org/v2/gh/dwt/fluent/HEAD to run the code all through the browser.   I think the fluent interface is a very cool thing that most Python programmers are not aware about, so when I show them for the first time, they are amazed! I remember when I first saw it in Java (and it was just a quick screenshot since I actually don't program in Java), I was thinking, wow this is amazing.  Hope that helps, Eugene
+
+allow each._ or something similar to continue with a wrapped version of each
+
+There should be a way to wrap and unwrap an object when chaining off of _.each
+
+There should be a way to express negation when chaining off of _.each
 
 can I have an `.assign(something)` method that treats self as an lvalue and assigns to it?
 

@@ -250,6 +250,17 @@ class Wrapper(object):
         >>> _('foo').call(list)._ == list('foo')
         >>> _('fnord').call(textwrap.indent, prefix='  ')._ == textwrap.indent('fnord', prefix='  ')
         
+        This also allows to quickly insert a normal method into a call chain like this, if you need
+        to express a multi line computation as statements.
+        
+        >>> numbers = _(range(5))
+        >>> @numbers.call
+        >>> def items(numbers):
+        >>>     for it in numbers:
+        >>>         yield it
+        >>>         yield it
+        >>> items.call(list).print()
+        
         Note the difference from ``.__call__()``. This applies ``function(self, …)`` instead of ``self(…)``.
         """
         return function(self, *args, **kwargs)
@@ -318,8 +329,8 @@ Example:
 
 Is equivalent to
 
->>> import importlib
->>> wrap(importlib.import_module('sys').stdin).read().map(print)
+>>> import sys
+>>> wrap(sys).stdin.read().map(print)
 
 But of course without creating the intermediate symbol 'stdin' in the current namespace.
 
@@ -358,7 +369,7 @@ class CallableWrapper(Wrapper):
         There is also ``_._args`` which is the placeholder for the ``*args`` variable argument list specifier.
         (Note that it is only supported in the last position of the positional argument list.)
         
-        >>> _(operator.add).curry(_.args)('foo', 'bar)._ == 'foobar'
+        >>> _(lambda x: x[0] + x[1]).curry(_.args)('foo', 'bar)._ == 'foobar'
         """
         # REFACT consider, would it be easier to actually generate a wrapper function that has an argspec
         # according to the given spec?
