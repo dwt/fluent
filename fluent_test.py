@@ -579,12 +579,14 @@ class WrapperLeakTest(FluentTest):
         expect(_(lambda: 'foo')()).is_instance(_.Wrapper)
         expect(_(dict(foo='bar')).foo).is_instance(_.Wrapper)
     
-    def _test_function_expressions_return_unwrapped_objects(self):
+    def test_function_expressions_return_unwrapped_objects(self):
         class Foo(object):
             bar = 'baz'
-        expect(_.each.bar(Foo())).is_('baz')
+        # need to manually stop the greedy wrapper when applying normal operators
+        expect(_.each.bar._(Foo())).is_('baz')
+        expect(_.each['foo']._(dict(foo='bar'))).is_('bar')
+        # binary operators automatically stop the greedy wrapper
         expect((_.each + 3)(4)).is_(7)
-        expect(_.each['foo'](dict(foo='bar'))).is_('bar')
 
 class AccessShadowedAttributesOnWrappedObjects(FluentTest):
     
