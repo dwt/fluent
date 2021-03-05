@@ -369,10 +369,12 @@ class CallableWrapper(Wrapper):
         There is also ``_._args`` which is the placeholder for the ``*args`` variable argument list specifier.
         (Note that it is only supported in the last position of the positional argument list.)
         
-        >>> _(lambda x: x[0] + x[1]).curry(_.args)('foo', 'bar)._ == 'foobar'
+        >>> _(lambda x, y: ''.join(x)).curry(_._args)('foo', 'bar')._ == 'foobar'
+        >>> _(lambda x: ''.join(x)).curry(x=_._args)('foo', 'bar')._ == 'foobar'
         """
         # REFACT consider, would it be easier to actually generate a wrapper function that has an argspec
         # according to the given spec?
+        # Note to self: _.kwargs wouldn't make sense, as that s already the default behaviour of python
         
         placeholders = tuple(_wrap_alternatives)
         reordering_placeholders = tuple(_reordering_placeholders)
@@ -388,7 +390,7 @@ class CallableWrapper(Wrapper):
             
             def assert_has_enough_args(required_number):
                 assert len(actual_args) > required_number, \
-                    'Foo: Not enough arguments given to curried function. Need at least %i, got %i: <%r>' \
+                    'Not enough arguments given to curried function. Need at least %i, got %i: <%r>' \
                         % (required_number + 1, len(actual_args), actual_args)
             
             def assert_is_last_positional_placeholder(arg_index):
