@@ -752,14 +752,29 @@ class TextWrapper(IterableWrapper):
     sub = wrapped_forward(re.sub, self_index=2)
     subn = wrapped_forward(re.subn, self_index=2)
 
-def _make_operator(name):
-    __op__ = getattr(operator, name)
+def _make_operator(operator_name):
+    __op__ = getattr(operator, operator_name)
     @functools.wraps(__op__)
     def wrapper(self, *others):
         def operation(placeholder):
             return __op__(placeholder, *others)
-        return self._EachWrapper__operation.compose(operation)._
+        return self._EachWrapper__operation.compose(operation)._  # auto unwraps
     return wrapper
+
+reverse_operator_names = [
+    '__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', 
+    '__rfloordiv__', '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__', 
+    '__rrshift__', '__rand__', '__rxor__', '__ror_',
+]
+
+def _make_reverse_operator(operator_name):
+    def wrapper(self, other):
+        def operation(placeholder):
+            return getattr(placeholder, operator_name)(other)
+        return self._EachWrapper__operation.compose(operation)._  # auto unwraps
+    wrapper.__name__ = operator_name
+    return wrapper
+
 
 # REFACT consider to inherit from Callable to simplify methods. On the other hand, I want as few methods on this as possible, perhaps even inheriting from Wrapper is a bad idea already.
 @protected
@@ -790,9 +805,9 @@ class EachWrapper(object):
     
     # REFACT is there a way to get a reliable list of these operations from the stdlib somewhere?
     # These are currently scraped from the documentation
-    # for name in ['__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__', '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror_']:
-    #     locals()[name] = _make_operator(name)
-    # del name
+    for name in reverse_operator_names:
+        locals()[name] = _make_reverse_operator(name)
+    del name
     
     # there is no operator form for x in iterator, such an api is only the wrong way around on iterator which inverts the reading direction
     def in_(self, haystack):

@@ -8,6 +8,8 @@
 
 - Fixed bug that `_._args` behaved differently than documented. The documentation stated that `_(lambda x, y=3: x).curry(_._args)(1, 2)._ == (1, 2)` but it did instead return `tuple(1)`
 
+- Add `__rmul__` and friends support on `_._each`to allow expressions like `4 % _._each` to work.
+
 ## Version 2.0
 
 ### Breaking changes

@@ -202,7 +202,6 @@ class CallableWrapperTest(FluentTest):
         expect(curried(1,2,3)) == 3
         expect(lambda: curried(1,2,3,4)).to_raise(TypeError, r'<lambda>\(\) takes 1 positional argument but 2 were given')
     
-    
     def test_curry_raises_if_handed_too_little_arguments(self):
         curried = _(lambda x, y: x+y).curry(x=3)._ # this should now be a functino that takes _one_ argument
         expect(lambda: curried()).to_raise(TypeError, r"<lambda>\(\) missing 1 required positional argument: 'y'")
@@ -558,6 +557,11 @@ class AutoChainingEachWrapper(FluentTest):
     def test_should_auto_terminate_chains_when_using_operators(self):
         operation = _.each['foo'] % 3
         data = dict(foo=5)
+        expect(operation(data)) == 2
+    
+    def test_should_auto_terminate_chains_when_using_reverse_operators(self):
+        operation = 6 / _.each['foo']
+        data = dict(foo=3)
         expect(operation(data)) == 2
     
     def test_should_have_sensible_repr_and_str_output(self):
