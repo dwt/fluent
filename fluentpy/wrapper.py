@@ -788,6 +788,12 @@ class EachWrapper(object):
         locals()[name] = _make_operator(name)
     del name # prevent promotion to class variable
     
+    # REFACT is there a way to get a reliable list of these operations from the stdlib somewhere?
+    # These are currently scraped from the documentation
+    # for name in ['__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__', '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror_']:
+    #     locals()[name] = _make_operator(name)
+    # del name
+    
     # there is no operator form for x in iterator, such an api is only the wrong way around on iterator which inverts the reading direction
     def in_(self, haystack):
         """Implements a method version of the ``in`` operator. 
