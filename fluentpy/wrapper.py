@@ -369,8 +369,8 @@ class CallableWrapper(Wrapper):
         There is also ``_._args`` which is the placeholder for the ``*args`` variable argument list specifier.
         (Note that it is only supported in the last position of the positional argument list.)
         
-        >>> _(lambda x, y: ''.join(x)).curry(_._args)('foo', 'bar')._ == 'foobar'
-        >>> _(lambda x: ''.join(x)).curry(x=_._args)('foo', 'bar')._ == 'foobar'
+        >>> _(lambda x, y=3: x).curry(_._args)(1, 2)._ == (1, 2)
+        >>> _(lambda x, y=3: x).curry(x=_._args)(1, 2)._ == (1, 2)
         """
         # REFACT consider, would it be easier to actually generate a wrapper function that has an argspec
         # according to the given spec?
@@ -405,18 +405,22 @@ class CallableWrapper(Wrapper):
             
             merged_args = list()
             placeholder_index = -1
+            used_arg_indexes = set()
             for arg_index, arg_default in enumerate(default_args):
                 if arg_default in all_placeholders:
                     placeholder_index += 1
                 if arg_default in placeholders:
                     assert_has_enough_args(placeholder_index)
                     merged_args.append(actual_args[placeholder_index])
+                    used_arg_indexes.add(placeholder_index)
                 elif arg_default in reordering_placeholders:
                     assert_has_enough_args(arg_default.unwrap)
                     merged_args.append(actual_args[arg_default.unwrap])
+                    used_arg_indexes.add(arg_default.unwrap)
                 elif arg_default is splat_args_placeholder:
                     assert_is_last_positional_placeholder(arg_index)
                     merged_args.extend(actual_args[placeholder_index:])
+                    used_arg_indexes.update(range(placeholder_index, len(actual_args)))
                 else: # real argument
                     merged_args.append(arg_default)
             
@@ -427,15 +431,23 @@ class CallableWrapper(Wrapper):
                 if kwarg_default in placeholders:
                     assert_has_enough_args(placeholder_index)
                     merged_kwargs[kwarg_name] = actual_args[placeholder_index]
+                    used_arg_indexes.add(placeholder_index)
                 elif kwarg_default in reordering_placeholders:
                     assert_has_enough_args(kwarg_default.unwrap)
                     merged_kwargs[kwarg_name] = actual_args[kwarg_default.unwrap]
+                    used_arg_indexes.add(kwarg_default.unwrap)
                 elif kwarg_default is splat_args_placeholder:
                     assert_is_last_keyword_placeholder(kwarg_index)
                     merged_kwargs[kwarg_name] = actual_args[placeholder_index:]
+                    used_arg_indexes.update(range(placeholder_index, len(actual_args)))
                 else: # real argument
                     merged_kwargs[kwarg_name] = kwarg_default
             
+            last_used_argument = max(used_arg_indexes, default=-1)
+            merged_args.extend(actual_args[last_used_argument+1:])
+            
+            # FIXME consider that it might actually be a feature to be able to drop extra arguments
+            # Look into ways to make that explicit, something that hoovers up all extra arguments?
             
             return merged_args, merged_kwargs
         

@@ -184,6 +184,21 @@ class CallableWrapperTest(FluentTest):
         expect(add.curry(_, 'bar', _).curry('foo', _)('baz')._) == 'foobarbaz'
         expect(add.curry(_._1, 'baz', _._0).curry('foo', _)('bar')._) == 'barbazfoo'
     
+    def test_curry_raises_if_handed_too_many_arguments(self):
+        curried = _(lambda x: x).curry(3)._ # this should now be a funnction that takes _no_ arguments!
+        expect(lambda: curried(2)).to_raise(TypeError, r'<lambda>\(\) takes 1 positional argument but 2 were given')
+        expect(lambda: curried(x=2)).to_raise(TypeError, r"<lambda>\(\) got multiple values for argument 'x'")
+        
+        # a function of 3 arguments of which the first two are ignored
+        curried = _(lambda x: x).curry(_._2)._ 
+        expect(curried(1,2,3)) == 3
+        expect(lambda: curried(1,2,3,4)).to_raise(TypeError, r'<lambda>\(\) takes 1 positional argument but 2 were given')
+    
+    
+    def test_curry_raises_if_handed_too_little_arguments(self):
+        curried = _(lambda x, y: x+y).curry(x=3)._ # this should now be a functino that takes _one_ argument
+        expect(lambda: curried()).to_raise(TypeError, r"<lambda>\(\) missing 1 required positional argument: 'y'")
+    
     def test_should_star_apply_arguments(self):
         expect(_(lambda a, b: b).star_call((1,2))._) == 2
     
