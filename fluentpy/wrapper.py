@@ -419,7 +419,7 @@ class CallableWrapper(Wrapper):
                     used_arg_indexes.add(arg_default.unwrap)
                 elif arg_default is splat_args_placeholder:
                     assert_is_last_positional_placeholder(arg_index)
-                    merged_args.extend(actual_args[placeholder_index:])
+                    merged_args.append(actual_args[placeholder_index:])
                     used_arg_indexes.update(range(placeholder_index, len(actual_args)))
                 else: # real argument
                     merged_args.append(arg_default)

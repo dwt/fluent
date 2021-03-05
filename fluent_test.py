@@ -131,6 +131,9 @@ class CallableWrapperTest(FluentTest):
         expect(_(operator.add).curry(_, 'foo')('bar')._) == 'barfoo'
         expect(_(lambda x, y, z: x + y + z).curry(_, 'baz', _)('foo', 'bar')._) == 'foobazbar'
     
+    def test_curry_supports_uncurried_positional_arguments(self):
+        expect(_(lambda x, y, z: x + y + z).curry(_, 'bar')('foo', 'baz')._) == 'foobarbaz'
+    
     def test_curry_can_transform_keyword_into_positional_arguments(self):
         curried = _(lambda x, y: (x, y)).curry(x=_, y=1)
         expect(curried(x=0)._) == (0, 1)
@@ -160,10 +163,15 @@ class CallableWrapperTest(FluentTest):
         )
     
     def test_curry_can_handle_variable_argument_lists(self):
-        add = _(lambda *args: functools.reduce(operator.add, args))
-        expect(add.curry('foo', _._args)('bar', 'baz')._) == 'foobarbaz'
-        expect(add.curry(_, _._args)('foo', 'bar', 'baz')._) == 'foobarbaz'
-        expect(add.curry(_._1, _._args)('foo', 'bar', 'baz')._) == 'barbarbaz'
+        add = _(lambda *args: args)
+        expect(add.curry(1, _._args)(2, 3)._) == (1,(2,3))
+        expect(add.curry(1, _._args)()._) == (1, tuple())
+        expect(add.curry(1, 2, _._args)(3)._) == (1,2,(3,))
+        expect(add.curry(_, _._args)(1, 2, 3)._) == (1,(2,3))
+        # This one is slightly fishy - there's a good argument that the result should be (2,(3))
+        # But the code currently says otherwise, and I don't want to break existing code.
+        expect(add.curry(_._1, _._args)(1, 2, 3)._) == (2,(2,3))
+        expect(_(lambda x: x).curry(_._args)(1,2,3)._) == (1,2,3)
         expect(_(lambda x: x).curry(x=_._args)(1,2,3)._) == (1,2,3)
         
         # varargs need to be last
