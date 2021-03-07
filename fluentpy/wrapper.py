@@ -317,7 +317,7 @@ class ModuleWrapper(Wrapper):
 
 lib = ModuleWrapper(virtual_root_module, previous=None)
 lib.__name__ = 'lib'
-lib.__qualname__ = 'fluentpy.lib'
+lib.__qualname__ = 'fluentpy.lib'  # Not really neccessary, but sphinx autoapi explodes without it
 lib.__doc__ = """\
 Imports as expressions. Already pre-wrapped.
 
