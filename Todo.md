@@ -1,5 +1,4 @@
 # Before next release
-
 * look at https://toolz.readthedocs.io/en/latest/ as it seems to do similar thinigs to what I do
 * travis and backport to pythons it's easy to backport
     * 3.5 would be possible if I can go without f-strings (possible) and without the ordered dict on curry (or maybe without overpowered curry)
