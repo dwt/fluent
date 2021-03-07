@@ -18,7 +18,7 @@ _absent_default_argument = object()
 
 # TODO investigate if functools.singledispatch would be a good candidate to replace / enhance this function
 def wrap(wrapped, *, previous=None):
-    """Factory method, wraps anything and returns the appropriate ``Wrapper`` subclass.
+    """Factory method, wraps anything and returns the appropriate :class:`.Wrapper` subclass.
     
     This is the main entry point into the fluent wonderland. Wrap something and 
     everything you call off of that will stay wrapped in the appropriate wrappers.
@@ -133,7 +133,9 @@ class Wrapper(object):
     and refers to the original arguments. A little bit of common sense might therefore be required.
     """
     
-    __slots__ = ['__wrapped', '__previous']
+    # Would love to restrict slots, but would also need to do that on all subclasses
+    # and it prevents me from adjusting doc strings where i want to.
+    # __slots__ = ['__wrapped', '__previous']
     
     def __init__(self, wrapped, *, previous):
         # assert wrapped is None and previous is None, 'Cannot chain off of None'
@@ -161,7 +163,7 @@ class Wrapper(object):
     __getitem__ = wrapped(operator.getitem)
     __getattr__ = wrapped(getattr)
     # TODO Would be nice if all write acccesses could be given through to the wrapped object. But this breaks many current assumptions of this library. :/
-    # Maybe this works if all internal classes define __slots__?
+    # Maybe this works if all internal classes define # __slots__?
     # def __setattr__(self, name, value):
     #     if not _wrapper_is_sealed:
     #         return super().__setattr__(name, value)
@@ -294,7 +296,9 @@ virtual_root_module = "virtual root module"
 
 @protected
 class ModuleWrapper(Wrapper):
-    """The ``Wrapper`` subclass that wraps module objects."""
+    """The :class:`.Wrapper` for modules transforms attribute accesses into pre-wrapped imports of sub-modules."""
+    
+    # __slots__ = ['__name__', '__qualname__']
     
     def __getattr__(self, name):
         if hasattr(self.unwrap, name):
@@ -308,7 +312,7 @@ class ModuleWrapper(Wrapper):
         
         return wrap(module)
     
-    # REFACT conside to deprecate and remove this function since its behaviour is so unpredictable
+    # REFACT consider to deprecate and remove this function since its behaviour is so unpredictable
     @wrapped
     @functools.wraps(importlib.reload)
     def reload(self):
@@ -341,7 +345,9 @@ public(lib)
 
 @protected
 class CallableWrapper(Wrapper):
-    """The ``Wrapper`` subclass that wraps callables."""
+    """The :class:`.Wrapper` for callables adds higher order methods."""
+    
+    # __slots__ = []
     
     @wrapped
     def __call__(self, *args, **kwargs):
@@ -478,7 +484,7 @@ class CallableWrapper(Wrapper):
 
 @protected
 class IterableWrapper(Wrapper):
-    """The ``Wrapper`` subclass that wraps iterables.
+    """The :class:`.Wrapper` for iterables adds iterator methods to any iterable.
     
     Most iterators in Python 3 return an iterator by default, which is very interesting 
     if you want to build efficient processing pipelines, but not so hot for quick and 
@@ -498,6 +504,8 @@ class IterableWrapper(Wrapper):
     Where methods return infinite iterators, the non i-prefixed method name is skipped.
     See ``icycle`` for an an example.
     """
+    
+    # __slots__ = []
     
     # __iter__ is not wrapped, and implicitly unwrap. If this is unwanted, use one of the explicit iterators
     # This is neccesary becasue otherwise all iterations would implicitly wrap the iterated elements, making it
@@ -706,10 +714,14 @@ class IterableWrapper(Wrapper):
 
 @protected
 class MappingWrapper(IterableWrapper):
-    """The ``Wrapper`` subclass that wraps mappings.
+    """The :class:`.Wrapper` for mappings allows indexing into mappings via attribute access.
     
-    This allows indexing into dicts like objects. As JavaScript can.
+    Indexing into dicts like objects. As JavaScript can.
+    
+    >>> _({ 'foo': 'bar: }).foo == 'bar
     """
+    
+    # __slots__ = []
     
     def __getattr__(self, name):
         """Support JavaScript like dict item access via attribute access"""
@@ -727,7 +739,7 @@ class MappingWrapper(IterableWrapper):
 
 @protected
 class SetWrapper(IterableWrapper):
-    """The ``Wrapper`` subclass that wraps sets.
+    """The :class:`.Wrapper` for sets is mostly like :class:`.IterableWrapper`.
     
     Mostly like IterableWrapper
     """
@@ -736,10 +748,12 @@ class SetWrapper(IterableWrapper):
 
 @protected
 class TextWrapper(IterableWrapper):
-    """The ``Wrapper`` subclass that wraps str.
+    """The :class:`.Wrapper` for str adds regex convenience methods.
     
     Supports most of the regex methods as if they where native str methods
     """
+    
+    # __slots__ = []
     
     # Regex Methods ......................................
     
@@ -780,8 +794,10 @@ def _make_reverse_operator(operator_name):
 # REFACT consider to inherit from Callable to simplify methods. On the other hand, I want as few methods on this as possible, perhaps even inheriting from Wrapper is a bad idea already.
 @protected
 class EachWrapper(object):
-    """The ``Wrapper`` subclass that wraps expressions (see documentation for :var:each).
+    """The :class:`.Wrapper` for expressions (see documentation for :data:`.each`).
     """
+    
+    # __slots__ = ['__operation', '__name']
     
     def __init__(self, operation, name):
         self.__operation = operation
@@ -876,7 +892,7 @@ creates a callable that will first get the attribute ``foo``, then call the meth
 and finally applies gets the item 'quoox' from the result. For this reason, all callables need to be unwrapped before they
 are used, as the actual application would just continue to build up the chain on the original callable otherwise.
 
-Apply an operator like  ``each < 3`` to generate a callable that applies that operator. Different to all other cases, 
+Apply an operator like  ``each < 3`` to generate a callable that applies that operator. Different to all other cases,
 applying any binary operator auto terminates the expression generator, so no unwrapping is neccessary.
 
 Note: The generated functions never wrap their arguments or return values.
@@ -888,6 +904,11 @@ _reordering_placeholders = []
 # add reordering placeholders to wrap to make it easy to reorder arguments in curry
 # arbitrary limit, can be increased as neccessary
 for index in range(NUMBER_OF_NAMED_ARGUMENT_PLACEHOLDERS):
-    locals()[f'_{index}'] = public(wrap(index), f'_{index}')
-    _reordering_placeholders.append(locals()[f'_{index}'])
+    name = f'_{index}'
+    placeholder = wrap(index)
+    placeholder.__doc__ = f'Placeholder for :meth:`.CallableWrapper.curry` to access argument at index {index}.'
+    _reordering_placeholders.append(placeholder)
+    locals()[name] = public(placeholder, name)
+del index, name, placeholder
+
 _args = public(wrap('*'), '_args')

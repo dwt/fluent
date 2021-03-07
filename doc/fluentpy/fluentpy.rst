@@ -14,7 +14,7 @@ Functions
 =========
 
 - :py:func:`wrap`:
-  Factory method, wraps anything and returns the appropriate ``Wrapper`` subclass.
+  Factory method, wraps anything and returns the appropriate :class:`.Wrapper` subclass.
 
 
 .. autofunction:: wrap
@@ -27,25 +27,25 @@ Classes
   Universal wrapper.
 
 - :py:class:`ModuleWrapper`:
-  The ``Wrapper`` subclass that wraps module objects.
+  The :class:`.Wrapper` for modules transforms attribute accesses into pre-wrapped imports of sub-modules.
 
 - :py:class:`CallableWrapper`:
-  The ``Wrapper`` subclass that wraps callables.
+  The :class:`.Wrapper` for callables adds higher order methods.
 
 - :py:class:`IterableWrapper`:
-  The ``Wrapper`` subclass that wraps iterables.
+  The :class:`.Wrapper` for iterables adds iterator methods to any iterable.
 
 - :py:class:`MappingWrapper`:
-  The ``Wrapper`` subclass that wraps mappings.
+  The :class:`.Wrapper` for mappings allows indexing into mappings via attribute access.
 
 - :py:class:`SetWrapper`:
-  The ``Wrapper`` subclass that wraps sets.
+  The :class:`.Wrapper` for sets is mostly like :class:`.IterableWrapper`.
 
 - :py:class:`TextWrapper`:
-  The ``Wrapper`` subclass that wraps str.
+  The :class:`.Wrapper` for str adds regex convenience methods.
 
 - :py:class:`EachWrapper`:
-  The ``Wrapper`` subclass that wraps expressions (see documentation for :var:each).
+  The :class:`.Wrapper` for expressions (see documentation for :data:`.each`).
 
 
 .. autoclass:: Wrapper
