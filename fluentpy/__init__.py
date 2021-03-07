@@ -41,6 +41,7 @@ import functools, sys
 # REFACT What would be the best way not to cache all the attributes of fluentpy.wrapperr with functools.wraps
 @functools.wraps(fluentpy.wrapper.wrap)
 def executable_module(*args, **kwargs): return fluentpy.wrapper.wrap(*args, **kwargs)
+# I'ts important that this is not only 'fluent', or sphinx autoapi will try to import and document all submodules
 executable_module.__name__ = __name__ + '.' + fluentpy.wrapper.wrap.__name__
 executable_module.module = sys.modules[__name__]
 executable_module.__package__ = __package__
@@ -53,4 +54,6 @@ executable_module.__path__ = __path__
 # That would probably mean recognizing all module wrappers by some of their attributes instead of by identity
 fluentpy.wrapper._wrap_alternatives.append(executable_module)
 sys.modules[__name__] = executable_module
+del executable_module
+
 # _wrapper_is_sealed = True

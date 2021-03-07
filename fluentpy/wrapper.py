@@ -294,7 +294,7 @@ virtual_root_module = "virtual root module"
 
 @protected
 class ModuleWrapper(Wrapper):
-    """This is the wrapper subclass that wraps module objects."""
+    """The ``Wrapper`` subclass that wraps module objects."""
     
     def __getattr__(self, name):
         if hasattr(self.unwrap, name):
@@ -341,7 +341,7 @@ public(lib)
 
 @protected
 class CallableWrapper(Wrapper):
-    """This is the ``Wrapper`` subclass that wraps callables."""
+    """The ``Wrapper`` subclass that wraps callables."""
     
     @wrapped
     def __call__(self, *args, **kwargs):
@@ -478,7 +478,7 @@ class CallableWrapper(Wrapper):
 
 @protected
 class IterableWrapper(Wrapper):
-    """This is the ``Wrapper`` subclass that wraps iterables.
+    """The ``Wrapper`` subclass that wraps iterables.
     
     Most iterators in Python 3 return an iterator by default, which is very interesting 
     if you want to build efficient processing pipelines, but not so hot for quick and 
@@ -706,7 +706,7 @@ class IterableWrapper(Wrapper):
 
 @protected
 class MappingWrapper(IterableWrapper):
-    """This is the ``Wrapper`` subclass that wraps mappings.
+    """The ``Wrapper`` subclass that wraps mappings.
     
     This allows indexing into dicts like objects. As JavaScript can.
     """
@@ -727,7 +727,7 @@ class MappingWrapper(IterableWrapper):
 
 @protected
 class SetWrapper(IterableWrapper):
-    """This is the ``Wrapper`` subclass that wraps sets.
+    """The ``Wrapper`` subclass that wraps sets.
     
     Mostly like IterableWrapper
     """
@@ -736,7 +736,7 @@ class SetWrapper(IterableWrapper):
 
 @protected
 class TextWrapper(IterableWrapper):
-    """This is the ``Wrapper`` subclass that wraps str.
+    """The ``Wrapper`` subclass that wraps str.
     
     Supports most of the regex methods as if they where native str methods
     """
@@ -780,7 +780,7 @@ def _make_reverse_operator(operator_name):
 # REFACT consider to inherit from Callable to simplify methods. On the other hand, I want as few methods on this as possible, perhaps even inheriting from Wrapper is a bad idea already.
 @protected
 class EachWrapper(object):
-    """This is the ``Wrapper`` subclass that wraps expressions (see documentation for :var:each).
+    """The ``Wrapper`` subclass that wraps expressions (see documentation for :var:each).
     """
     
     def __init__(self, operation, name):
@@ -877,7 +877,7 @@ and finally applies gets the item 'quoox' from the result. For this reason, all 
 are used, as the actual application would just continue to build up the chain on the original callable otherwise.
 
 Apply an operator like  ``each < 3`` to generate a callable that applies that operator. Different to all other cases, 
-applying an operator auto terminates the expression generator, so no unwrapping neccessary.
+applying any binary operator auto terminates the expression generator, so no unwrapping is neccessary.
 
 Note: The generated functions never wrap their arguments or return values.
 """
