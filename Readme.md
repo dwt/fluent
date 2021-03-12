@@ -98,13 +98,13 @@ or
 
 I prefer `_` for small projects and `_f` for larger projects where `gettext` is used.
 
-### Aggressive (specialized) wrapping
+### Super simple fluent chains
 
-`_` is actually the function `wrap` in the `fluentpy` module, which is a factory function that returns a subclass of Wrapper, the basic and main object of this library.
+`_` is actually the function `wrap` in the `fluentpy` module, which is a factory function that returns a subclass of `Wrapper()`. This is the basic and main object of this library.
 
 This does two things: First it ensures that every attribute access, item access or method call off of the wrapped object will also return a wrapped object. This means, once you wrap something, unless you unwrap it explicitly via `._` or `.unwrap` or `.to(a_type)` it stays wrapped - pretty much no matter what you do with it. The second thing this does is that it returns a subclass of Wrapper that has a specialized set of methods, depending on the type of what is wrapped. I envision this to expand in the future, but right now the most useful wrappers are: `IterableWrapper`, where we add all the Python collection functions (map, filter, zip, reduce, …), as well as a good batch of methods from `itertools` and a few extras for good measure. CallableWrapper, where we add `.curry()` and `.compose()` and TextWrapper, where most of the regex methods are added. 
 
-Some exaples:
+Some examples:
     
     # View documentation on a symbol without having to wrap the whole line it in parantheses
     >>> _([]).append.help()
@@ -151,6 +151,20 @@ Some exaples:
     ['foo', 'bar', 'baz']
     >>> _("foo,  bar,      baz").findall(r'\w{3}')._
     ['foo', 'bar', 'baz']
+    
+    # Embedd your own functions into call chains
+    >>> seen = set()
+    >>> def havent_seen(number):
+    ...     if number in seen:
+    ...         return False
+    ...     seen.add(number)
+    ...     return True
+    >>> (
+    ...     _([1,3,1,3,4,5,4])
+    ...     .dropwhile(havent_seen)
+    ...     .print()
+    ... )
+    (1, 3, 4, 5, 4)
 
 And much more. [Explore the method documentation for what you can do](https://fluentpy.readthedocs.io/en/latest/fluentpy/fluentpy.html).
 

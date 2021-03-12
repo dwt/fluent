@@ -252,15 +252,28 @@ class Wrapper(object):
         >>> _('foo').call(list)._ == list('foo')
         >>> _('fnord').call(textwrap.indent, prefix='  ')._ == textwrap.indent('fnord', prefix='  ')
         
-        This also allows to quickly insert a normal method into a call chain like this, if you need
-        to express a multi line computation as statements.
+        Call is mostly usefull to insert normal functions that express some algorithm into the call chain. For example like this:
+        
+        >>> seen = set()
+        >>> def havent_seen(number):
+        ...     if number in seen:
+        ...         return False
+        ...     seen.add(number)
+        ...     return True
+        >>> (
+        ...     _([1,3,1,3,4,5,4])
+        ...     .dropwhile(havent_seen)
+        ...     .print()
+        ... )
+        
+        Less obvious, it can also be used as a decorator, however the result can be confusing, so maybe not as recomended:
         
         >>> numbers = _(range(5))
         >>> @numbers.call
-        >>> def items(numbers):
-        >>>     for it in numbers:
-        >>>         yield it
-        >>>         yield it
+        ... def items(numbers):
+        ...     for it in numbers:
+        ...         yield it
+        ...         yield it
         >>> items.call(list).print()
         
         Note the difference from ``.__call__()``. This applies ``function(self, …)`` instead of ``self(…)``.
