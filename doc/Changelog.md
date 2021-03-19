@@ -2,6 +2,8 @@
 
 ## Development version
 
+## Version 2.1
+
 - `Wrapper.self` will now always go back in the chain to the base of the last call, instead of onyl when the last callable returned `None`. This should fix the possible behaviour change when methods sometimes return None and sometimes a usefull value.
 
 - Fixed inconsistencies on how `CallableWrapper.curry()` deals with too many arguments. In Python this leads to a `TypeError` - and now it does here too.
