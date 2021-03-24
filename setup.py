@@ -8,7 +8,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 setup_args = dict(
     name='fluentpy',
-    version='2.1',
+    version='2.1.1',
     description='Python wrapper for stdlib (and your) objects to give them a fluent interface.',
     long_description=open(os.path.join(here, 'Readme.md')).read(),
     long_description_content_type='text/markdown',
