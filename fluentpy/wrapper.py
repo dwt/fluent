@@ -792,7 +792,7 @@ def _make_operator(operator_name):
 reverse_operator_names = [
     '__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', 
     '__rfloordiv__', '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__', 
-    '__rrshift__', '__rand__', '__rxor__', '__ror_',
+    '__rrshift__', '__rand__', '__rxor__', '__ror__',
 ]
 
 def _make_reverse_operator(operator_name):
