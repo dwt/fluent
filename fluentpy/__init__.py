@@ -16,7 +16,7 @@ If you want / need this to be less magical, you can import the main wrapper norm
     >>> from fluentpy import wrap # or `_`, if you're not using gettext
 
 Then to use the module, wrap any value and start chaining off of it. To get started 
-lets try to inrospect `fluentpy` using its own fluent interface::
+lets try to introspect `fluentpy` using its own fluent interface::
 
     $ python3 -m fluentpy '_(_).dir().print()'
     $ python3 -m fluentpy '_(_).help()'
