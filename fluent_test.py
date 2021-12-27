@@ -461,6 +461,26 @@ class StrTest(FluentTest):
         expect(_('bazfoobar').sub(r'ba.', 'foo')._) == 'foofoofoo'
         expect(_('bazfoobar').sub(r'ba.', 'foo', 1)._) == 'foofoobar'
         expect(_('bazfoobar').sub(r'ba.', 'foo', count=1)._) == 'foofoobar'
+    
+    def test_int(self):
+        expect(_('23').int()._) == 23
+        expect(_('1010').int(2)._) == 10
+        expect(_('0b1010').int(2)._) == 10
+        expect(_('0xCAFEBABE').int(16)._) == 3405691582
+    
+    def test_float(self):
+        import math
+        expect(_('12').float()._) == 12
+        expect(_('12.2').float()._).about_equal(12.2, max_delta=.01)
+        expect(_('  12.2   ').float()._).about_equal(12.2, max_delta=.01)
+        expect(_('+12.2').float()._).about_equal(12.2, max_delta=.01)
+        expect(_('Infinity').float()._).about_equal(math.inf, max_delta=.01)
+        expect(math.isnan(_('nan').float()._)).is_true()
+    
+    def test_ord(self):
+        expect(_('a').ord()._) == 97
+        expect(_('aa')[0].ord()._) == 97
+
 
 class ImporterTest(FluentTest):
     

@@ -779,6 +779,10 @@ class TextWrapper(IterableWrapper):
     finditer = wrapped_forward(re.finditer)
     sub = wrapped_forward(re.sub, self_index=2)
     subn = wrapped_forward(re.subn, self_index=2)
+    
+    int = wrapped(int)
+    float = wrapped(float)
+    ord = wrapped(ord)
 
 def _make_operator(operator_name):
     __op__ = getattr(operator, operator_name)
