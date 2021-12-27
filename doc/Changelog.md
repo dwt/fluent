@@ -3,6 +3,7 @@
 ## Development version
 
 - Added `TextWrapper.{int, float, ord}()`, to convert strings to numbers.
+- Document integration of external libraries
 
 ## Version 2.1.1
 

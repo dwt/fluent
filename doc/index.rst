@@ -12,6 +12,7 @@ The fluent Library
    
    Narrative Documentation <Readme>
    API Documentation <fluentpy/fluentpy>
+   Integration with other libraries <Integration>
    Example Code <https://github.com/dwt/fluent/tree/master/examples>
    Changelog
 
