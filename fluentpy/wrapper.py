@@ -783,6 +783,12 @@ class TextWrapper(IterableWrapper):
     int = wrapped(int)
     float = wrapped(float)
     ord = wrapped(ord)
+    
+    # REFACT consider to add
+    # open()
+    # compile()
+    # eval()
+    # exec()
 
 def _make_operator(operator_name):
     __op__ = getattr(operator, operator_name)
