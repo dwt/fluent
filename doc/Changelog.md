@@ -2,6 +2,8 @@
 
 ## Development version
 
+- Added `TextWrapper.{int, float, ord}()`, to convert strings to numbers.
+
 ## Version 2.1.1
 
 - Fix typo in operator __ror__ that prevented it from working.
