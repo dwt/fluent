@@ -1,4 +1,6 @@
 # Before next release
+* look at rxpy https://github.com/ReactiveX/RxPY
+* Add tryout ideas that https://github.com/rochacbruno/learndynaconf is using
 * look at https://toolz.readthedocs.io/en/latest/ as it seems to do similar thinigs to what I do
 * travis and backport to pythons it's easy to backport
     * 3.5 would be possible if I can go without f-strings (possible) and without the ordered dict on curry (or maybe without overpowered curry)
@@ -17,6 +19,8 @@
 * consider to have something on _.each that allows to turn it into a Wrapper to chain off of (as this would allow to use .call() to call it as the argument of something)
 
 # Bunch of Ideas
+
+* Consider adding support for `|` as an alternative shorthand to `.call()`. That would allow `_(1) | float | print`. Not yet entirely sure this is a good idea - as it might even be an entirely diffferent syntax by which to use fluentpy. But is it really so helpfull? For example, how do you convert that pipe stream back to a normal object without enclosing the whole thing in parantheses?
 
 Consider allowing curry to take expressions as baked arguments that allow to transform arguments via _.each expressions?
 
