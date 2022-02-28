@@ -40,7 +40,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.inheritance_diagram',
-    'recommonmark',
+    'myst_parser',
 ]
 
 source_parsers = {

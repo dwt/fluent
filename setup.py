@@ -48,7 +48,8 @@ setup_args = dict(
         'docs': [
             'sphinx >= 1.8.3',
             'sphinx-rtd-theme >= 0.4.2',
-            'recommonmark >= 0.5.0',
+            'myst-parser',
+            'sphinx-autobuild',
         ],
     },
 )
