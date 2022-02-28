@@ -40,7 +40,6 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.inheritance_diagram',
-    'autoapi.sphinx',
     'recommonmark',
 ]
 
@@ -94,10 +93,6 @@ todo_include_todos = False
 
 autodoc_member_order = 'bysource'
 # autoclass_content = 'class' #'both'
-
-# -- AutoAPI --------------------------------------------------------------
-
-autoapi_modules = {'fluentpy': None}
 
 # -- Options for HTML output ----------------------------------------------
 
