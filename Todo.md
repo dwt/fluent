@@ -1,13 +1,24 @@
-# Before next release
-* look at rxpy https://github.com/ReactiveX/RxPY
+# TODOs and future direcrtons
+
+This is where I assemble my thinking about future directions of this library. I also highly welcome discussion (and pull requests, after a short discussion) for everything mentioned in this document.
+
+## Before next release
+
+* Rework documentation
+  * rework all documentation to be in markdown
+  * Adopt [Diátaxis](https://diataxis.fr) and start separating out Tutorials, How Tos, Explanation and Reference
+    * Some HowTos I envision: How to use fluentpy in shell one liners
+    * How to explore an API with fluentpy
+    * How to explore an API with fluentpy, Rich and objexplore
+    * How to embedd your own free functions into fluent pipelines
+    * How to integrate shell scripts into fluent pipelines
+  * look at rxpy https://github.com/ReactiveX/RxPY
 * Add tryout ideas that https://github.com/rochacbruno/learndynaconf is using
 * look at https://toolz.readthedocs.io/en/latest/ as it seems to do similar thinigs to what I do
 * travis and backport to pythons it's easy to backport
-    * 3.5 would be possible if I can go without f-strings (possible) and without the ordered dict on curry (or maybe without overpowered curry)
-
 * integrate introspection methods better CallableWrapper.signature(), ...
 * would really like to have a helper that gives me the type structure of someting, to make it easier to reason about
-    * i.e. {0: [[func1, func2], [func1,funce]]} -> dict[int, list[list[function]]]
+  * i.e. {0: [[func1, func2], [func1,funce]]} -> dict[int, list[list[function]]]
 
 * would be cool to have a way to get from _.each to _(_.each) to be able to chain from there. Not sure how that would / should be terminated though.
 * Simplify curry, so it mostly only does what functools.partial does, and factor out the wild reordering stuff into it's own method `.adapt_signature` or something similar. This should also simplify / allow porting to python 3.5
@@ -18,7 +29,9 @@
 
 * consider to have something on _.each that allows to turn it into a Wrapper to chain off of (as this would allow to use .call() to call it as the argument of something)
 
-# Bunch of Ideas
+## Bunch of Ideas
+
+* Ask the guy who wrote a book about fluentpy if I can use his examples as a tutorial
 
 * Consider adding support for `|` as an alternative shorthand to `.call()`. That would allow `_(1) | float | print`. Not yet entirely sure this is a good idea - as it might even be an entirely diffferent syntax by which to use fluentpy. But is it really so helpfull? For example, how do you convert that pipe stream back to a normal object without enclosing the whole thing in parantheses?
 
@@ -66,7 +79,7 @@ IterableWrapper.list(), IterableWrapper.tuple(), IterableWrapper.dict(), Iterabl
 consider if it is possible to monkey-patch object to add a '_' property to start chaining off of it?
 
 Docs
-    Check all methods have a docstring
+    Check all methods have a docstring (especially, why do some stdlib ones do not have docstrings?)
     Check all the methods from itertools are forwarded where sensible
     Consider using http://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html for more readable docstrings
     Use doctest to keep the code examples healthy
@@ -83,25 +96,26 @@ Set build server with different python versions on one of the public build serve
 Curry: consider supporting turning keyword argumnents into positional arguments (the other way around already works)
 
 Consider Number wrapper that allows calling stuff like itertools.count, construct ranges, stuff like that
-consider numeric type to do stuff like wrap(3).times(...)
-    or wrap([1,2,3]).call(len).times(yank_me)
+consider numeric type to do stuff like wrap(3).times(...) or wrap([1,2,3]).call(len).times(yank_me)
 
 Consider bool wrapper, that allows creating operator versions of if_(), else_(), elsif_(), not_(), ...
 
 add CallableWrapper.vectorize() similar to how it works in numpy - not sure this is actually sensible? Interesting experiment
-    # vectorize is much like curry
-    # possible to reuse placeholders
-    # if wanted, could integrate vectorization in curry
-    # own method might be cleaner?
-    # could save signature transformation and execute it in call
-    # or just wrap a specialized wrapped callable?
-    # signature transformation specification?
-    # should allow to describe as much of the broadcasting rules of numpy
-    # ideally compatible to the point where a vectorization can meaningfully work with np.vectorize
-    # 
-    # _.map()? 
-    # def vectorize(self, *args, **kwargs):
-    #     pass
+```python
+# vectorize is much like curry
+# possible to reuse placeholders
+# if wanted, could integrate vectorization in curry
+# own method might be cleaner?
+# could save signature transformation and execute it in call
+# or just wrap a specialized wrapped callable?
+# signature transformation specification?
+# should allow to describe as much of the broadcasting rules of numpy
+# ideally compatible to the point where a vectorization can meaningfully work with np.vectorize
+# 
+# _.map()? 
+# def vectorize(self, *args, **kwargs):
+#     pass
+```
 
 Consider replacing all placeholders by actually unique objects
 
@@ -120,9 +134,11 @@ support _.if()
 
 example why list comprehension is really bad (Found in zope unit tests)
 
+```python
 def u7(x):
     stuff = [i + j for toplevel, in x for i, j in toplevel]
     assert stuff == [3, 7]
+```
 
 add itertools and collections methods where it makes sense
 
