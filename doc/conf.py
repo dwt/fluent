@@ -19,6 +19,8 @@
 
 import os
 import sys
+from datetime import date
+
 # sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('..'))
 
@@ -58,16 +60,16 @@ source_suffix = ['.rst', '.md']
 master_doc = 'index'
 
 # General information about the project.
-project = 'fluent'
-copyright = '2017, Martin Häcker'
-author = 'Martin Häcker'
+from setup import setup_args
+project = setup_args['name']
+copyright = '%d, %s' % (date.today().year, setup_args['author'])
+author = setup_args['author']
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-from setup import setup_args
 version = setup_args['version']
 # The full version, including alpha/beta/rc tags.
 release = setup_args['version']
