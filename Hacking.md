@@ -1,21 +1,31 @@
-# How to execute the unit tests
+
+# How to work on fluenpty
+
+## Execute the unit tests
 
     ./setup.py test -q
 
 or `pytest` or `tox` (to test all supported python versions).
 
-# How to generate the documentation
+## Generate the documentation
 
     cd docs; make clean html
 
-# How to send patches
+or
 
-Pull requests with unit tests please.
+    sphinx-autobuild doc doc/_build/html
+
+to work on it while it live updates
+
+## Send patches
+
+Pull requests with unit tests please. Bonus points if you add release notes.
 
 Please note that this project practices [Semantic Versioning](https://semver.org) and [Dependable API Evolution](https://github.com/dwt/Dependable_API_Evolution)
 
-# Release checklist
-- Tests run at least in python 3.6-3.9
+## Release checklist
+
+- Tests run at least in all supported versions of python. Use `tox`
 - Increment version
 - Update Changelog
 - build with $ ./setup.py sdist bdist_wheel

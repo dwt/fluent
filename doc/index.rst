@@ -15,6 +15,7 @@ The fluent Library
    Integration with other libraries <Integration>
    Example Code <https://github.com/dwt/fluent/tree/master/examples>
    Todos and future directions <Todo>
+   How to work on fluentpy <Hacking>
    Changelog
 
 
