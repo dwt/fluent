@@ -1,15 +1,15 @@
 # Changelog
 
-## Development version
+## Development
 
 - Added `TextWrapper.{int, float, ord}()`, to convert strings to numbers.
 - Document integration of external libraries
 
-## Version 2.1.1
+## 2.1.1
 
 - Fix typo in operator __ror__ that prevented it from working.
 
-## Version 2.1
+## 2.1
 
 - `Wrapper.self` will now always go back in the chain to the base of the last call, instead of onyl when the last callable returned `None`. This should fix the possible behaviour change when methods sometimes return None and sometimes a usefull value.
 
@@ -19,7 +19,7 @@
 
 - Add `__rmul__` and friends support on `_._each`to allow expressions like `4 % _._each` to work.
 
-## Version 2.0
+## 2.0
 
 ### Breaking changes
 
