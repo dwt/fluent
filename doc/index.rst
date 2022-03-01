@@ -12,7 +12,7 @@ The fluent Library
    Narrative Documentation <Readme>
    API Documentation <fluentpy/fluentpy>
    Integration.md
-   Example Code <https://github.com/dwt/fluent/tree/master/examples>
+   Live Example Code to play with <https://mybinder.org/v2/gh/dwt/fluent/HEAD?labpath=%2Fexamples%2Faoc2018%2Ffluentpy.ipynb>
    Todo.md
    Hacking.md
    Changelog.md

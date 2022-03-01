@@ -1,4 +1,4 @@
-# TODOs and future direcrtons
+# TODOs and future directions
 
 This is where I assemble my thinking about future directions of this library. I also highly welcome discussion (and pull requests, after a short discussion) for everything mentioned in this document.
 
