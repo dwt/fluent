@@ -7,16 +7,15 @@ The fluent Library
 ==================
 
 .. toctree::
-   :numbered:
    :caption: For more information see:
    
    Narrative Documentation <Readme>
    API Documentation <fluentpy/fluentpy>
-   Integration with other libraries <Integration>
+   Integration.md
    Example Code <https://github.com/dwt/fluent/tree/master/examples>
-   Todos and future directions <Todo>
-   How to work on fluentpy <Hacking>
-   Changelog
+   Todo.md
+   Hacking.md
+   Changelog.md
 
 
 Project Matters
@@ -32,10 +31,10 @@ Project Matters
     :alt: Documentation Status
 
 
-What problem does fluent solve
-------------------------------
+What problem does fluentpy solve
+--------------------------------
 
-The fluent library is a syntactic sugar library for Python. It allows you to write more things as expressions, which traditionally require statements in Python. The goal is to allow writing beautiful fluent code with the standard library or your classes, as defined at https://en.wikipedia.org/wiki/Fluent_interface.
+This library is a syntactic sugar library for Python. It allows you to write more things as expressions, which traditionally require statements in Python. The goal is to allow writing beautiful fluent code with the standard library or your classes, as defined at https://en.wikipedia.org/wiki/Fluent_interface.
 
 Quick Start
 -----------
