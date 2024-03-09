@@ -31,6 +31,12 @@ This is where I assemble my thinking about future directions of this library. I 
 
 ## Bunch of Ideas
 
+* filename.open().read().close() irgendwie unterstützen?
+	* vielleicht in etwa wie filename.open().read().last[0].close().last[2]._
+	* vielleicht in etwa wie filename.open().read().last.close().last._
+	* vielleicht in etwa wie filename.open().read().back.close().last[2]._
+	* geht das überhaUpt, ohne das die history zu einem array like wird?
+
 * Ask the guy who wrote a book about fluentpy if I can use his examples as a tutorial
 
 * Consider adding support for `|` as an alternative shorthand to `.call()`. That would allow `_(1) | float | print`. Not yet entirely sure this is a good idea - as it might even be an entirely diffferent syntax by which to use fluentpy. But is it really so helpfull? For example, how do you convert that pipe stream back to a normal object without enclosing the whole thing in parantheses?
