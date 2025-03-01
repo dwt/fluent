@@ -1,16 +1,12 @@
 version: 2
 jobs:
-  py3.6: &py
+  py3.7: &py
     docker:
-      - image: python:3.6
+      - image: python:3.7
     steps:
       - checkout
       - run: pip install -e '.[tests]'
       - run: pytest
-  py3.7:
-    <<: *py
-    docker:
-      - image: python:3.7
   py3.8:
     <<: *py
     docker:
@@ -40,7 +36,6 @@ workflows:
   version: 2
   all:
     jobs:
-      - py3.6
       - py3.7
       - py3.8
       - py3.9
