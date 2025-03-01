@@ -18,7 +18,7 @@ pkgs.mkShell {
     unset PYTHONPATH
     export UV_PYTHON_DOWNLOADS=never
     export UV_PYTHON=$(which python3.13)
-    uv sync
-    source ./venv/bin/activate
+    uv sync --all-extras
+    source .venv/bin/activate
   '';
 }
