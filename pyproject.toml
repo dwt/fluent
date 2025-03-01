@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fluentpy"
+version = "2.1.1"
+description = "Python wrapper for stdlib (and your) objects to give them a fluent interface."
+readme = "Readme.md"
+authors = [{ name = "Martin Häcker", email = "mhaecker@mac.com" }]
+license = { text = "ISC" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Utilities",
+    "License :: OSI Approved :: ISC License (ISCL)",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["wrapper", "smalltalk", "ruby", "fluent", "interface", "functional"]
+requires-python = ">=3.6"
+
+[project.urls]
+Homepage = "https://github.com/dwt/fluent"
+Documentation = "https://fluentpy.readthedocs.io/"
+
+[tool.setuptools]
+packages = ["fluentpy"]
+include-package-data = true
+
+[tool.setuptools.exclude-package-data]
+"*" = ["*.tests"]
+
+[project.optional-dependencies]
+tests = ["pyexpect", "pytest"]
+docs = [
+    "sphinx >= 1.8.3",
+    "sphinx-rtd-theme >= 0.4.2",
+    "myst-parser",
+    "sphinx-autobuild",
+]
+
+[tool.pytest]
+testpaths = ["fluent_test.py"]
+dev = ["twine"]

@@ -3,9 +3,13 @@
 
 ## Execute the unit tests
 
-    ./setup.py test -q
+    uv run pytest fluent_test.py
 
-or `pytest` or `tox` (to test all supported python versions).
+or use tox to test all supported python versions
+
+    nix-shell
+    uv tool install tox --with tox-uv
+    tox
 
 ## Generate the documentation
 
@@ -34,4 +38,3 @@ Please note that this project practices [Semantic Versioning](https://semver.org
 - Tag release
 - Push git tags
 - upload to pypi as required $ twine upload dist/fluentpy-*
-
