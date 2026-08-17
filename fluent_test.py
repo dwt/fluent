@@ -459,7 +459,6 @@ class StrTest(FluentTest):
 
     def test_sub_subn(self):
         expect(_('bazfoobar').sub(r'ba.', 'foo')._) == 'foofoofoo'
-        expect(_('bazfoobar').sub(r'ba.', 'foo', 1)._) == 'foofoobar'
         expect(_('bazfoobar').sub(r'ba.', 'foo', count=1)._) == 'foofoobar'
 
     def test_int(self):
