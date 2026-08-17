@@ -19,7 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 keywords = ["wrapper", "smalltalk", "ruby", "fluent", "interface", "functional"]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 
 [project.urls]
 Homepage = "https://github.com/dwt/fluent"
@@ -33,7 +33,7 @@ include-package-data = true
 "*" = ["*.tests"]
 
 [project.optional-dependencies]
-tests = ["pyexpect", "pytest"]
+tests = ["pyexpect", "pytest", "tox", "tox-uv"]
 docs = [
     "sphinx >= 1.8.3",
     "sphinx-rtd-theme >= 0.4.2",
