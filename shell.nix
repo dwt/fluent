@@ -4,11 +4,10 @@
 
 pkgs.mkShell {
   buildInputs = with pkgs; [
-    python39
-    python310
     python311
     python312
     python313
+    python314
     pypy3
     uv
     git
@@ -17,7 +16,7 @@ pkgs.mkShell {
   shellHook = ''
     unset PYTHONPATH
     export UV_PYTHON_DOWNLOADS=never
-    export UV_PYTHON=$(which python3.13)
+    export UV_PYTHON=$(which python3.14)
     uv sync --all-extras
     source .venv/bin/activate
   '';
