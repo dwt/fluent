@@ -43,4 +43,3 @@ docs = [
 
 [tool.pytest]
 testpaths = ["fluent_test.py"]
-dev = ["twine"]
